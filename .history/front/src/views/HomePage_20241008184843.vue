@@ -55,7 +55,7 @@ export default {
 
 
 .common-layout > .el-container > .el-container > .el-header {
-    height: 5%; /* 固定 Header 的高度 */
+    height: 7%; /* 固定 Header 的高度 */
     margin: 0px;
 }
 

@@ -2,14 +2,14 @@
     <div class="common-layout">
         <el-container> 
             <!-- 侧边栏 -->
-            <el-aside class="fixed-aside">
+            <el-aside width="180px">
                 <common-aside></common-aside>
             </el-aside>
 
             <!-- 右侧内容，Header 和 Main 为上下布局 -->
             <el-container direction="vertical">
                 <!-- Header 部分 -->
-                <el-header>
+                <el-header height="60px">
                     <common-header></common-header>
                 </el-header>
 
@@ -39,29 +39,24 @@ export default {
     height: 100vh; /* 设置整体布局占满整个视口高度 */
 }
 
-.fixed-aside {
-  background-color: #ffffff;
-  color: #333;
-  height: calc(100vh);
-  overflow-y: auto;
-  width: auto;
-  max-width: 200px;
-  border-radius: 20px 0px 0px 20px;
-}
-
 .common-layout > .el-container {
     height: 100%;
 }
 
+.common-layout > .el-container > .el-aside {
+    background-color: #f2f2f3;
+    height: 100%;
+}
 
 .common-layout > .el-container > .el-container > .el-header {
-    height: 5%; /* 固定 Header 的高度 */
-    margin: 0px;
+    background-color: #f5f5f5;
+    padding: 0 20px;
+    height: 60px; /* 固定 Header 的高度 */
 }
 
 .common-layout > .el-container > .el-container > .el-main {
+    padding: 20px;
     background-color: #fff;
-    height: calc(100vh - 5%); /* Main 高度等于视口高度减去 Header 的高度 */
-    margin: 0px;
+    height: calc(100vh - 60px); /* Main 高度等于视口高度减去 Header 的高度 */
 }
 </style>

@@ -9,7 +9,7 @@
             <!-- 右侧内容，Header 和 Main 为上下布局 -->
             <el-container direction="vertical">
                 <!-- Header 部分 -->
-                <el-header>
+                <el-header height="60px">
                     <common-header></common-header>
                 </el-header>
 
@@ -53,15 +53,20 @@ export default {
     height: 100%;
 }
 
+.common-layout > .el-container > .el-aside {
+    background-color: #f2f2f3;
+    height: 100%;
+}
 
 .common-layout > .el-container > .el-container > .el-header {
-    height: 5%; /* 固定 Header 的高度 */
-    margin: 0px;
+    background-color: #f5f5f5;
+    padding: 0 20px;
+    height: 60px; /* 固定 Header 的高度 */
 }
 
 .common-layout > .el-container > .el-container > .el-main {
+    padding: 20px;
     background-color: #fff;
-    height: calc(100vh - 5%); /* Main 高度等于视口高度减去 Header 的高度 */
-    margin: 0px;
+    height: calc(100vh - 60px); /* Main 高度等于视口高度减去 Header 的高度 */
 }
 </style>
