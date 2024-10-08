@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import UserLogin from '@/components/UserlLogin.vue';
+import HomePage from '@/views/HomePage.vue';
 
 
 const routes = [
@@ -7,6 +8,11 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: UserLogin
+  },
+  {
+    path: '/home',  // 新增的导航页面路由
+    name: 'Home',
+    component: HomePage
   }
 ];
 
