@@ -54,7 +54,7 @@ const logout = () => {
   justify-content: space-between;
   padding: 0 20px;
   background-color: #ffffff;
-  border-bottom: #f5f5f5 1px solid;
+
   align-items: center;
 }
 

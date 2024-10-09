@@ -8,7 +8,7 @@
       </el-breadcrumb>
     </div>
     <!-- 中间的水平菜单 -->
-    <el-menu mode="horizontal" :ellipsis="false"  class="horizontal-menu">
+    <el-menu mode="horizontal"  class="horizontal-menu">
       <el-menu-item index="1">Home</el-menu-item>
       <el-menu-item index="2">About</el-menu-item>
       <el-menu-item index="3">Services</el-menu-item>
@@ -53,8 +53,8 @@ const logout = () => {
   display: flex;
   justify-content: space-between;
   padding: 0 20px;
-  background-color: #ffffff;
-  border-bottom: #f5f5f5 1px solid;
+  background-color: #f5f5f5;
+
   align-items: center;
 }
 

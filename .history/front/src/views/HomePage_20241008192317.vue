@@ -54,7 +54,13 @@
     height: 100%;
   }
   
-
+  .common-layout > .el-container > .el-container > .el-header {
+    height: 5%; /* 固定 Header 的高度 */
+    padding: 0;
+    background-color: #ffffff;
+    /* line-height: 5%; 让内容在 Header 内居中显示 */
+    border: #bd2424 3px solid;
+  }
   
   .common-layout > .el-container > .el-container > .el-main {
     background-color: #fff;
