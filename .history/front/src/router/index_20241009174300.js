@@ -12,11 +12,11 @@ const routes = [
     name: 'Login',
     component: UserLogin
   },
-  // {
-  //   path: '/home',  // 新增的导航页面路由
-  //   name: 'Home',
-  //   component: HomePage
-  // },
+  {
+    path: '/home',  // 新增的导航页面路由
+    name: 'Home',
+    component: HomePage
+  },
   {
     path: '/testplan',
     name: 'TestPlan',
@@ -30,7 +30,7 @@ const routes = [
   {
     path: '/apimanage',
     name: 'Apimanage',
-    component: ApiManagePage, // 添加 ApiManagePage 的路由
+    component: ApiManagePage, // 添加 OverviewPage 的路由
   },
 ];
 

@@ -15,8 +15,8 @@
         {{ isCollapse ? "展开" : "折叠" }}
       </el-button>
       <el-menu-item 
-        v-for="item in menuItems"
-        :key="item.index"
+        v-for="item in menuItems" 
+        :key="item.index" 
         :index="item.index"
         @click="setActiveMenu(item.index)"
       >

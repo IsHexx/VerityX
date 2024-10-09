@@ -12,11 +12,11 @@ const routes = [
     name: 'Login',
     component: UserLogin
   },
-  // {
-  //   path: '/home',  // 新增的导航页面路由
-  //   name: 'Home',
-  //   component: HomePage
-  // },
+  {
+    path: '/home',  // 新增的导航页面路由
+    name: 'Home',
+    component: HomePage
+  },
   {
     path: '/testplan',
     name: 'TestPlan',

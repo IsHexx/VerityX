@@ -3,20 +3,19 @@ import UserLogin from '@/components/UserlLogin.vue';
 import HomePage from '@/views/HomePage.vue';
 import TestPlanPage from '@/views/TestManage/TestPlanPage.vue';
 import OverviewPage from '@/views/TestManage/OverviewPage.vue';
-import ApiManagePage from '@/views/ApiTest/ApiManagePage.vue';
 
-ApiManagePage
+
 const routes = [
   {
     path: '/login',
     name: 'Login',
     component: UserLogin
   },
-  // {
-  //   path: '/home',  // 新增的导航页面路由
-  //   name: 'Home',
-  //   component: HomePage
-  // },
+  {
+    path: '/home',  // 新增的导航页面路由
+    name: 'Home',
+    component: HomePage
+  },
   {
     path: '/testplan',
     name: 'TestPlan',
@@ -26,11 +25,6 @@ const routes = [
     path: '/overview',
     name: 'Overview',
     component: OverviewPage, // 添加 OverviewPage 的路由
-  },
-  {
-    path: '/apimanage',
-    name: 'Apimanage',
-    component: ApiManagePage, // 添加 ApiManagePage 的路由
   },
 ];
 

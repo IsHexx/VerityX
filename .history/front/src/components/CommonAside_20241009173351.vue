@@ -15,8 +15,8 @@
         {{ isCollapse ? "展开" : "折叠" }}
       </el-button>
       <el-menu-item 
-        v-for="item in menuItems"
-        :key="item.index"
+        v-for="item in menuItems" 
+        :key="item.index" 
         :index="item.index"
         @click="setActiveMenu(item.index)"
       >
@@ -35,7 +35,7 @@ import {
   Notification,
   Setting,
 } from "@element-plus/icons-vue";
-import { useMenuStore } from '@/store/menuStore';
+import { useMenuStore } from './menuStore';
 
 const { menuItems, activeMainMenu, setActiveMenu, initializeActiveMenu } = useMenuStore();
 

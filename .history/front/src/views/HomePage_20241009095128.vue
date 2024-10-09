@@ -3,7 +3,7 @@
       <el-container>
         <!-- 侧边栏 -->
         <el-aside class="fixed-aside">
-          <common-aside></common-aside>
+            <common-aside :activeMenu="activeMenu" @menuSelect="handleMenuSelect"></common-aside>
         </el-aside>
   
         <!-- 右侧内容，Header 和 Main 为上下布局 -->
@@ -11,12 +11,12 @@
           <!-- Header 部分 -->
           <el-header>
             <!-- 引用 CommonHeader -->
-            <common-header></common-header>
+            <common-header :activeMenu="activeMenu" @menuSelect="handleMenuSelect"></common-header>
           </el-header>
   
           <!-- Main 部分 -->
           <el-main>
-            <router-view></router-view>
+            Main Content
           </el-main>
         </el-container>
       </el-container>
@@ -33,6 +33,13 @@
       CommonHeader,
     },
   };
+  // 当前选中的菜单项，父组件管理选中状态
+const activeMenu = ref('1');
+
+// 处理菜单选择
+const handleMenuSelect = (index) => {
+  activeMenu.value = index;
+};
   </script>
   
   <style scoped>

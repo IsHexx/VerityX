@@ -54,15 +54,12 @@ export default {
   height: 100%;
 }
 
+
+
 .common-layout > .el-container > .el-container > .el-main {
   background-color: #fff;
-  height: calc(100vh - 7%); /* Main 高度等于视口高度减去 Header 的高度 */
+  height: calc(100vh - 6%); /* Main 高度等于视口高度减去 Header 的高度 */
   margin-top: 20px;
   padding: 20px;
-}
-
-* {
-  margin: 0;
-  padding: 0;
 }
 </style>

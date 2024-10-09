@@ -16,7 +16,7 @@
   
           <!-- Main 部分 -->
           <el-main>
-            <router-view></router-view>
+            Main Content
           </el-main>
         </el-container>
       </el-container>

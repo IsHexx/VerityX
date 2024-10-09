@@ -1,7 +1,7 @@
 <template>
   <div class="aside">
     <el-menu
-      :default-active="activeMainMenu"
+      default-active="2"
       class="el-menu-vertical-demo"
       :collapse="isCollapse"
       @open="handleOpen"
@@ -14,32 +14,37 @@
       >
         {{ isCollapse ? "展开" : "折叠" }}
       </el-button>
-      <el-menu-item 
-        v-for="item in menuItems"
-        :key="item.index"
-        :index="item.index"
-        @click="setActiveMenu(item.index)"
-      >
-        <el-icon><component :is="item.icon" /></el-icon>
-        <template #title>{{ item.title }}</template>
+      <el-menu-item  index="1">
+        <el-icon><House /></el-icon>
+        <template #title>测试管理</template>
+      </el-menu-item>
+      <el-menu-item index="2">
+        <el-icon><Notification /></el-icon>
+        <template #title>接口测试</template>
+      </el-menu-item>
+      <el-menu-item index="3">
+        <el-icon><Edit /></el-icon>
+        <template #title>UI测试</template>
+      </el-menu-item>
+      <el-menu-item index="4">
+        <el-icon><setting /></el-icon>
+        <template #title>系统设置</template>
       </el-menu-item>
     </el-menu>
   </div>
 </template>
-
-<script setup>
-import { ref, onMounted } from "vue";
+  
+  <script  setup>
+import { ref } from "vue";
 import {
   Menu as House,
   Edit,
   Notification,
   Setting,
 } from "@element-plus/icons-vue";
-import { useMenuStore } from '@/store/menuStore';
-
-const { menuItems, activeMainMenu, setActiveMenu, initializeActiveMenu } = useMenuStore();
 
 const isCollapse = ref(true);
+
 const toggleCollapse = () => {
   isCollapse.value = !isCollapse.value;
 };
@@ -49,10 +54,6 @@ const handleOpen = (key) => {
 const handleClose = (key) => {
   console.log(key);
 };
-
-onMounted(() => {
-  initializeActiveMenu();
-});
 </script>
   
   <style>

@@ -8,20 +8,11 @@
       </el-breadcrumb>
     </div>
     <!-- 中间的水平菜单 -->
-    <el-menu 
-      mode="horizontal" 
-      :ellipsis="false"  
-      class="horizontal-menu"
-      :default-active="activeSubMenu"
-    >
-      <el-menu-item 
-        v-for="item in currentSubMenus" 
-        :key="item.index" 
-        :index="item.index"
-        @click="setActiveMenu(activeMainMenu, item.index)"
-      >
-        {{ item.title }}
-      </el-menu-item>
+    <el-menu mode="horizontal" :ellipsis="false"  class="horizontal-menu" >
+      <el-menu-item index="1">Home</el-menu-item>
+      <el-menu-item index="2">About</el-menu-item>
+      <el-menu-item index="3">Services</el-menu-item>
+      <el-menu-item index="4">Contact</el-menu-item>
     </el-menu>
 
     <!-- 导航栏右侧内容 -->
@@ -45,13 +36,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useMenuStore } from '@/store/menuStore';
+import { ref } from 'vue';
 
-const { activeMainMenu, activeSubMenu, currentSubMenus, setActiveMenu, initializeActiveMenu } = useMenuStore();
-
-console.log('activeSubMenu:', activeSubMenu)
-console.log('currentSubMenus:', currentSubMenus)
 // 模拟用户名
 const username = ref('John Doe');
 
@@ -60,10 +46,6 @@ const logout = () => {
   console.log('Logout clicked');
   // 在此处处理退出登录的逻辑
 };
-
-onMounted(() => {
-  initializeActiveMenu();
-});
 </script>
 
 <style scoped>

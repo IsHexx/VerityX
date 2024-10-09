@@ -46,12 +46,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useMenuStore } from '@/store/menuStore';
+import { useMenuStore } from './menuStore';
 
 const { activeMainMenu, activeSubMenu, currentSubMenus, setActiveMenu, initializeActiveMenu } = useMenuStore();
 
-console.log('activeSubMenu:', activeSubMenu)
-console.log('currentSubMenus:', currentSubMenus)
+
 // 模拟用户名
 const username = ref('John Doe');
 

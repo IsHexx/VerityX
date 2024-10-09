@@ -14,15 +14,30 @@
       >
         {{ isCollapse ? "展开" : "折叠" }}
       </el-button>
-      <el-menu-item 
-        v-for="item in menuItems"
-        :key="item.index"
-        :index="item.index"
-        @click="setActiveMenu(item.index)"
-      >
-        <el-icon><component :is="item.icon" /></el-icon>
-        <template #title>{{ item.title }}</template>
-      </el-menu-item>
+      <div v-for="item in menuItems" :key="item.index">
+        <el-sub-menu v-if="item.subMenus && item.subMenus.length > 0" :index="item.index">
+          <template #title>
+            <el-icon><component :is="item.icon" /></el-icon>
+            <span>{{ item.title }}</span>
+          </template>
+          <el-menu-item 
+            v-for="subItem in item.subMenus" 
+            :key="subItem.index" 
+            :index="subItem.index"
+            @click="setActiveMenu(item.index, subItem.index)"
+          >
+            {{ subItem.title }}
+          </el-menu-item>
+        </el-sub-menu>
+        <el-menu-item 
+          v-else
+          :index="item.index"
+          @click="setActiveMenu(item.index)"
+        >
+          <el-icon><component :is="item.icon" /></el-icon>
+          <template #title>{{ item.title }}</template>
+        </el-menu-item>
+      </div>
     </el-menu>
   </div>
 </template>
@@ -54,17 +69,3 @@ onMounted(() => {
   initializeActiveMenu();
 });
 </script>
-  
-  <style>
-.aside {
-  background-color: #ffffff;
-}
-.el-menu-vertical-demo:not(.el-menu--collapse) {
-  width: 100%;
-  height: 100%; /* 确保菜单占据整个父容器高度 */
-  /*overflow-y: clip; !* 使菜单内容滚动 *!*/
-  /* min-height: 400px; */
-  background-color: #ffffff;
-}
-</style>
-  

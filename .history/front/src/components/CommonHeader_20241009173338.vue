@@ -50,8 +50,7 @@ import { useMenuStore } from '@/store/menuStore';
 
 const { activeMainMenu, activeSubMenu, currentSubMenus, setActiveMenu, initializeActiveMenu } = useMenuStore();
 
-console.log('activeSubMenu:', activeSubMenu)
-console.log('currentSubMenus:', currentSubMenus)
+
 // 模拟用户名
 const username = ref('John Doe');
 

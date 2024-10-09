@@ -12,25 +12,25 @@ const routes = [
     name: 'Login',
     component: UserLogin
   },
-  // {
-  //   path: '/home',  // 新增的导航页面路由
-  //   name: 'Home',
-  //   component: HomePage
-  // },
   {
-    path: '/testplan',
+    path: '/home',  // 新增的导航页面路由
+    name: 'Home',
+    component: HomePage
+  },
+  {
+    path: '/home/testplan',
     name: 'TestPlan',
     component: TestPlanPage, // 添加 TestPlanPage 的路由
   },
   {
-    path: '/overview',
+    path: '/home/overview',
     name: 'Overview',
     component: OverviewPage, // 添加 OverviewPage 的路由
   },
   {
     path: '/apimanage',
     name: 'Apimanage',
-    component: ApiManagePage, // 添加 ApiManagePage 的路由
+    component: ApiManagePage, // 添加 OverviewPage 的路由
   },
 ];
 
