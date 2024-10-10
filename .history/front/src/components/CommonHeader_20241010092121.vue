@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted , watch} from 'vue';
+import { ref, onMounted } from 'vue';
 import { useMenuStore } from '@/store/menuStore';
 
 const { activeMainMenu, activeSubMenu, currentSubMenus, setActiveMenu, initializeActiveMenu } = useMenuStore();
@@ -60,11 +60,6 @@ const logout = () => {
   console.log('Logout clicked');
   // 在此处处理退出登录的逻辑
 };
-// 监听 activeMainMenu 的变化
-watch(activeMainMenu, () => {
-  console.log('activeMainMenu changed:', activeMainMenu.value);
-  console.log('currentSubMenus:', currentSubMenus.value);
-});
 
 onMounted(() => {
   initializeActiveMenu();

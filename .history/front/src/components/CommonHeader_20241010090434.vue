@@ -15,7 +15,7 @@
       :default-active="activeSubMenu"
     >
       <el-menu-item 
-        v-for="item in currentSubMenus" 
+        v-for="item in subMenus" 
         :key="item.index" 
         :index="item.index"
         @click="setActiveMenu(activeMainMenu, item.index)"
@@ -45,13 +45,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted , watch} from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useMenuStore } from '@/store/menuStore';
 
-const { activeMainMenu, activeSubMenu, currentSubMenus, setActiveMenu, initializeActiveMenu } = useMenuStore();
+const props = defineProps({
+  subMenus: {
+    type: Array,
+    default: () => []
+  }
+});
 
-console.log('activeSubMenu:', activeSubMenu)
-console.log('currentSubMenus:', activeSubMenu)
+const { activeMainMenu, activeSubMenu, setActiveMenu, initializeActiveMenu } = useMenuStore();
+
 // 模拟用户名
 const username = ref('John Doe');
 
@@ -60,14 +65,13 @@ const logout = () => {
   console.log('Logout clicked');
   // 在此处处理退出登录的逻辑
 };
-// 监听 activeMainMenu 的变化
-watch(activeMainMenu, () => {
-  console.log('activeMainMenu changed:', activeMainMenu.value);
-  console.log('currentSubMenus:', currentSubMenus.value);
-});
 
 onMounted(() => {
   initializeActiveMenu();
+});
+
+watch(() => props.subMenus, (newVal) => {
+  console.log('顶部菜单更新:', newVal);
 });
 </script>
 

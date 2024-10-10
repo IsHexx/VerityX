@@ -35,7 +35,7 @@ import {
   Notification,
   Setting,
 } from "@element-plus/icons-vue";
-import { useMenuStore } from '../store/menuStore';
+import { useMenuStore } from './menuStore';
 
 const { menuItems, activeMainMenu, setActiveMenu, initializeActiveMenu } = useMenuStore();
 

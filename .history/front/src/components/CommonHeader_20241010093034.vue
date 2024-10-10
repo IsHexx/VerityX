@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted , watch} from 'vue';
+import { ref, onMounted } from 'vue';
 import { useMenuStore } from '@/store/menuStore';
 
 const { activeMainMenu, activeSubMenu, currentSubMenus, setActiveMenu, initializeActiveMenu } = useMenuStore();
