@@ -44,29 +44,38 @@ export const useMenuStore = () => {
 
   const activeMainMenu = ref(menuItems[0].index)
   const activeSubMenu = ref(menuItems[0].subMenus[0]?.index || '')
-
+  console.log('默认激活的菜单是:', activeSubMenu)
+  console.log('默认激活的子菜单是:', activeSubMenu)
+  
   const currentSubMenus = computed(() => {
+    console.log('currentSubMenus被调用')
     const mainMenu = menuItems.find(item => item.index === activeMainMenu.value)
     return mainMenu ? mainMenu.subMenus : []
   })
 
   const setActiveMenu = (mainIndex, subIndex) => {
-    
+    console.log('setActiveMenu被调用，参数是:', mainIndex, subIndex)
     const mainMenu = menuItems.find(item => item.index === mainIndex)
     if (!mainMenu) return
-    
+    console.log('当前激活的菜单是:', mainMenu)
     activeMainMenu.value = mainIndex
     if (subIndex) {
       activeSubMenu.value = subIndex
     } else if (mainMenu.subMenus.length > 0) {
+      
       activeSubMenu.value = mainMenu.subMenus[0].index
+      console.log('当前激活的子菜单是:', activeSubMenu.value)
       
     } else {
       activeSubMenu.value = ''
     }
     const targetSubMenu = mainMenu.subMenus.find(item => item.index === activeSubMenu.value)
     const targetRoute = targetSubMenu ? targetSubMenu.route : mainMenu.route
-    console.log('targetRoute和targetSubMenu:', targetRoute, targetSubMenu)
+    console.log('跳转路由到:', targetRoute)
+    console.log('跳转子路由到:', targetSubMenu)
+
+    console.log('mainMenu的值:', menuItems[0].index)
+    console.log('menuItems[0].subMenus[0]的值:', menuItems[0].subMenus[0])
     router.push(targetRoute)
   }
 
@@ -84,8 +93,10 @@ export const useMenuStore = () => {
     activeMainMenu.value = menuItems[0].index
     activeSubMenu.value = menuItems[0].subMenus[0]?.index || ''
   }
-  console.log('setActiveMenu:', setActiveMenu)
-
+  console.log('看一下:currentSubMenus的值', currentSubMenus)
+  // 初始化当前激活的菜单
+  initializeActiveMenu()
+  
   return {
     menuItems,
     activeMainMenu,

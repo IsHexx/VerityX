@@ -62,8 +62,8 @@ const logout = () => {
 };
 // 监听 activeMainMenu 的变化
 watch(activeMainMenu, () => {
-  console.log('activeMainMenu changed:', activeMainMenu.value);
-  console.log('currentSubMenus:', currentSubMenus.value);
+  console.log('activeMainMenu值变化后:', activeMainMenu.value);
+  console.log('currentSubMenus值变化后:', currentSubMenus.value);
 });
 
 onMounted(() => {
