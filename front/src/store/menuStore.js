@@ -44,6 +44,7 @@ export const useMenuStore = () => {
 
   const activeMainMenu = ref(menuItems[0].index)
   const activeSubMenu = ref(menuItems[0].subMenus[0]?.index || '')
+  // 要让这个值初有变化activeMainMenu
   console.log('默认激活的菜单是:', activeSubMenu)
   console.log('默认激活的子菜单是:', activeSubMenu)
   
