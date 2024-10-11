@@ -52,6 +52,7 @@ const { activeMainMenu, activeSubMenu, currentSubMenus, setActiveMenu, initializ
 
 console.log('activeSubMenu:', activeSubMenu)
 console.log('currentSubMenus:', activeSubMenu)
+console.log(currentSubMenus.value); 
 // 模拟用户名
 const username = ref('John Doe');
 
