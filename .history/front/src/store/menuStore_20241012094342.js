@@ -89,7 +89,7 @@ export const useMenuStore = () => {
   // 监听路由变化, 加了这一句实现了
   watch(() => route.path, (newPath) => {
     initializeActiveMenu()
-  })
+  },)
   const initializeActiveMenu = () => {
     const currentPath = route.path
     for (const mainMenu of menuItems) {

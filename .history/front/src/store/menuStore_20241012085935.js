@@ -1,5 +1,5 @@
 // menuStore.js
-import { ref, computed, watch } from 'vue'
+import { ref, computed, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 export const useMenuStore = () => {
@@ -61,7 +61,7 @@ export const useMenuStore = () => {
     console.log('当前激活的菜单是:', mainMenu)
     activeMainMenu.value = mainIndex
 
-    
+    const subMenus = currentSubMenus.value;
     console.log('激活的主菜单:', activeMainMenu.value); // 确保这里的值已经更新
 
     // 重新调用 currentSubMenus
@@ -84,18 +84,14 @@ export const useMenuStore = () => {
     console.log('mainMenu的值:', menuItems[0].index)
     console.log('menuItems[0].subMenus[0]的值:', menuItems[0].subMenus[0])
     router.push(targetRoute)
+    triggerRef(activeMainMenu)
   }
 
-  // 监听路由变化, 加了这一句实现了
-  watch(() => route.path, (newPath) => {
-    initializeActiveMenu()
-  })
   const initializeActiveMenu = () => {
     const currentPath = route.path
     for (const mainMenu of menuItems) {
       if (currentPath === mainMenu.route || currentPath.startsWith(mainMenu.route + '/')) {
         activeMainMenu.value = mainMenu.index
-        console.log('initializeActiveMenu中activeMainMenu的值是:', activeMainMenu.value)
         const subMenu = mainMenu.subMenus.find(sub => sub.route === currentPath)
         activeSubMenu.value = subMenu ? subMenu.index : (mainMenu.subMenus[0]?.index || '')
         return

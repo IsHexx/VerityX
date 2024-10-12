@@ -85,7 +85,6 @@ export const useMenuStore = () => {
     console.log('menuItems[0].subMenus[0]的值:', menuItems[0].subMenus[0])
     router.push(targetRoute)
   }
-
   // 监听路由变化, 加了这一句实现了
   watch(() => route.path, (newPath) => {
     initializeActiveMenu()
@@ -95,7 +94,6 @@ export const useMenuStore = () => {
     for (const mainMenu of menuItems) {
       if (currentPath === mainMenu.route || currentPath.startsWith(mainMenu.route + '/')) {
         activeMainMenu.value = mainMenu.index
-        console.log('initializeActiveMenu中activeMainMenu的值是:', activeMainMenu.value)
         const subMenu = mainMenu.subMenus.find(sub => sub.route === currentPath)
         activeSubMenu.value = subMenu ? subMenu.index : (mainMenu.subMenus[0]?.index || '')
         return
