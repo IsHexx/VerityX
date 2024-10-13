@@ -7,20 +7,21 @@
       @open="handleOpen"
       @close="handleClose"
     >
-      <el-button
-        :icon="isCollapse ? 'el-icon-arrow-right' : 'el-icon-arrow-down'"
-        @click="toggleCollapse"
-        style="width: 55px; border: 0px"
-      >
-        {{ isCollapse ? "展开" : "折叠" }}
+      <el-button @click="toggleCollapse" style="width: 55px; border: 0px">
+        <el-icon>
+          <component :is="isCollapse ? Expand : Fold" />
+        </el-icon>
+        {{ isCollapse ? "" : "" }}
       </el-button>
-      <el-menu-item 
-        v-for="item in menuItems" 
-        :key="item.index" 
+      <el-menu-item
+        v-for="item in menuItems"
+        :key="item.index"
         :index="item.index"
-        @click="setActiveMenu(item.index, '1-1')"
+        @click="setActiveMenu(item.index)"
       >
-        <el-icon><component :is="item.icon" /></el-icon>
+        <el-icon>
+          <component :is="getIconComponent(item.icon)" />
+        </el-icon>
         <template #title>{{ item.title }}</template>
       </el-menu-item>
     </el-menu>
@@ -34,15 +35,35 @@ import {
   Edit,
   Notification,
   Setting,
+  Expand,
+  Fold,
 } from "@element-plus/icons-vue";
-import { useMenuStore } from '../store/menuStore';
+import { useMenuStore } from "../store/menuStore";
 
-const { menuItems, activeMainMenu, setActiveMenu, initializeActiveMenu } = useMenuStore();
+const { menuItems, activeMainMenu, setActiveMenu, initializeActiveMenu } =
+  useMenuStore();
 
 const isCollapse = ref(true);
 const toggleCollapse = () => {
   isCollapse.value = !isCollapse.value;
 };
+
+// 返回图标组件
+const getIconComponent = (iconName) => {
+  switch (iconName) {
+    case "House":
+      return House;
+    case "Edit":
+      return Edit;
+    case "Notification":
+      return Notification;
+    case "Setting":
+      return Setting;
+    default:
+      return null;
+  }
+};
+
 const handleOpen = (key) => {
   console.log(key);
 };

@@ -29,7 +29,7 @@
       <!-- 用户信息部分：头像 + 用户名 + 下拉菜单 -->
       <el-dropdown trigger="click">
         <span class="el-dropdown-link">
-          <el-avatar src="https://www.example.com/user-avatar.jpg" size="40"></el-avatar>
+          <el-avatar :src="image"/>
           <span class="username">{{ username }}</span>
         </span>
         <template #dropdown>
@@ -47,12 +47,9 @@
 <script setup>
 import { ref, onMounted , watch} from 'vue';
 import { useMenuStore } from '@/store/menuStore';
-
+import image from '@/assets/image.png';  
 const { activeMainMenu, activeSubMenu, currentSubMenus, setActiveMenu, initializeActiveMenu } = useMenuStore();
 
-console.log('activeSubMenu:', activeSubMenu)
-console.log('currentSubMenus:', activeSubMenu)
-console.log(currentSubMenus.value); 
 // 模拟用户名
 const username = ref('John Doe');
 
@@ -61,12 +58,12 @@ const logout = () => {
   console.log('Logout clicked');
   // 在此处处理退出登录的逻辑
 };
-// 监听 activeMainMenu 的变化
-watch(activeMainMenu, () => {
-  console.log('activeMainMenu值变化后:', activeMainMenu.value);
-  console.log('currentSubMenus值变化后:', currentSubMenus.value);
-});
 
+const data = () => {
+  return {
+    image: 'image'
+  };
+};
 onMounted(() => {
   initializeActiveMenu();
 });
@@ -87,9 +84,10 @@ onMounted(() => {
   align-items: center;
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
+
+.el-dropdown-link {
+  display: flex;    /* 设置为 Flex 容器 */
+  align-items: center; /* 子元素垂直居中 */
 }
 
 .username {

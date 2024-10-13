@@ -1,47 +1,45 @@
+<!-- src/components/MainContent.vue -->
 <template>
-    <el-row>
-      <el-col :sm="12" :lg="6">
-        <el-result
-          icon="success"
-          title="Success Tip"
-          sub-title="Please follow the instructions"
-        >
-          <template #extra>
-            <el-button type="primary">Back</el-button>
-          </template>
-        </el-result>
-      </el-col>
-      <el-col :sm="12" :lg="6">
-        <el-result
-          icon="warning"
-          title="Warning Tip"
-          sub-title="Please follow the instructions"
-        >
-          <template #extra>
-            <el-button type="primary">Back</el-button>
-          </template>
-        </el-result>
-      </el-col>
-      <el-col :sm="12" :lg="6">
-        <el-result
-          icon="error"
-          title="Error Tip"
-          sub-title="Please follow the instructions"
-        >
-          <template #extra>
-            <el-button type="primary">Back</el-button>
-          </template>
-        </el-result>
-      </el-col>
-      <el-col :sm="12" :lg="6">
-        <el-result icon="info" title="Info Tip">
-          <template #sub-title>
-            <p>Using slot as subtitle</p>
-          </template>
-          <template #extra>
-            <el-button type="primary">Back</el-button>
-          </template>
-        </el-result>
-      </el-col>
-    </el-row>
-  </template>
+  <div class="main-layout">
+    <!-- 上部内容 -->
+    <div class="upper-content">
+      上部内容
+    </div>
+    <!-- 下部内容 -->
+    <div class="lower-content">
+      下部内容
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'MainContent',
+};
+</script>
+
+<style scoped>
+.main-layout {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.upper-content {
+  flex: 2; /* 上部区域占 2/3 高度 */
+  background-color: #f5f5f5;
+  padding: 20px;
+  width: 100%;
+  text-align: center;
+  border-radius: 4px;
+}
+
+.lower-content {
+  flex: 1; /* 下部区域占 1/3 高度 */
+  background-color: #e0e0e0;
+  padding: 20px;
+  width: 100%;
+  text-align: center;
+  border-radius: 4px;
+}
+</style>
