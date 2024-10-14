@@ -24,8 +24,8 @@
 </template>
 
 <script>
-import CommonHeader from "@/components/CommonHeader.vue";
-import CommonAside from "@/components/CommonAside.vue";
+import CommonHeader from "./components/CommonHeader.vue";
+import CommonAside from "./components/CommonAside.vue";
 import { useMenuStore } from '@/store/menuStore';
 
 export default {

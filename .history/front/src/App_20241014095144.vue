@@ -24,8 +24,8 @@
 </template>
 
 <script>
-import CommonHeader from "@/components/CommonHeader.vue";
-import CommonAside from "@/components/CommonAside.vue";
+import CommonHeader from "./components/CommonHeader.vue";
+import CommonAside from "./components/CommonAside.vue";
 import { useMenuStore } from '@/store/menuStore';
 
 export default {
@@ -72,6 +72,7 @@ export default {
   background-color: #fff;
   height: 6%; /* Main 高度等于视口高度减去 Header 的高度 */
   margin-top: 0px;
+  padding: 0px;
 }
 
 .common-layout > .el-container > .el-container > .el-main {
@@ -82,7 +83,7 @@ export default {
 }
 
 * {
-  margin: 0;
+  margin: 0px;
   padding: 0;
 }
 </style>

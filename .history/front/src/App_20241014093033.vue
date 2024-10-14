@@ -15,7 +15,7 @@
         </el-header>
 
         <!-- Main 部分 -->
-        <el-main style="margin-top: 0;">
+        <el-main>
           <router-view></router-view>
         </el-main>
       </el-container>
@@ -24,8 +24,8 @@
 </template>
 
 <script>
-import CommonHeader from "@/components/CommonHeader.vue";
-import CommonAside from "@/components/CommonAside.vue";
+import CommonHeader from "./components/CommonHeader.vue";
+import CommonAside from "./components/CommonAside.vue";
 import { useMenuStore } from '@/store/menuStore';
 
 export default {
@@ -68,18 +68,12 @@ export default {
   height: 100%;
 }
 
-.common-layout > .el-container > .el-container > .el-header {
-  background-color: #fff;
-  height: 6%; /* Main 高度等于视口高度减去 Header 的高度 */
-  margin-top: 0px;
-}
-
 .common-layout > .el-container > .el-container > .el-main {
-  background-color: #fff;
-  height: calc(100vh - 7%); /* Main 高度等于视口高度减去 Header 的高度 */
-  margin-top: 20px;
-  padding: 20px;
-}
+    background-color: #fff;
+    height: calc(100vh - 7%); /* Main 高度等于视口高度减去 Header 的高度 */
+    margin-top: 0; /* 移除顶部外边距 */
+    padding: 20px;
+  }
 
 * {
   margin: 0;
