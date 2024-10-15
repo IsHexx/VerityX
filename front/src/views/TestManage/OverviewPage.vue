@@ -5,7 +5,7 @@
       <CaseStatisticsCard />
       <BugStatisticsCard />
     </div>
-    <div class="lower-content">下部内容</div>
+    <div class="lower-content"><StatisticsChart /></div>
   </div>
 </template>
 
@@ -14,6 +14,7 @@ import { ref, onMounted, nextTick, watch } from "vue";
 import * as echarts from "echarts";
 import CaseStatisticsCard from "@/components/CaseStatisticsCard.vue";
 import BugStatisticsCard from "@/components/BugStatisticsCard.vue";
+import StatisticsChart from "@/components/StatisticsChart.vue";
 
 
 </script>
@@ -50,7 +51,7 @@ import BugStatisticsCard from "@/components/BugStatisticsCard.vue";
 
 .lower-content {
   flex: 1;
-  background-color: #e0e0e0;
+  background-color: #f4f4f4;
   padding: 20px;
   text-align: center;
 }
