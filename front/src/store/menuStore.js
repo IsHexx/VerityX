@@ -90,7 +90,7 @@ export const useMenuStore = () => {
     router.push(targetRoute)
   }
 
-  // 监听路由变化, 加了这一句实现了
+  // 监听路由变化, 加了这一句实现了左侧菜单和顶部菜单联动
   watch(() => route.path, (newPath) => {
     initializeActiveMenu()
   })
