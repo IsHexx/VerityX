@@ -1,32 +1,77 @@
 <template>
-    <el-table :data="tableData" style="width: 100%">
-      <el-table-column prop="date" label="Date" width="180" />
-      <el-table-column prop="name" label="Name" width="180" />
-      <el-table-column prop="address" label="Address" />
-    </el-table>
-  </template>
-  
-  <script  setup>
-  const tableData = [
-    {
-      date: '2016-05-03',
-      name: 'Tom',
-      address: 'No. 189, Grove St, Los Angeles',
-    },
-    {
-      date: '2016-05-02',
-      name: 'Tom',
-      address: 'No. 189, Grove St, Los Angeles',
-    },
-    {
-      date: '2016-05-04',
-      name: 'Tom',
-      address: 'No. 189, Grove St, Los Angeles',
-    },
-    {
-      date: '2016-05-01',
-      name: 'Tom',
-      address: 'No. 189, Grove St, Los Angeles',
-    },
-  ]
-  </script>
+  <div class="flex flex-wrap gap-4 " >
+    <el-card shadow="always">
+      <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+        <el-tab-pane label="全部" name="all_plan"></el-tab-pane>
+        <el-tab-pane label="测试中测试单" name="under_plan"></el-tab-pane>
+        <el-tab-pane
+          label="已完成测试"
+          name="over_plan"
+        ></el-tab-pane> </el-tabs
+      ><el-table :data="tableData" style="width: 100%; height: 560px">
+        <el-table-column fixed prop="date" label="Date" width="150" />
+        <el-table-column prop="name" label="Name" width="120" />
+        <el-table-column prop="state" label="State" width="120" />
+        <el-table-column prop="city" label="City" width="120" />
+        <el-table-column prop="address" label="Address" width="600" />
+        <el-table-column prop="zip" label="Zip" width="120" />
+        <el-table-column fixed="right" label="Operations" min-width="120">
+          <template #default>
+            <el-button link type="primary" size="small" @click="handleClick">
+              Detail
+            </el-button>
+            <el-button link type="primary" size="small">Edit</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <PaginationPage></PaginationPage>
+      </el-card
+    >
+  </div>
+</template>
+
+<script  setup>
+import PaginationPage from '@/components/PaginationPage.vue';
+const handleClick = () => {
+  console.log("click");
+};
+
+const tableData = [
+  {
+    date: "2016-05-03",
+    name: "Tom",
+    state: "California",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Home",
+  },
+  {
+    date: "2016-05-02",
+    name: "Tom",
+    state: "California",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Office",
+  },
+  {
+    date: "2016-05-04",
+    name: "Tom",
+    state: "California",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Home",
+  },
+  {
+    date: "2016-05-01",
+    name: "Tom",
+    state: "California",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Office",
+  },
+];
+</script>

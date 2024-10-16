@@ -116,7 +116,7 @@
           {
             name: tabName,
             type: "pie",
-            radius: ["50%", "70%"],
+            radius: ["70%", "90%"],
             center: ["30%", "50%"],
             avoidLabelOverlap: false,
             label: {
@@ -144,7 +144,7 @@
           {
             type: "text",
             left: "25%",
-            top: "38%",
+            top: "34%",
             style: {
               text: "缺陷数量",
               textAlign: "center",
@@ -154,8 +154,8 @@
           },
           {
             type: "text",
-            left: "22%",
-            top: "48%",
+            left: "23%",
+            top: "center",
             style: {
               text: totalCount.toLocaleString(),
               textAlign: "center",
@@ -212,12 +212,13 @@
   }
   
   .chart-container {
-    height: 300px;
+    height: 200px;
   }
   
   .chart {
     width: 100%;
     height: 100%;
+
   }
   
   </style>

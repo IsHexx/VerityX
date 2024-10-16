@@ -5,7 +5,7 @@
       <CaseStatisticsCard />
       <BugStatisticsCard />
     </div>
-    <div class="lower-content"><StatisticsChart /></div>
+    <div class="lower-content"><AutocaseStatisticsChart /></div>
   </div>
 </template>
 
@@ -14,7 +14,7 @@ import { ref, onMounted, nextTick, watch } from "vue";
 import * as echarts from "echarts";
 import CaseStatisticsCard from "@/components/CaseStatisticsCard.vue";
 import BugStatisticsCard from "@/components/BugStatisticsCard.vue";
-import StatisticsChart from "@/components/StatisticsChart.vue";
+import AutocaseStatisticsChart from "@/components/AutocaseStatisticsChart.vue";
 
 
 </script>
@@ -28,7 +28,7 @@ import StatisticsChart from "@/components/StatisticsChart.vue";
 
 .upper-content {
   flex: 2;
-  padding: 20px;
+  padding: 2px 20px 4px 20px;
   background-color: #f5f5f5;
   display: flex;
   justify-content: space-between;
@@ -40,9 +40,6 @@ import StatisticsChart from "@/components/StatisticsChart.vue";
   width: 49%;
 }
 
-.chart-container {
-  height: 300px;
-}
 
 .chart {
   width: 100%;
@@ -52,7 +49,7 @@ import StatisticsChart from "@/components/StatisticsChart.vue";
 .lower-content {
   flex: 1;
   background-color: #f4f4f4;
-  padding: 20px;
+  padding: 0px 20px 0px 20px;
   text-align: center;
 }
 </style>

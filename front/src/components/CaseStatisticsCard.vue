@@ -98,6 +98,13 @@ const initChart = (tabName) => {
         trigger: "item",
         formatter: "{b}: {c} ({d}%)",
       },
+      grid: {
+          x: 10,
+          y: 10,
+          x2: 10,
+          y2: 10,
+          borderWidth: 10,
+        },
       legend: {
         orient: "vertical",
         right: "23%",
@@ -118,7 +125,7 @@ const initChart = (tabName) => {
         {
           name: tabName,
           type: "pie",
-          radius: ["50%", "70%"],
+          radius: ["70%", "90%"],
           center: ["30%", "50%"],
           avoidLabelOverlap: false,
           label: {
@@ -132,7 +139,7 @@ const initChart = (tabName) => {
             },
           },
           itemStyle: {
-            borderRadius: 10,
+            borderRadius: 5,
             borderColor: "#fff",
             borderWidth: 1,
           },
@@ -146,7 +153,7 @@ const initChart = (tabName) => {
         {
           type: "text",
           left: "25%",
-          top: "38%",
+          top: "34%",
           style: {
             text: "用例数量",
             textAlign: "center",
@@ -157,7 +164,7 @@ const initChart = (tabName) => {
         {
           type: "text",
           left: "22%",
-          top: "48%",
+          top: "center",
           style: {
             text: totalCount.toLocaleString(),
             textAlign: "center",
@@ -214,7 +221,7 @@ watch(activeName, (newValue) => {
 }
 
 .chart-container {
-  height: 300px;
+  height: 200px;
 }
 
 .chart {

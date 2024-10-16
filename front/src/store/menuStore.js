@@ -55,20 +55,20 @@ export const useMenuStore = () => {
   // console.log('默认激活的子菜单是:', activeSubMenu)
   
   const currentSubMenus = computed(() => {
-    console.log('currentSubMenus被调用')
+    // console.log('currentSubMenus被调用')
     const mainMenu = menuItems.find(item => item.index === activeMainMenu.value)
     return mainMenu ? mainMenu.subMenus : []
   })
 
   const setActiveMenu = (mainIndex, subIndex) => {
-    console.log('setActiveMenu被调用，参数是:', mainIndex, subIndex)
+    // console.log('setActiveMenu被调用，参数是:', mainIndex, subIndex)
     const mainMenu = menuItems.find(item => item.index === mainIndex)
     if (!mainMenu) return
     // console.log('当前激活的菜单是:', mainMenu)
     activeMainMenu.value = mainIndex
 
     
-    console.log('激活的主菜单:', activeMainMenu.value); // 确保这里的值已经更新
+    // console.log('激活的主菜单:', activeMainMenu.value); // 确保这里的值已经更新
 
     // 重新调用 currentSubMenus
     // console.log('currentSubMenus:', currentSubMenus.value);
