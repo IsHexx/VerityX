@@ -1,5 +1,8 @@
 <template>
-  <el-card class="chart-card">
+  <el-card
+    class="chart-card"
+    :body-style="{ height: '80%', width: '100%', boxSizing: 'border-box' }"
+  >
     <template #header>
       <div class="card-header">
         <span>用例数据统计</span>
@@ -20,9 +23,11 @@
         <div class="chart-wrapper">
           <!-- 环形图表的容器 -->
           <div
-            :ref="(el) => {
-              if (el) chartRefs[tab.name] = el;
-            }"
+            :ref="
+              (el) => {
+                if (el) chartRefs[tab.name] = el;
+              }
+            "
             class="chart"
           ></div>
 
@@ -33,11 +38,18 @@
               :key="item.name"
               class="legend-item"
             >
-              <span class="legend-color" :style="{ backgroundColor: getColor(item.name) }"></span>
+              <span
+                class="legend-color"
+                :style="{ backgroundColor: getColor(item.name) }"
+              ></span>
               <span class="legend-text">
                 <span class="legend-name">{{ item.name }}</span>
-                <span class="legend-value">{{ item.value.toLocaleString() }}</span>
-                <span class="legend-percentage">{{ getPercentage(item, tab.name) }}%</span>
+                <span class="legend-value">{{
+                  item.value.toLocaleString()
+                }}</span>
+                <span class="legend-percentage"
+                  >{{ getPercentage(item, tab.name) }}%</span
+                >
               </span>
             </div>
           </div>
@@ -100,28 +112,21 @@ const getPercentage = (item, tabName) => {
 
 const getColor = (name) => {
   const colorMapping = {
-    "P0": "#4e7bfd",
-    "P1": "#45c8dc",
-    "P2": "#f5d36a",
-    "P3": "#f76c85",
-    "其他": "#4a9d7f",
-    "功能": "#4e7bfd",
-    "性能": "#45c8dc",
-    "安全": "#f5d36a",
-    "界面": "#f76c85",
-    "张三": "#4e7bfd",
-    "李四": "#45c8dc",
-    "王五": "#f5d36a",
-    "赵六": "#f76c85",
+    P0: "#4e7bfd",
+    P1: "#45c8dc",
+    P2: "#f5d36a",
+    P3: "#f76c85",
+    其他: "#4a9d7f",
+    功能: "#4e7bfd",
+    性能: "#45c8dc",
+    安全: "#f5d36a",
+    界面: "#f76c85",
+    张三: "#4e7bfd",
+    李四: "#45c8dc",
+    王五: "#f5d36a",
+    赵六: "#f76c85",
   };
   return colorMapping[name] || "#ccc";
-};
-
-const getIcon = (name) => {
-  const iconMapping = {
-    circle,
-  };
-  return iconMapping[name] || "circle";
 };
 
 const initChart = (tabName) => {
@@ -162,7 +167,7 @@ const initChart = (tabName) => {
             },
           },
           itemStyle: {
-            borderRadius: 5,
+            borderRadius: 10,
             borderColor: "#fff",
             borderWidth: 1,
           },
@@ -243,22 +248,37 @@ watch(activeName, (newValue) => {
   width: 47%;
 }
 
+
 .chart-wrapper {
   display: flex;
-  justify-content: space-between;
+  height: 100%;
 }
 
+.el-card__body {
+  height: 80%;
+  align-content: center;
+}
 
+.el-tabs__content {
+  align-content: center;
+  height: 100%;
+}
+
+.demo-tabs {
+  height: 100%;
+  align-content: center;
+}
 
 .chart {
   min-width: 200px;
   min-height: 200px;
-  flex:  60%; /* 占 80% 宽度 */
+  flex: 60%; /* 占 80% 宽度 */
 }
 
 .legend-container {
   flex: 40%; /* 占剩余空间 */
   padding-left: 20px;
+  align-content: center;
 }
 
 .legend-color {
@@ -266,9 +286,8 @@ watch(activeName, (newValue) => {
   height: 16px;
   margin-right: 10px;
   display: inline-block;
-  border-radius: 50%;  /* 使手动渲染的图例图标为圆形 */
+  border-radius: 50%; /* 使手动渲染的图例图标为圆形 */
 }
-
 
 .legend-item {
   display: flex;

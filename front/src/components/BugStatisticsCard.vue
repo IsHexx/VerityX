@@ -18,7 +18,7 @@
           :label="tab.label"
           :name="tab.name"
         >
-          <div class="chart-container">
+          <div class="chart-wrapper">
             <div
               :ref="
                 (el) => {
@@ -27,6 +27,21 @@
               "
               class="chart"
             ></div>
+             <!-- 图例的容器 -->
+          <div class="legend-container">
+            <div
+              v-for="item in chartData[tab.name]"
+              :key="item.name"
+              class="legend-item"
+            >
+              <span class="legend-color" :style="{ backgroundColor: getColor(item.name) }"></span>
+              <span class="legend-text">
+                <span class="legend-name">{{ item.name }}</span>
+                <span class="legend-value">{{ item.value.toLocaleString() }}</span>
+                <span class="legend-percentage">{{ getPercentage(item, tab.name) }}%</span>
+              </span>
+            </div>
+          </div>
           </div>
         </el-tab-pane>
       </el-tabs>
@@ -49,8 +64,8 @@
   
   const chartData = {
     casePriority: [
-      { value: 44316, name: "已修复   " },
-      { value: 24645, name: "已验证   " },
+      { value: 44316, name: "已修复" },
+      { value: 24645, name: "已验证" },
       { value: 19716, name: "重新打开" },
     ],
     casetype: [
@@ -76,6 +91,28 @@
   const getTotalCount = (tabName) => {
     return chartData[tabName].reduce((sum, item) => sum + item.value, 0);
   };
+
+  const getPercentage = (item, tabName) => {
+  const totalCount = getTotalCount(tabName);
+  return ((item.value / totalCount) * 100).toFixed(0);
+};
+
+const getColor = (name) => {
+  const colorMapping = {
+    "已修复": "#4e7bfd",
+    "已验证": "#45c8dc",
+    "重新打开": "#f5d36a",
+    "阻塞": "#4e7bfd",
+    "严重": "#45c8dc",
+    "一般": "#f5d36a",
+    "轻微": "#f76c85",
+    "张三": "#4e7bfd",
+    "李四": "#45c8dc",
+    "王五": "#f5d36a",
+    "赵六": "#f76c85",
+  };
+  return colorMapping[name] || "#ccc";
+};
   
   const initChart = (tabName) => {
     const chartDom = chartRefs.value[tabName];
@@ -96,28 +133,13 @@
           trigger: "item",
           formatter: "{b}: {c} ({d}%)",
         },
-        legend: {
-          orient: "vertical",
-          right: "23%",
-          top: "middle",
-          itemWidth: 10,
-          itemHeight: 10,
-          icon: "circle",
-          itemGap: 20,
-          formatter: (name) => {
-            const item = formattedData.find((item) => item.name === name);
-            return `${name.padEnd(4)}    ${item.value.toLocaleString()}     ${
-              item.percentage
-            }%`;
-          },
-        },
         color: ["#4e7bfd", "#45c8dc", "#f5d36a", "#f76c85", "#4a9d7f"],
         series: [
           {
             name: tabName,
             type: "pie",
             radius: ["70%", "90%"],
-            center: ["30%", "50%"],
+            center: ["50%", "50%"],
             avoidLabelOverlap: false,
             label: {
               show: false,
@@ -143,8 +165,8 @@
         graphic: [
           {
             type: "text",
-            left: "25%",
-            top: "34%",
+            left: "center",
+            top: "30%",
             style: {
               text: "缺陷数量",
               textAlign: "center",
@@ -154,7 +176,7 @@
           },
           {
             type: "text",
-            left: "23%",
+            left: "center",
             top: "center",
             style: {
               text: totalCount.toLocaleString(),
@@ -166,8 +188,8 @@
           },
           {
             type: "text",
-            left: "25%",
-            top: "58%",
+            left: "center",
+            top: "60%",
             style: {
               text: "本周 +0>",
               textAlign: "center",
@@ -203,22 +225,91 @@
       initChart(newValue);
     });
   });
-  </script>
+</script>
     
-    <style scoped>
-  .chart-card {
-    height: 100%;
-    width: 47%;
-  }
-  
-  .chart-container {
-    height: 200px;
-  }
-  
-  .chart {
-    width: 100%;
-    height: 100%;
+<style scoped>
+.chart-card {
+  height: 100%;
+  width: 47%;
+}
 
-  }
-  
-  </style>
+.chart-wrapper {
+  display: flex;
+  height: 100%;
+}
+
+.el-card__body {
+  height: 80%;
+  align-content: center;
+}
+
+.el-tabs__content {
+  align-content: center;
+  height: 100%;
+}
+
+
+.demo-tabs {
+  height: 100%;
+  align-content: center;
+}
+
+.chart {
+  min-width: 200px;
+  min-height: 200px;
+  flex:  60%; /* 占 80% 宽度 */
+}
+
+.legend-container {
+  flex: 40%; /* 占剩余空间 */
+  padding-left: 20px;
+  align-content: center;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+  display: inline-block;
+  border-radius: 50%;  /* 使手动渲染的图例图标为圆形 */
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.legend-color {
+  width: 8px;
+  height: 8px;
+  margin-right: 10px;
+  margin-top: 5px;
+  display: inline-block;
+}
+
+.legend-text {
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.legend-name {
+  display: inline-block;
+  width: 60px; /* 根据需求调整宽度 */
+  text-align: left;
+}
+
+.legend-value {
+  display: inline-block;
+  width: 50px; /* 根据需求调整宽度 */
+  text-align: left;
+  margin-left: 10px;
+}
+
+.legend-percentage {
+  display: inline-block;
+  width: 30px; /* 根据需求调整宽度 */
+  text-align: left;
+  margin-left: 10px;
+}
+</style>
