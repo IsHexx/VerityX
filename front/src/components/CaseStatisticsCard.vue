@@ -1,4 +1,3 @@
-<!-- src/components/DefectStatisticsCard.vue -->
 <template>
   <el-card class="chart-card">
     <template #header>
@@ -18,22 +17,37 @@
         :label="tab.label"
         :name="tab.name"
       >
-        <div class="chart-container">
+        <div class="chart-wrapper">
+          <!-- 环形图表的容器 -->
           <div
-            :ref="
-              (el) => {
-                if (el) chartRefs[tab.name] = el;
-              }
-            "
+            :ref="(el) => {
+              if (el) chartRefs[tab.name] = el;
+            }"
             class="chart"
           ></div>
+
+          <!-- 图例的容器 -->
+          <div class="legend-container">
+            <div
+              v-for="item in chartData[tab.name]"
+              :key="item.name"
+              class="legend-item"
+            >
+              <span class="legend-color" :style="{ backgroundColor: getColor(item.name) }"></span>
+              <span class="legend-text">
+                <span class="legend-name">{{ item.name }}</span>
+                <span class="legend-value">{{ item.value.toLocaleString() }}</span>
+                <span class="legend-percentage">{{ getPercentage(item, tab.name) }}%</span>
+              </span>
+            </div>
+          </div>
         </div>
       </el-tab-pane>
     </el-tabs>
   </el-card>
 </template>
-  
-  <script setup>
+
+<script setup>
 import { ref, onMounted, nextTick, watch } from "vue";
 import * as echarts from "echarts";
 
@@ -79,6 +93,37 @@ const getTotalCount = (tabName) => {
   return chartData[tabName].reduce((sum, item) => sum + item.value, 0);
 };
 
+const getPercentage = (item, tabName) => {
+  const totalCount = getTotalCount(tabName);
+  return ((item.value / totalCount) * 100).toFixed(0);
+};
+
+const getColor = (name) => {
+  const colorMapping = {
+    "P0": "#4e7bfd",
+    "P1": "#45c8dc",
+    "P2": "#f5d36a",
+    "P3": "#f76c85",
+    "其他": "#4a9d7f",
+    "功能": "#4e7bfd",
+    "性能": "#45c8dc",
+    "安全": "#f5d36a",
+    "界面": "#f76c85",
+    "张三": "#4e7bfd",
+    "李四": "#45c8dc",
+    "王五": "#f5d36a",
+    "赵六": "#f76c85",
+  };
+  return colorMapping[name] || "#ccc";
+};
+
+const getIcon = (name) => {
+  const iconMapping = {
+    circle,
+  };
+  return iconMapping[name] || "circle";
+};
+
 const initChart = (tabName) => {
   const chartDom = chartRefs.value[tabName];
   if (chartDom) {
@@ -90,7 +135,7 @@ const initChart = (tabName) => {
     const totalCount = getTotalCount(tabName);
     const formattedData = chartData[tabName].map((item) => ({
       ...item,
-      percentage: ((item.value / totalCount) * 100).toFixed(0),
+      percentage: getPercentage(item, tabName),
     }));
 
     const option = {
@@ -98,35 +143,13 @@ const initChart = (tabName) => {
         trigger: "item",
         formatter: "{b}: {c} ({d}%)",
       },
-      grid: {
-          x: 10,
-          y: 10,
-          x2: 10,
-          y2: 10,
-          borderWidth: 10,
-        },
-      legend: {
-        orient: "vertical",
-        right: "23%",
-        top: "middle",
-        itemWidth: 10,
-        itemHeight: 10,
-        icon: "circle",
-        itemGap: 20,
-        formatter: (name) => {
-          const item = formattedData.find((item) => item.name === name);
-          return `${name.padEnd(4)}    ${item.value.toLocaleString()}     ${
-            item.percentage
-          }%`;
-        },
-      },
       color: ["#4e7bfd", "#45c8dc", "#f5d36a", "#f76c85", "#4a9d7f"],
       series: [
         {
           name: tabName,
           type: "pie",
           radius: ["70%", "90%"],
-          center: ["30%", "50%"],
+          center: ["50%", "50%"],
           avoidLabelOverlap: false,
           label: {
             show: false,
@@ -152,8 +175,8 @@ const initChart = (tabName) => {
       graphic: [
         {
           type: "text",
-          left: "25%",
-          top: "34%",
+          left: "center",
+          top: "30%",
           style: {
             text: "用例数量",
             textAlign: "center",
@@ -163,7 +186,7 @@ const initChart = (tabName) => {
         },
         {
           type: "text",
-          left: "22%",
+          left: "center",
           top: "center",
           style: {
             text: totalCount.toLocaleString(),
@@ -175,8 +198,8 @@ const initChart = (tabName) => {
         },
         {
           type: "text",
-          left: "25%",
-          top: "58%",
+          left: "center",
+          top: "60%",
           style: {
             text: "本周 +0>",
             textAlign: "center",
@@ -213,20 +236,76 @@ watch(activeName, (newValue) => {
   });
 });
 </script>
-  
-  <style scoped>
+
+<style scoped>
 .chart-card {
   height: 100%;
   width: 47%;
 }
 
-.chart-container {
-  height: 200px;
+.chart-wrapper {
+  display: flex;
+  justify-content: space-between;
 }
+
+
 
 .chart {
-  width: 100%;
-  height: 100%;
+  min-width: 200px;
+  min-height: 200px;
+  flex:  60%; /* 占 80% 宽度 */
 }
 
+.legend-container {
+  flex: 40%; /* 占剩余空间 */
+  padding-left: 20px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+  display: inline-block;
+  border-radius: 50%;  /* 使手动渲染的图例图标为圆形 */
+}
+
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.legend-color {
+  width: 8px;
+  height: 8px;
+  margin-right: 10px;
+  margin-top: 5px;
+  display: inline-block;
+}
+
+.legend-text {
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.legend-name {
+  display: inline-block;
+  width: 30px; /* 根据需求调整宽度 */
+  text-align: left;
+}
+
+.legend-value {
+  display: inline-block;
+  width: 50px; /* 根据需求调整宽度 */
+  text-align: left;
+  margin-left: 10px;
+}
+
+.legend-percentage {
+  display: inline-block;
+  width: 30px; /* 根据需求调整宽度 */
+  text-align: left;
+  margin-left: 10px;
+}
 </style>
