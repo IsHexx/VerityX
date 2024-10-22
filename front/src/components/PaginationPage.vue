@@ -1,7 +1,7 @@
 <template>
     <div class="demo-pagination-block">
       <el-pagination
-        :current-page="currentPage4"
+        :current-page="currentPage1"
         :page-size="pageSize4"
         :page-sizes="[100, 200, 300, 400]"
         :size="size"
