@@ -2,7 +2,7 @@
   <div class="flex flex-wrap gap-4">
     <el-card shadow="always" class="w-full">
       <el-row :gutter="20">
-        <el-col :span="8"
+        <el-col :span="6"
           ><el-tabs v-model="activeTab" type="" @tab-click="handleTabClick">
             <el-tab-pane label="全部" name="all_case" default></el-tab-pane>
             <el-tab-pane label="已评审" name="over_audit"></el-tab-pane>
@@ -11,7 +11,7 @@
               name="wait_audit"
             ></el-tab-pane> </el-tabs
         ></el-col>
-        <el-col :span="16" style="text-align: right; align-content: center;"
+        <el-col :span="18" style="text-align: right; align-content: center;"
           >
           <el-input
             v-model="input2"
@@ -154,7 +154,7 @@ import { Search } from '@element-plus/icons-vue'
 
 const input2 = ref('')
 
-const activeTab = ref("all_plan");
+const activeTab = ref("all_case");
 
 const handleClick = (tab, event) => {
   console.log(tab, event);

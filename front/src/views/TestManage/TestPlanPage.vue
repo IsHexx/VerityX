@@ -2,7 +2,7 @@
   <div class="flex flex-wrap gap-4">
     <el-card shadow="always" class="w-full">
       <el-row :gutter="20">
-        <el-col :span="22"
+        <el-col :span="6"
           ><el-tabs v-model="activeTab" type="" @tab-click="handleTabClick">
             <el-tab-pane label="全部" name="all_plan" default></el-tab-pane>
             <el-tab-pane label="测试中测试单" name="under_plan"></el-tab-pane>
@@ -11,7 +11,7 @@
               name="over_plan"
             ></el-tab-pane> </el-tabs
         ></el-col>
-        <el-col :span="2" style="text-align: right"
+        <el-col :span="18" style="text-align: right; align-content: center;"
           ><el-button type="primary" @click="dialogVisible = true"
             >添加计划</el-button
           ></el-col
