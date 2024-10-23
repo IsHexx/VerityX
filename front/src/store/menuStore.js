@@ -15,7 +15,7 @@ export const useMenuStore = () => {
       subMenus: [
         { index: '1-1', title: '概览', route: '/overview' },
         { index: '1-2', title: '测试计划', route: '/testplan' },
-        { index: '1-3', title: '测试用例', route: '/testplan' },
+        { index: '1-3', title: '测试用例', route: '/testcase' },
         { index: '1-4', title: '缺陷管理', route: '/testplan' },
         { index: '1-5', title: '测试报告', route: '/testplan' },
       ]
@@ -74,30 +74,39 @@ export const useMenuStore = () => {
     // console.log('currentSubMenus:', currentSubMenus.value);
     if (subIndex) {
       activeSubMenu.value = subIndex
+      console.log('当前激活的子菜单是:', activeSubMenu.value)
     } else if (mainMenu.subMenus.length > 0) {
-      
       activeSubMenu.value = mainMenu.subMenus[0].index
-      // console.log('当前激活的子菜单是:', activeSubMenu.value)
-      
     } else {
       activeSubMenu.value = ''
     }
     const targetSubMenu = mainMenu.subMenus.find(item => item.index === activeSubMenu.value)
     const targetRoute = targetSubMenu ? targetSubMenu.route : mainMenu.route
     // console.log('跳转路由到:', targetRoute)
-    // console.log('跳转子路由到:', targetSubMenu)
-
-    router.push(targetRoute)
+    
+    // console.log('activeSubMenu是:', activeSubMenu,)
+    // console.log('currentSubMenus是:', currentSubMenus)
+    // console.log('跳转路由到:', targetRoute)
+    if (targetRoute !== route.path) {
+      router.push(targetRoute);
+    }
   }
 
   // 监听路由变化, 加了这一句实现了左侧菜单和顶部菜单联动
   watch(() => route.path, (newPath) => {
     initializeActiveMenu()
   })
+  
   const initializeActiveMenu = () => {
     const currentPath = route.path
     for (const mainMenu of menuItems) {
-      if (currentPath === mainMenu.route || currentPath.startsWith(mainMenu.route + '/')) {
+      console.log('currentPath是', currentPath)
+      console.log('mainMenu.route是', mainMenu.route)
+      console.log('currentPath是', currentPath.startsWith())
+      // 之前这里的判断逻辑有问题
+      // if (currentPath === mainMenu.route || currentPath.startsWith(mainMenu.route + '/')) {
+      if (currentPath) {
+        
         activeMainMenu.value = mainMenu.index
         // console.log('initializeActiveMenu中activeMainMenu的值是:', activeMainMenu.value)
         const subMenu = mainMenu.subMenus.find(sub => sub.route === currentPath)
@@ -108,6 +117,7 @@ export const useMenuStore = () => {
     // If no match found, default to the first menu item
     activeMainMenu.value = menuItems[0].index
     activeSubMenu.value = menuItems[0].subMenus[0]?.index || ''
+    
   }
   // 初始化当前激活的菜单
   initializeActiveMenu()

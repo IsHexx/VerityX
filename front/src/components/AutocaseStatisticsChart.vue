@@ -52,8 +52,8 @@
               v-model="dateRangeType"
               @change="handleDateRangeChange"
             >
-              <el-radio-button label="全年">全年</el-radio-button>
-              <el-radio-button label="custom">自定义</el-radio-button>
+              <el-radio-button value="全年">全年</el-radio-button>
+              <el-radio-button value="custom">自定义</el-radio-button>
             </el-radio-group>
           </el-col>
           <el-col :span="10" style="text-align: left"

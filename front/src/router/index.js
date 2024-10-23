@@ -3,7 +3,7 @@ import UserLogin from '@/components/UserlLogin.vue';
 import TestPlanPage from '@/views/TestManage/TestPlanPage.vue';
 import OverviewPage from '@/views/TestManage/OverviewPage.vue';
 import ApiManagePage from '@/views/ApiTest/ApiManagePage.vue';
-
+import TestCasePage from '@/views/TestManage/TestCasePage.vue';
 
 const routes = [
   {
@@ -20,6 +20,11 @@ const routes = [
     path: '/testplan',
     name: 'TestPlan',
     component: TestPlanPage, // 添加 TestPlanPage 的路由
+  },
+  {
+    path: '/testcase',
+    name: 'TestCase',
+    component: TestCasePage, // 添加 TestCasePage 的路由
   },
   {
     path: '/overview',

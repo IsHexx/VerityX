@@ -8,17 +8,18 @@
       </el-breadcrumb>
     </div>
     <!-- 中间的水平菜单 -->
-    <el-menu 
-      mode="horizontal" 
-      :ellipsis="false"  
+     <!-- 修改菜单部分 -->
+     <el-menu
+      mode="horizontal"
+      :ellipsis="false"
       class="horizontal-menu"
       :default-active="activeSubMenu"
     >
-      <el-menu-item 
-        v-for="item in currentSubMenus" 
-        :key="item.index" 
+      <el-menu-item
+        v-for="item in currentSubMenus"
+        :key="item.index"
         :index="item.index"
-        @click="setActiveMenu(activeMainMenu, item.index)"
+        @click="handleMenuClick(item)"
       >
         {{ item.title }}
       </el-menu-item>
@@ -59,6 +60,22 @@ const logout = () => {
   // 在此处处理退出登录的逻辑
 };
 
+// 修改菜单点击处理函数
+const handleMenuClick = (item) => {
+  // 直接调用 setActiveMenu 并传入当前激活的主菜单和被点击的子菜单的 index
+  // console.log('handleMenuClick更新activeMainMenu', activeMainMenu.value, '和', item.index)
+  setActiveMenu(activeMainMenu.value, item.index)
+  
+}
+
+onMounted(() => {
+// 确保组件挂载时菜单状态正确
+const currentItem = currentSubMenus.value.find(item => item.index === activeSubMenu.value)
+if (currentItem) {
+  handleMenuClick(currentItem)
+}
+})
+
 const data = () => {
   return {
     image: 'image'
@@ -77,6 +94,12 @@ onMounted(() => {
   background-color: #ffffff;
   border-bottom: #f5f5f5 1px solid;
   align-items: center;
+}
+
+/* 确保菜单项激活状态的样式正确显示 */
+:deep(.el-menu-item.is-active) {
+  color: var(--el-menu-active-color) !important;
+  border-bottom: 2px solid var(--el-menu-active-color) !important;
 }
 
 .header-left {

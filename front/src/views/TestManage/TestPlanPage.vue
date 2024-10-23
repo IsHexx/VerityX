@@ -25,6 +25,7 @@
         style="width: 100%; height: 100%; min-height: 560px; border: 0px"
         class="customer-table"
       >
+        <el-table-column type="selection" width="55" />
         <el-table-column prop="name" label="名称" min-width="150" />
         <el-table-column prop="version" label="版本" min-width="220" />
         <el-table-column prop="state" label="状态" min-width="220" />
