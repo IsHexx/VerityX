@@ -16,8 +16,8 @@ export const useMenuStore = () => {
         { index: '1-1', title: '概览', route: '/overview' },
         { index: '1-2', title: '测试计划', route: '/testplan' },
         { index: '1-3', title: '测试用例', route: '/testcase' },
-        { index: '1-4', title: '缺陷管理', route: '/testplan' },
-        { index: '1-5', title: '测试报告', route: '/testplan' },
+        { index: '1-4', title: '缺陷管理', route: '/bugmanage' },
+        { index: '1-5', title: '测试报告', route: '/testreport' },
       ]
     },
     {

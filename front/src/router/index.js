@@ -4,6 +4,9 @@ import TestPlanPage from '@/views/TestManage/TestPlanPage.vue';
 import OverviewPage from '@/views/TestManage/OverviewPage.vue';
 import ApiManagePage from '@/views/ApiTest/ApiManagePage.vue';
 import TestCasePage from '@/views/TestManage/TestCasePage.vue';
+import BugManagePage from '@/views/TestManage/BugManagePage.vue';
+import TestReportPage from '@/views/TestManage/TestReportPage.vue';
+
 
 const routes = [
   {
@@ -25,6 +28,16 @@ const routes = [
     path: '/testcase',
     name: 'TestCase',
     component: TestCasePage, // 添加 TestCasePage 的路由
+  },
+  {
+    path: '/bugmanage',
+    name: 'BugManage',
+    component: BugManagePage, // 添加 TestCasePage 的路由
+  },
+  {
+    path: '/testreport',
+    name: 'TestReport',
+    component: TestReportPage, // 添加 TestCasePage 的路由
   },
   {
     path: '/overview',
