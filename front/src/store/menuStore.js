@@ -74,7 +74,7 @@ export const useMenuStore = () => {
     // console.log('currentSubMenus:', currentSubMenus.value);
     if (subIndex) {
       activeSubMenu.value = subIndex
-      console.log('当前激活的子菜单是:', activeSubMenu.value)
+      // console.log('当前激活的子菜单是:', activeSubMenu.value)
     } else if (mainMenu.subMenus.length > 0) {
       activeSubMenu.value = mainMenu.subMenus[0].index
     } else {
@@ -100,9 +100,9 @@ export const useMenuStore = () => {
   const initializeActiveMenu = () => {
     const currentPath = route.path
     for (const mainMenu of menuItems) {
-      console.log('currentPath是', currentPath)
-      console.log('mainMenu.route是', mainMenu.route)
-      console.log('currentPath是', currentPath.startsWith())
+      // console.log('currentPath是', currentPath)
+      // console.log('mainMenu.route是', mainMenu.route)
+      // console.log('currentPath是', currentPath.startsWith())
       // 之前这里的判断逻辑有问题
       // if (currentPath === mainMenu.route || currentPath.startsWith(mainMenu.route + '/')) {
       if (currentPath) {

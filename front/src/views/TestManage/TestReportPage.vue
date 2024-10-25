@@ -17,9 +17,7 @@
               @focus="handleFocus"
               @blur="handleBlur"
               />
-            <el-button type="primary" @click="dialogVisible = true"
-              >生成报告</el-button
-            ></el-col
+              <el-button type="primary" @click="handleGenerateReport">生成报告</el-button></el-col
           >
         </el-row>
         <el-table
@@ -55,6 +53,15 @@
   import PaginationPage from "@/components/PaginationPage.vue";
   import { ref, reactive } from "vue";
   import { Search } from '@element-plus/icons-vue'
+  import { useRouter } from 'vue-router'; // 添加这行
+
+// 获取router实例
+const router = useRouter();
+
+// 添加生成报告的处理函数
+const handleGenerateReport = () => {
+  router.push('/testreport/audit');
+};
   
   
   const input2 = ref('')

@@ -40,7 +40,6 @@ import AutocaseStatisticsChart from "@/components/AutocaseStatisticsChart.vue";
   width: 49%;
 }
 
-
 .chart {
   width: 100%;
   height: 100%;

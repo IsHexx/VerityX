@@ -6,6 +6,7 @@ import ApiManagePage from '@/views/ApiTest/ApiManagePage.vue';
 import TestCasePage from '@/views/TestManage/TestCasePage.vue';
 import BugManagePage from '@/views/TestManage/BugManagePage.vue';
 import TestReportPage from '@/views/TestManage/TestReportPage.vue';
+import TestReportAuditPage from '@/components/TestReportAuditPage.vue';
 
 
 const routes = [
@@ -37,8 +38,14 @@ const routes = [
   {
     path: '/testreport',
     name: 'TestReport',
-    component: TestReportPage, // 添加 TestCasePage 的路由
+    component: TestReportPage, // 添加 TestReportPage 的路由
+   
   },
+  {
+    path: '/testreport/audit',
+    name: 'TestReportAudit',
+    component: TestReportAuditPage
+},
   {
     path: '/overview',
     name: 'Overview',
