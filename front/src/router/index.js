@@ -28,17 +28,17 @@ const routes = [
   {
     path: '/testcase',
     name: 'TestCase',
-    component: TestCasePage, // 添加 TestCasePage 的路由
+    component: TestCasePage, 
   },
   {
     path: '/bugmanage',
     name: 'BugManage',
-    component: BugManagePage, // 添加 TestCasePage 的路由
+    component: BugManagePage, 
   },
   {
     path: '/testreport',
     name: 'TestReport',
-    component: TestReportPage, // 添加 TestReportPage 的路由
+    component: TestReportPage, 
    
   },
   {
@@ -49,12 +49,12 @@ const routes = [
   {
     path: '/overview',
     name: 'Overview',
-    component: OverviewPage, // 添加 OverviewPage 的路由
+    component: OverviewPage, 
   },
   {
     path: '/apimanage',
     name: 'Apimanage',
-    component: ApiManagePage, // 添加 ApiManagePage 的路由
+    component: ApiManagePage, 
   },
 ];
 
