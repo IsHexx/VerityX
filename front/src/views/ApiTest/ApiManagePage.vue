@@ -1,12 +1,16 @@
 <template>
   <div class="content">
-    <el-card style="width: 23%; min-height:660px; height: 100%">
+    <el-card style="width: 23%; min-height: 660px; height: 100%">
       <template #header>
         <div class="card-header">
           <span>接口列表</span>
         </div>
       </template>
-      <el-input v-model="filterText" style="width: 240px" placeholder="Filter keyword" />
+      <el-input
+        v-model="filterText"
+        style="width: 240px"
+        placeholder="Filter keyword"
+      />
       <el-tree
         ref="treeRef"
         class="filter-tree"
@@ -17,45 +21,52 @@
       >
         <template #default="{ node, data }">
           <span class="custom-tree-node">
-            <!-- 一级菜单显示彩色文件夹 -->
-            <el-icon 
-              v-if="node.level === 1" 
-              class="folder-icon"
-              :style="{ color: getFolderColor(data.id) }"
-            >
-              <Folder />
-            </el-icon>
-            <!-- 二级菜单显示 HTTP 方法标签 -->
-            <span 
-              v-else-if="node.level === 2" 
-              class="http-method"
-              :class="data.method?.toLowerCase()"
-            >
-              {{ data.method || 'GET' }}
+            <!-- 图标容器 -->
+            <span class="icon-container">
+              <!-- 一级菜单显示彩色文件夹 -->
+              <el-icon
+                v-if="node.level === 1"
+                class="folder-icon"
+                :style="{ color: getFolderColor(data.id) }"
+              >
+                <Folder />
+              </el-icon>
+              <!-- 二级菜单显示 HTTP 方法标签 -->
+              <span
+                v-else-if="node.level === 2"
+                class="http-method"
+                :class="data.method?.toLowerCase()"
+              >
+                {{ data.method || "GET" }}
+              </span>
+              <!-- 三级菜单的图标 -->
+              <el-icon v-else-if="node.level === 3"><Link /></el-icon>
             </span>
-            <!-- 三级菜单的图标 -->
-            <el-icon v-else-if="node.level === 3"><Link /></el-icon>
             <span>{{ node.label }}</span>
           </span>
         </template>
       </el-tree>
     </el-card>
-    <el-card style="width: 76%;">
-    <template #header>
-      <div class="card-header">
-        <span>Card name</span>
-      </div>
-    </template>
-    ...
-    <template #footer>Footer content</template>
-  </el-card>
+    <el-card style="width: 76%">
+      <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
+    <el-tab-pane label="预览" name="first">预览</el-tab-pane>
+    <el-tab-pane label="编辑" name="second">编辑</el-tab-pane>
+    <el-tab-pane label="运行" name="third">运行</el-tab-pane>
+  </el-tabs>
+    </el-card>
   </div>
 </template>
 
 <script setup>
 import { ref, watch } from "vue";
-import { ElTree } from "element-plus";
-import { Folder, Link } from '@element-plus/icons-vue'
+import { ElTree, TabsPaneContext } from "element-plus";
+import { Folder, Link } from "@element-plus/icons-vue";
+
+const activeName = ref("first");
+
+const handleClick = (tab, event) => {
+  console.log(tab, event);
+};
 
 const filterText = ref("");
 const treeRef = ref(null);
@@ -65,9 +76,8 @@ const defaultProps = {
   label: "label",
 };
 
-// 获取文件夹颜色的函数
 const getFolderColor = (id) => {
-  const colors = ['#409EFF', '#67C23A', '#E6A23C', '#F56C6C', '#909399'];
+  const colors = ["#409EFF", "#67C23A", "#E6A23C", "#F56C6C", "#909399"];
   return colors[id % colors.length];
 };
 
@@ -82,7 +92,6 @@ const filterNode = (value, data) => {
   return data.label.includes(value);
 };
 
-// 修改数据结构，添加 method 属性
 const data = [
   {
     id: 1,
@@ -155,7 +164,15 @@ const data = [
 .custom-tree-node {
   display: flex;
   align-items: center;
-  gap: 4px;
+}
+
+/* 新增图标容器样式 */
+.icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; /* 固定宽度 */
+  margin-right: 4px;
 }
 
 .folder-icon {
@@ -166,9 +183,9 @@ const data = [
   padding: 1px 4px;
   border-radius: 4px;
   font-size: 8px;
-  font-weight:normal;
+  font-weight: normal;
   text-transform: uppercase;
-  min-width: 10px;
+  min-width: 32px; /* 固定最小宽度 */
   text-align: center;
 }
 
@@ -196,16 +213,12 @@ const data = [
   height: 32px;
 }
 
-:deep(.el-icon) {
-  margin-right: 4px;
+:deep(.el-tree-node__content) {
+  position: relative;
 }
 
-::v-deep .el-tree-node__content>.el-tree-node__expand-icon {
+:deep(.el-tree-node__content > .el-tree-node__expand-icon) {
   position: absolute;
   opacity: 0;
-}
-
-::v-deep .el-tree-node__content {
-  position: relative;
 }
 </style>
