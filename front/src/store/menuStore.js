@@ -104,8 +104,8 @@ export const useMenuStore = () => {
       // console.log('mainMenu.route是', mainMenu.route)
       // console.log('currentPath是', currentPath.startsWith())
       // 之前这里的判断逻辑有问题
-      // if (currentPath === mainMenu.route || currentPath.startsWith(mainMenu.route + '/')) {
-      if (currentPath) {
+      if (currentPath === mainMenu.route || currentPath.startsWith(mainMenu.route + '/')) {
+      // if (currentPath) {
         
         activeMainMenu.value = mainMenu.index
         // console.log('initializeActiveMenu中activeMainMenu的值是:', activeMainMenu.value)
