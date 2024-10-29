@@ -230,6 +230,7 @@
                 ></el-col
               >
             </el-row>
+            <!-- QUERY PARAMETERS参数填写 -->
             <el-divider  style="margin-top: 5px;" />
             <el-row :gutter="20">
               <el-col :span="24" style="padding-right: 10px; padding-left: 10px">
@@ -281,10 +282,14 @@
                   /> </el-form-item
               ></el-col>
             </el-row>
+
+
+            
+            <!-- HEADER参数填写 -->
             <el-divider  style="margin-top: 5px;" />
             <el-row :gutter="20">
               <el-col :span="24" style="padding-right: 10px; padding-left: 10px">
-                  <el-label style="font-size:larger; font-weight: bold">BODY</el-label>
+                  <el-label style="font-size:larger; font-weight: bold">HEADER</el-label>
                   <el-divider  style="margin-top: 10px;" />
             </el-col>
             </el-row>
@@ -308,11 +313,40 @@
               ></el-col>
             </el-row>
             <el-row :gutter="20">
-              <el-col :span="2" style="padding-right: 10px; padding-left: 10px">
-                <el-form-item label="" prop="user">
+              <el-col :span="4" style="padding-right: 10px; padding-left: 10px">
+                <el-form-item label="" prop="Cookies">
                   <el-input
-                    v-model="ruleForm.user"
-                    placeholder="user"
+                    v-model="ruleForm.Cookies"
+                    placeholder="Cookies"
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :span="1" style="padding-right: 0px; padding-left: 0px" >
+                <el-text class="mx-1">=</el-text></el-col>
+              <el-col :span="19" style="padding-right: 10px; padding-left: 0px">
+                <el-form-item label="" prop="value">
+                  <el-input
+                    v-model="ruleForm.value"
+                    placeholder="value"
+                  /> </el-form-item
+              ></el-col>
+            </el-row>
+
+            
+             <!-- Body参数填写 -->
+             <el-divider  style="margin-top: 5px;" />
+            <el-row :gutter="20">
+              <el-col :span="24" style="padding-right: 10px; padding-left: 10px">
+                  <el-label style="font-size:larger; font-weight: bold">BODY</el-label>
+                  <el-divider  style="margin-top: 10px;" />
+            </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="2" style="padding-right: 10px; padding-left: 10px">
+                <el-form-item label="" prop="aaa">
+                  <el-input
+                    v-model="ruleForm.aaa"
+                    placeholder="aaa"
                   /> </el-form-item
               ></el-col>
 
@@ -329,26 +363,59 @@
                   /> </el-form-item
               ></el-col>
             </el-row>
-            <el-row>
-              <el-col :span="12"
-                ><el-form-item label="创建时间" prop="createTime">
-                  <el-input v-model="ruleForm.createTime" /> </el-form-item
+            <el-row :gutter="20">
+              <el-col :span="2" style="padding-right: 10px; padding-left: 10px">
+                <el-form-item label="" prop="user">
+                  <el-input
+                    v-model="ruleForm.user"
+                    placeholder="bbb"
+                  /> </el-form-item
               ></el-col>
-              <el-col :span="12">
-                <el-form-item label="更新时间" prop="updateTime">
-                  <el-input v-model="ruleForm.updateTime" /> </el-form-item
-              ></el-col>
-            </el-row>
-            <el-row>
-              <el-col :span="24"
-                ><el-form-item label="MOCK地址" prop="mockkUrl">
-                  <el-input v-model="ruleForm.mockkUrl" /> </el-form-item
+
+              <el-col :span="1" style="padding-right: 0px; padding-left: 0px" >
+                <el-checkbox value="Promotion activities" name="type">
+                </el-checkbox
+                ><el-text class="mx-1">=</el-text></el-col
+              >
+              <el-col :span="21" style="padding-right: 10px; padding-left: 0px">
+                <el-form-item label="" prop="value">
+                  <el-input
+                    v-model="ruleForm.value"
+                    placeholder="value"
+                  /> </el-form-item
               ></el-col>
             </el-row>
 
-            <el-form-item label="返回body" prop="desc">
-              <el-input v-model="ruleForm.body" type="textarea" />
-            </el-form-item> </el-form
+            <!-- respose  -->
+            <el-divider  style="margin-top: 5px;" />
+            <el-row :gutter="20">
+              <el-col :span="24" style="padding-right: 10px; padding-left: 10px">
+                  <el-label style="font-size:larger; font-weight: bold">Respose</el-label>
+                  <el-divider  style="margin-top: 10px;" />
+            </el-col>
+            </el-row>
+            <div class="upper-content">
+              <div style="min-width: 480px; width: 49%; min-height: 480px">
+                <el-label >Header</el-label>
+                <el-divider  style="margin: 5px 0px 10px 0px; " />
+            <el-card  >
+              <el-form-item label="" prop="desc">
+                <el-input v-model="ruleForm.body" type="textarea" />
+              </el-form-item>
+            </el-card>
+          </div>
+          <div style="min-width: 480px; width: 49%; height: 480px">
+            <el-label >Body</el-label>
+            <el-divider  style="margin: 5px 0px 10px 0px;" />
+        <el-card  >
+          <el-form-item label="" prop="desc">
+            <el-input v-model="ruleForm.body" type="textarea" />
+          </el-form-item>
+        </el-card>
+      </div>
+        </div>
+
+         </el-form
         ></el-tab-pane>
       </el-tabs>
     </el-card>
@@ -517,9 +584,18 @@ const filterNode = (value, data) => {
 </script>
 
 <style scoped>
+
+
+.upper-content {
+  flex: 2;
+  background-color: #fffcfc;
+  display: flex;
+  justify-content: space-between;
+}
+
 .content {
   flex: 2;
-  padding: 2px 20px 4px 20px;
+
   background-color: #f5f5f5;
   display: flex;
   justify-content: space-between;

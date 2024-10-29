@@ -165,7 +165,7 @@
             <el-input
               v-model="form.desc"
               type="textarea"
-              placeholder="【浮现步骤】 【实际结果】 【期望结果】"
+              placeholder="【复现步骤】 【实际结果】 【期望结果】"
             />
           </el-form-item>
           <el-row type="flex" justify="end">
