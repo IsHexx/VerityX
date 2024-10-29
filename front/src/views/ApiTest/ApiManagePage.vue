@@ -230,6 +230,13 @@
                 ></el-col
               >
             </el-row>
+            <el-divider  style="margin-top: 5px;" />
+            <el-row :gutter="20">
+              <el-col :span="24" style="padding-right: 10px; padding-left: 10px">
+                  <el-label style="font-size:larger; font-weight: bold">QUERY PARAMETERS</el-label>
+                  <el-divider  style="margin-top: 10px;" />
+            </el-col>
+            </el-row>
             <el-row :gutter="20">
               <el-col :span="2" style="padding-right: 10px; padding-left: 10px">
                 <el-form-item label="" prop="code">
@@ -238,10 +245,83 @@
                     placeholder="code"
                   /> </el-form-item
               ></el-col>
-              <el-checkbox value="Promotion activities" name="type">
-              </el-checkbox>
-              <el-text class="mx-1">=</el-text>
-              <el-col :span="20" style="padding-right: 0px; padding-left: 0px">
+
+              <el-col :span="1" style="padding-right: 0px; padding-left: 0px" >
+                <el-checkbox value="Promotion activities" name="type">
+                </el-checkbox
+                ><el-text class="mx-1">=</el-text></el-col
+              >
+              <el-col :span="21" style="padding-right: 10px; padding-left: 0px">
+                <el-form-item label="" prop="value">
+                  <el-input
+                    v-model="ruleForm.value"
+                    placeholder="value"
+                  /> </el-form-item
+              ></el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="2" style="padding-right: 10px; padding-left: 10px">
+                <el-form-item label="" prop="user">
+                  <el-input
+                    v-model="ruleForm.user"
+                    placeholder="user"
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :span="1" style="padding-right: 0px; padding-left: 0px" >
+                <el-checkbox value="Promotion activities" name="type">
+                </el-checkbox
+                ><el-text class="mx-1">=</el-text></el-col
+              >
+              <el-col :span="21" style="padding-right: 10px; padding-left: 0px">
+                <el-form-item label="" prop="value">
+                  <el-input
+                    v-model="ruleForm.value"
+                    placeholder="value"
+                  /> </el-form-item
+              ></el-col>
+            </el-row>
+            <el-divider  style="margin-top: 5px;" />
+            <el-row :gutter="20">
+              <el-col :span="24" style="padding-right: 10px; padding-left: 10px">
+                  <el-label style="font-size:larger; font-weight: bold">BODY</el-label>
+                  <el-divider  style="margin-top: 10px;" />
+            </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="4" style="padding-right: 10px; padding-left: 10px">
+                <el-form-item label="" prop="Content-type">
+                  <el-input
+                    v-model="ruleForm.ContentType"
+                    placeholder="ContentType"
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :span="1" style="padding-right: 0px; padding-left: 0px" >
+                <el-text class="mx-1">=</el-text></el-col>
+              <el-col :span="19" style="padding-right: 10px; padding-left: 0px">
+                <el-form-item label="" prop="value">
+                  <el-input
+                    v-model="ruleForm.value"
+                    placeholder="value"
+                  /> </el-form-item
+              ></el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="2" style="padding-right: 10px; padding-left: 10px">
+                <el-form-item label="" prop="user">
+                  <el-input
+                    v-model="ruleForm.user"
+                    placeholder="user"
+                  /> </el-form-item
+              ></el-col>
+
+              <el-col :span="1" style="padding-right: 0px; padding-left: 0px" >
+                <el-checkbox value="Promotion activities" name="type">
+                </el-checkbox
+                ><el-text class="mx-1">=</el-text></el-col
+              >
+              <el-col :span="21" style="padding-right: 10px; padding-left: 0px">
                 <el-form-item label="" prop="value">
                   <el-input
                     v-model="ruleForm.value"
