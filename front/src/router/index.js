@@ -3,6 +3,7 @@ import UserLogin from '@/components/UserlLogin.vue';
 import TestPlanPage from '@/views/TestManage/TestPlanPage.vue';
 import OverviewPage from '@/views/TestManage/OverviewPage.vue';
 import ApiManagePage from '@/views/ApiTest/ApiManagePage.vue';
+import ApiAutoTestPage from '@/views/ApiTest/ApiAutoTestPage.vue';
 import TestCasePage from '@/views/TestManage/TestCasePage.vue';
 import BugManagePage from '@/views/TestManage/BugManagePage.vue';
 import TestReportPage from '@/views/TestManage/TestReportPage.vue';
@@ -21,22 +22,22 @@ const routes = [
   //   component: HomePage
   // },
   {
-    path: '/testplan',
+    path: '/overview/testplan',
     name: 'TestPlan',
     component: TestPlanPage, // 添加 TestPlanPage 的路由
   },
   {
-    path: '/testcase',
+    path: '/overview/testcase',
     name: 'TestCase',
     component: TestCasePage, 
   },
   {
-    path: '/bugmanage',
+    path: '/overview/bugmanage',
     name: 'BugManage',
     component: BugManagePage, 
   },
   {
-    path: '/testreport',
+    path: '/overview/testreport',
     name: 'TestReport',
     component: TestReportPage, 
    
@@ -55,6 +56,11 @@ const routes = [
     path: '/apimanage',
     name: 'Apimanage',
     component: ApiManagePage, 
+  },
+  {
+    path: '/apimanage/apiautotest',
+    name: 'ApiAutoTest',
+    component: ApiAutoTestPage, 
   },
 ];
 

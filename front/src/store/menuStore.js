@@ -14,10 +14,10 @@ export const useMenuStore = () => {
       route: '/overview',
       subMenus: [
         { index: '1-1', title: '概览', route: '/overview' },
-        { index: '1-2', title: '测试计划', route: '/testplan' },
-        { index: '1-3', title: '测试用例', route: '/testcase' },
-        { index: '1-4', title: '缺陷管理', route: '/bugmanage' },
-        { index: '1-5', title: '测试报告', route: '/testreport' },
+        { index: '1-2', title: '测试计划', route: '/overview/testplan' },
+        { index: '1-3', title: '测试用例', route: '/overview/testcase' },
+        { index: '1-4', title: '缺陷管理', route: '/overview/bugmanage' },
+        { index: '1-5', title: '测试报告', route: '/overview/testreport' },
       ]
     },
     {
@@ -27,9 +27,9 @@ export const useMenuStore = () => {
       route: '/apimanage',
       subMenus: [
         { index: '2-1', title: '接口管理', route: '/apimanage' },
-        { index: '2-2', title: '接口自动化', route: '/apimanage' },
-        { index: '2-3', title: '测试报告', route: '/apimanage' },
-        { index: '2-4', title: '全局配置', route: '/apimanage' },
+        { index: '2-2', title: '接口自动化', route: '/apimanage/apiautotest' },
+        { index: '2-3', title: '测试报告', route: '/apimanage/22' },
+        { index: '2-4', title: '全局配置', route: '/apimanage/11' },
       ]
     },
     {
@@ -63,6 +63,7 @@ export const useMenuStore = () => {
   const setActiveMenu = (mainIndex, subIndex) => {
     // console.log('setActiveMenu被调用，参数是:', mainIndex, subIndex)
     const mainMenu = menuItems.find(item => item.index === mainIndex)
+    
     if (!mainMenu) return
     // console.log('当前激活的菜单是:', mainMenu)
     activeMainMenu.value = mainIndex
@@ -100,15 +101,19 @@ export const useMenuStore = () => {
   const initializeActiveMenu = () => {
     const currentPath = route.path
     for (const mainMenu of menuItems) {
-      // console.log('currentPath是', currentPath)
-      // console.log('mainMenu.route是', mainMenu.route)
-      // console.log('currentPath是', currentPath.startsWith())
-      // 之前这里的判断逻辑有问题
+      console.log('进入initializeActiveMenu循环--进入initializeActiveMenu循环--进入initializeActiveMenu循环')
+      console.log('currentPath是', currentPath)
+      console.log('mainMenu.route是', mainMenu.route)
+      // console.log("currentPath.startsWith(mainMenu.route + '/')是", currentPath.startsWith(mainMenu.route + '/'))
+      // console.log("mainMenu.subMenus是", mainMenu.subMenus)
+      
+
+      // 修改menuItems中path路径在每个二级菜单前面加上一级菜单路径
       if (currentPath === mainMenu.route || currentPath.startsWith(mainMenu.route + '/')) {
       // if (currentPath) {
         
         activeMainMenu.value = mainMenu.index
-        // console.log('initializeActiveMenu中activeMainMenu的值是:', activeMainMenu.value)
+        console.log('initializeActiveMenu中activeMainMenu的值是:', activeMainMenu.value)
         const subMenu = mainMenu.subMenus.find(sub => sub.route === currentPath)
         activeSubMenu.value = subMenu ? subMenu.index : (mainMenu.subMenus[0]?.index || '')
         return

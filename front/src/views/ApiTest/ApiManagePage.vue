@@ -33,9 +33,6 @@ import EditPage from "../../components/interface/EditPage.vue";
 import RunPage from "../../components/interface/RunPage.vue";
 
 const activeName = ref("preview");
-const handleClick = (tab, event) => {
-  console.log(tab, event);
-};
 
 
 // const ruleFormRef = ref(null);

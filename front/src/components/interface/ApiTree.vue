@@ -12,26 +12,136 @@
         style="width: 240px"
         placeholder="请输入接口名称"
       />
-      <el-tree :data="data" node-key="label">
-    <template #default="{ node, data }">
-      <span class="custom-tree-node" @mouseover="mouseover(data)" @mouseleave="mouseout(data)">
-        <span>{{ node.label }}</span>
-        <div v-show="data.dropdownShow" @click.stop>
-          <el-dropdown placement="right-start" trigger="click">
-            <i class="el-icon-s-operation"></i>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item icon="el-icon-plus" @click="addPeerTree(node, data)">新增同级</el-dropdown-item>
-                <el-dropdown-item icon="el-icon-circle-plus" @click="addChildrenTree(node, data)">新增下级</el-dropdown-item>
-                <el-dropdown-item icon="el-icon-edit-outline" @click="updateTree(node, data)">修改</el-dropdown-item>
-                <el-dropdown-item icon="el-icon-delete-solid" @click="delTree(node, data)">删除</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-      </span>
-    </template>
-  </el-tree>
+      <el-tree
+        ref="treeRef"
+        class="filter-tree"
+        :data="data"
+        :props="defaultProps"
+        default-expand-all
+        :filter-node-method="filterNode"
+      >
+        <template #default="{ node, data }">
+          <div 
+            class="custom-tree-node"
+            @mouseenter="handleMouseEnter(node)"
+            @mouseleave="handleMouseLeaveWithDelay(node)"
+          >
+            <span class="icon-container">
+              <el-icon
+                v-if="node.level === 1"
+                class="folder-icon"
+                :style="{ color: getFolderColor(data.id) }"
+              >
+                <Folder />
+              </el-icon>
+              <span
+                v-else-if="node.level === 2"
+                class="http-method"
+                :class="data.method?.toLowerCase()"
+              >
+                {{ data.method || "GET" }}
+              </span>
+              <el-icon v-else-if="node.level === 3"><Link /></el-icon>
+            </span>
+            <span>{{ node.label }}</span>
+            
+            <!-- 文件夹操作按钮 (level 1) -->
+            <div v-if="node.level === 1 && node.isHovered" class="node-actions">
+              <el-button
+                type="text"
+                size="small"
+                @click.stop="handleAddInterface(node, data)"
+              >
+                <el-icon><Plus /></el-icon>
+              </el-button>
+              <el-dropdown 
+                trigger="hover"
+                @visible-change="handleDropdownVisibleChange"
+                :hide-on-click="false"
+                @command="(command) => handleCommand(command, node, data)"
+              >
+                <el-button 
+                  type="text" 
+                  size="small" 
+                  @mouseenter="cancelMouseLeave"
+                >
+                  <el-icon><More /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu 
+                    @mouseenter="cancelMouseLeave"
+                    @mouseleave="handleDropdownMenuLeave(node)"
+                  >
+                    <el-dropdown-item command="addFolder">新增目录</el-dropdown-item>
+                    <el-dropdown-item command="rename">重命名目录</el-dropdown-item>
+                    <el-dropdown-item command="delete">删除目录</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+
+            <!-- 接口操作按钮 (level 2) -->
+            <div v-if="node.level === 2 && node.isHovered" class="node-actions">
+              <el-button
+                type="text"
+                size="small"
+                @click.stop="handleAddCase(node, data)"
+              >
+                <el-icon><Plus /></el-icon>
+              </el-button>
+              <el-dropdown 
+                trigger="hover"
+                @visible-change="handleDropdownVisibleChange"
+                :hide-on-click="false"
+                @command="(command) => handleCommand(command, node, data)"
+              >
+                <el-button 
+                  type="text" 
+                  size="small" 
+                  @mouseenter="cancelMouseLeave"
+                >
+                  <el-icon><More /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu 
+                    @mouseenter="cancelMouseLeave"
+                    @mouseleave="handleDropdownMenuLeave(node)"
+                  >
+                    <el-dropdown-item command="delete">删除接口</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+
+            <!-- 用例操作按钮 (level 3) -->
+            <div v-if="node.level === 3 && node.isHovered" class="node-actions">
+              <el-dropdown 
+                trigger="hover"
+                @visible-change="handleDropdownVisibleChange"
+                :hide-on-click="false"
+                @command="(command) => handleCommand(command, node, data)"
+              >
+                <el-button 
+                  type="text" 
+                  size="small" 
+                  @mouseenter="cancelMouseLeave"
+                >
+                  <el-icon><More /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu 
+                    @mouseenter="cancelMouseLeave"
+                    @mouseleave="handleDropdownMenuLeave(node)"
+                  >
+                    <el-dropdown-item command="rename">重命名用例</el-dropdown-item>
+                    <el-dropdown-item command="delete">删除用例</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+          </div>
+        </template>
+      </el-tree>
     </el-card>
   </div>
 </template>
