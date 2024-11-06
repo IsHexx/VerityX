@@ -11,13 +11,10 @@
 
           <!-- 测试步骤 end-->
   
-          <!-- 编辑 -->
-          <edit-page> </edit-page>
-          <!-- 编辑 end-->
+          <!-- 测试报告 -->
+          <api-test-report> </api-test-report>
+          <!-- 测试报告 end-->
   
-          <!-- 运行 -->
-          <run-page> </run-page>
-          <!-- 运行 end-->
         </el-tabs>
       </el-card>
     </div>
@@ -28,7 +25,7 @@
   import { Folder, Link, Plus, More } from "@element-plus/icons-vue";
   import { ElMessage, ElMessageBox } from "element-plus";
   import TestStep from "../../components/ApiAutoTestInterface/TestStep.vue";
-  import EditPage from "../../components/interface/EditPage.vue";
+  import ApiTestReport from "../../components/ApiAutoTestInterface/ApiTestReport.vue";
   import ApiAutoTestTree from "../../components/ApiAutoTestInterface/ApiAutoTestTree.vue";
 
   

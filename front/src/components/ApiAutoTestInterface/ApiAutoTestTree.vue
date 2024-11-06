@@ -42,8 +42,7 @@
                   <!-- {{ data.method || "GET" }} -->
                   
                 <!-- </span> -->
-                <el-icon v-else-if="node.level === 2"><Postcard /></el-icon>
-                <el-icon v-else-if="node.level === 3"><Link /></el-icon>
+                <el-icon v-else-if="node.level === 2" style="color: #45c8dc"><Postcard /></el-icon>
               </span>
               <span>{{ node.label }}</span>
               
@@ -82,7 +81,7 @@
                 </el-dropdown>
               </div>
   
-              <!-- 接口操作按钮 (level 2) -->
+              <!-- 用例组按钮 (level 2) -->
               <div v-if="node.level === 2 && node.isHovered" class="node-actions">
                 <el-dropdown 
                   trigger="hover"
@@ -95,7 +94,7 @@
                     size="small" 
                     @mouseenter="cancelMouseLeave"
                   >
-                    <el-icon><More /></el-icon>
+                    <el-icon ><More /></el-icon>
                   </el-button>
                   <template #dropdown>
                     <el-dropdown-menu 
