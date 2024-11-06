@@ -6,10 +6,10 @@
   
       <el-card style="width: 76%">
         <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
-          <!-- 预览 -->
-  
-          <preview-page> </preview-page>
-          <!-- 预览 end-->
+          <!-- 测试步骤 -->
+          <test-step ></test-step>
+
+          <!-- 测试步骤 end-->
   
           <!-- 编辑 -->
           <edit-page> </edit-page>
@@ -27,7 +27,7 @@
   import { reactive, ref, watch } from "vue";
   import { Folder, Link, Plus, More } from "@element-plus/icons-vue";
   import { ElMessage, ElMessageBox } from "element-plus";
-  import PreviewPage from "../../components/interface/PreviewPage.vue";
+  import TestStep from "../../components/ApiAutoTestInterface/TestStep.vue";
   import EditPage from "../../components/interface/EditPage.vue";
   import ApiAutoTestTree from "../../components/ApiAutoTestInterface/ApiAutoTestTree.vue";
 

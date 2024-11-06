@@ -34,13 +34,15 @@
                 >
                   <Folder />
                 </el-icon>
-                <span
+                <!-- <span
                   v-else-if="node.level === 2"
                   class="http-method"
                   :class="data.method?.toLowerCase()"
-                >
-                  {{ data.method || "GET" }}
-                </span>
+                > -->
+                  <!-- {{ data.method || "GET" }} -->
+                  
+                <!-- </span> -->
+                <el-icon v-else-if="node.level === 2"><Postcard /></el-icon>
                 <el-icon v-else-if="node.level === 3"><Link /></el-icon>
               </span>
               <span>{{ node.label }}</span>
@@ -72,7 +74,7 @@
                       @mouseenter="cancelMouseLeave"
                       @mouseleave="handleDropdownMenuLeave(node)"
                     >
-                      <el-dropdown-item command="addFolder">新增目录</el-dropdown-item>
+                      <el-dropdown-item command="addFolder">新增用例</el-dropdown-item>
                       <el-dropdown-item command="rename">重命名目录</el-dropdown-item>
                       <el-dropdown-item command="delete">删除目录</el-dropdown-item>
                     </el-dropdown-menu>
@@ -82,13 +84,6 @@
   
               <!-- 接口操作按钮 (level 2) -->
               <div v-if="node.level === 2 && node.isHovered" class="node-actions">
-                <el-button
-                  type="text"
-                  size="small"
-                  @click.stop="handleAddCase(node, data)"
-                >
-                  <el-icon><Plus /></el-icon>
-                </el-button>
                 <el-dropdown 
                   trigger="hover"
                   @visible-change="handleDropdownVisibleChange"
@@ -107,33 +102,6 @@
                       @mouseenter="cancelMouseLeave"
                       @mouseleave="handleDropdownMenuLeave(node)"
                     >
-                      <el-dropdown-item command="delete">删除接口</el-dropdown-item>
-                    </el-dropdown-menu>
-                  </template>
-                </el-dropdown>
-              </div>
-  
-              <!-- 用例操作按钮 (level 3) -->
-              <div v-if="node.level === 3 && node.isHovered" class="node-actions">
-                <el-dropdown 
-                  trigger="hover"
-                  @visible-change="handleDropdownVisibleChange"
-                  :hide-on-click="false"
-                  @command="(command) => handleCommand(command, node, data)"
-                >
-                  <el-button 
-                    type="text" 
-                    size="small" 
-                    @mouseenter="cancelMouseLeave"
-                  >
-                    <el-icon><More /></el-icon>
-                  </el-button>
-                  <template #dropdown>
-                    <el-dropdown-menu 
-                      @mouseenter="cancelMouseLeave"
-                      @mouseleave="handleDropdownMenuLeave(node)"
-                    >
-                      <el-dropdown-item command="rename">重命名用例</el-dropdown-item>
                       <el-dropdown-item command="delete">删除用例</el-dropdown-item>
                     </el-dropdown-menu>
                   </template>
@@ -147,7 +115,7 @@
   </template>
   <script setup>
   import { ref, watch } from 'vue';
-  import { Folder, Link, Plus, More } from "@element-plus/icons-vue";
+  import { Folder, Link, Plus, More, Postcard } from "@element-plus/icons-vue";
   import { ElMessage, ElMessageBox } from 'element-plus';
   
   const treeRef = ref(null);
@@ -164,37 +132,29 @@
   const data = [
     {
       id: 1,
-      label: "用户管理",
+      label: "根目录",
       children: [
         {
           id: 4,
           label: "获取用户列表",
-          method: "GET",
-          children: [{ id: 9, label: "接口详情 1" }],
         },
         {
           id: 5,
           label: "创建用户",
-          method: "POST",
-          children: [{ id: 10, label: "接口详情 2" }],
         },
       ],
     },
     {
       id: 2,
-      label: "订单管理",
+      label: "用户接口",
       children: [
         {
           id: 6,
           label: "更新订单",
-          method: "PUT",
-          children: [{ id: 11, label: "接口详情 3" }],
         },
         {
           id: 7,
           label: "删除订单",
-          method: "DELETE",
-          children: [{ id: 12, label: "接口详情 4" }],
         },
       ],
     },
@@ -335,7 +295,7 @@
   // 添加接口
   const handleAddInterface = (node, data) => {
     event?.stopPropagation();
-    ElMessageBox.prompt('请输入接口名称', '新增接口', {
+    ElMessageBox.prompt('请输入子目录名称', '新增目录', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
     }).then(({ value }) => {
