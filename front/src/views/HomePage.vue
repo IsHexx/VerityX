@@ -54,6 +54,11 @@ export default {
   height: 100vh; /* 设置整体布局占满整个视口高度 */
 }
 
+.el-header{
+  padding: 0px;
+  height: 100%;
+}
+
 .fixed-aside {
   background-color: #ffffff;
   color: #333;
@@ -70,15 +75,15 @@ export default {
 
 .common-layout > .el-container > .el-container > .el-header {
   background-color: #fff;
-  height: 6%; /* Main 高度等于视口高度减去 Header 的高度 */
+  height: 8%; /* Main 高度等于视口高度减去 Header 的高度 */
   margin-top: 0px;
 }
 
 .common-layout > .el-container > .el-container > .el-main {
   background-color: #fff;
-  height: calc(100vh - 7%); /* Main 高度等于视口高度减去 Header 的高度 */
-  margin-top: 20px;
-  padding: 20px;
+  height: calc(100vh - 9%); /* Main 高度等于视口高度减去 Header 的高度 */
+  margin-top: 0px;
+  padding: 0px;
 }
 
 * {

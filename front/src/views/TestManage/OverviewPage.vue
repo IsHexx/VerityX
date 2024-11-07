@@ -1,5 +1,6 @@
 <!-- src/components/MainContent.vue -->
 <template>
+  
   <div class="main-layout">
     <div class="upper-content">
       <CaseStatisticsCard />
@@ -28,8 +29,8 @@ import AutocaseStatisticsChart from "@/components/AutocaseStatisticsChart.vue";
 
 .upper-content {
   flex: 2;
-  padding: 2px 20px 4px 20px;
-  background-color: #f5f5f5;
+  padding: 2px 10px 4px 10px;
+  background-color: #ffffff;
   display: flex;
   justify-content: space-between;
 }
@@ -47,8 +48,8 @@ import AutocaseStatisticsChart from "@/components/AutocaseStatisticsChart.vue";
 
 .lower-content {
   flex: 1;
-  background-color: #f4f4f4;
-  padding: 0px 20px 0px 20px;
+  background-color: #ffffff;
+  padding: 0px 10px 0px 10px;
   text-align: center;
 }
 </style>

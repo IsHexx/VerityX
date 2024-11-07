@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import UserLogin from '@/components/UserlLogin.vue';
+import UserLogin from '@/components/UserLogin.vue';
 import TestPlanPage from '@/views/TestManage/TestPlanPage.vue';
 import OverviewPage from '@/views/TestManage/OverviewPage.vue';
 import ApiManagePage from '@/views/ApiTest/ApiManagePage.vue';
@@ -8,60 +8,63 @@ import TestCasePage from '@/views/TestManage/TestCasePage.vue';
 import BugManagePage from '@/views/TestManage/BugManagePage.vue';
 import TestReportPage from '@/views/TestManage/TestReportPage.vue';
 import TestReportAuditPage from '@/components/TestReportAuditPage.vue';
-
+import ProjectManagePage from '@/views/ProjectManagePage.vue';
 
 const routes = [
   {
-    path: '/login',
+    path: '/',
     name: 'Login',
     component: UserLogin
   },
-  // {
-  //   path: '/home',  // 新增的导航页面路由
-  //   name: 'Home',
-  //   component: HomePage
-  // },
   {
-    path: '/overview/testplan',
-    name: 'TestPlan',
-    component: TestPlanPage, // 添加 TestPlanPage 的路由
-  },
-  {
-    path: '/overview/testcase',
-    name: 'TestCase',
-    component: TestCasePage, 
-  },
-  {
-    path: '/overview/bugmanage',
-    name: 'BugManage',
-    component: BugManagePage, 
-  },
-  {
-    path: '/overview/testreport',
-    name: 'TestReport',
-    component: TestReportPage, 
-   
+    path: '/projectmanage',
+    name: 'ProjectManage',
+    component: ProjectManagePage
   },
   {
     path: '/testreport/audit',
     name: 'TestReportAudit',
     component: TestReportAuditPage
-},
+  },
   {
     path: '/overview',
     name: 'Overview',
-    component: OverviewPage, 
+    component: OverviewPage,
+    children: [
+      {
+        path: 'testplan',
+        name: 'TestPlan',
+        component: TestPlanPage
+      },
+      {
+        path: 'testcase',
+        name: 'TestCase',
+        component: TestCasePage
+      },
+      {
+        path: 'bugmanage',
+        name: 'BugManage',
+        component: BugManagePage
+      },
+      {
+        path: 'testreport',
+        name: 'TestReport',
+        component: TestReportPage,
+      },
+    ]
   },
   {
     path: '/apimanage',
     name: 'Apimanage',
-    component: ApiManagePage, 
-  },
-  {
-    path: '/apimanage/apiautotest',
-    name: 'ApiAutoTest',
-    component: ApiAutoTestPage, 
-  },
+    component: ApiManagePage,
+    children: [
+      {
+        path: 'apiautotest',
+        name: 'ApiAutoTest',
+        component: ApiAutoTestPage
+      }
+    ]
+  }
 ];
 
 const router = createRouter({

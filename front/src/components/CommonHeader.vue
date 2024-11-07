@@ -8,12 +8,12 @@
       </el-breadcrumb>
     </div>
     <!-- 中间的水平菜单 -->
-     <!-- 修改菜单部分 -->
      <el-menu
       mode="horizontal"
       :ellipsis="false"
       class="horizontal-menu"
       :default-active="activeSubMenu"
+      style="height: 100%;"
     >
       <el-menu-item
         v-for="item in currentSubMenus"
@@ -90,23 +90,27 @@ onMounted(() => {
 .header {
   display: flex;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 0px;
   background-color: #ffffff;
-  border-bottom: #f5f5f5 1px solid;
+  border-bottom: #dcdfe6 1px solid;
   align-items: center;
 }
 
 /* 确保菜单项激活状态的样式正确显示 */
-:deep(.el-menu-item.is-active) {
+/* :deep(.el-menu-item.is-active) {
   color: var(--el-menu-active-color) !important;
   border-bottom: 2px solid var(--el-menu-active-color) !important;
-}
+} */
 
 .header-left {
   display: flex;
   align-items: center;
+  padding-left: 20px;
 }
 
+.header-right{
+  padding-right: 10px;
+}
 
 .el-dropdown-link {
   display: flex;    /* 设置为 Flex 容器 */

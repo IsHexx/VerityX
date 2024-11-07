@@ -45,6 +45,15 @@ export const useMenuStore = () => {
       title: '系统设置',
       route: '/settings',
       subMenus: []
+    },
+    {
+      index: '5',
+      icon: 'ProjectManage',
+      title: '项目管理',
+      route: '/projectmanage',
+      subMenus: [
+        { index: '5-1', title: '项目管理', route: '/projectmanage' },
+      ]
     }
   ]
 
