@@ -30,41 +30,37 @@ const routes = [
     path: '/overview',
     name: 'Overview',
     component: OverviewPage,
-    children: [
-      {
-        path: 'testplan',
-        name: 'TestPlan',
-        component: TestPlanPage
-      },
-      {
-        path: 'testcase',
-        name: 'TestCase',
-        component: TestCasePage
-      },
-      {
-        path: 'bugmanage',
+  },
+  {
+    path: '/overview/testplan',
+    name: 'TestPlan',
+    component: TestPlanPage
+  },
+  {
+    path: '/overview/bugmanage',
         name: 'BugManage',
         component: BugManagePage
       },
-      {
-        path: 'testreport',
-        name: 'TestReport',
-        component: TestReportPage,
-      },
-    ]
+  {
+    path: '/overview/testcase',
+    name: 'TestCase',
+    component: TestCasePage
+  },
+  {
+    path: '/overview/testreport',
+    name: 'TestReport',
+    component: TestReportPage
   },
   {
     path: '/apimanage',
     name: 'Apimanage',
     component: ApiManagePage,
-    children: [
-      {
-        path: 'apiautotest',
-        name: 'ApiAutoTest',
-        component: ApiAutoTestPage
-      }
-    ]
-  }
+  },
+  {
+    path: '/apimanage/apiautotest',
+    name: 'ApiAutoTest',
+    component: ApiAutoTestPage
+  },
 ];
 
 const router = createRouter({

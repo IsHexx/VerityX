@@ -49,10 +49,10 @@ export const useMenuStore = () => {
     {
       index: '5',
       icon: 'ProjectManage',
-      title: '项目管理',
+      title: '',
       route: '/projectmanage',
       subMenus: [
-        { index: '5-1', title: '项目管理', route: '/projectmanage' },
+        
       ]
     }
   ]
@@ -70,11 +70,11 @@ export const useMenuStore = () => {
   })
 
   const setActiveMenu = (mainIndex, subIndex) => {
-    // console.log('setActiveMenu被调用，参数是:', mainIndex, subIndex)
+    console.log('setActiveMenu被调用，参数是:', mainIndex, subIndex)
     const mainMenu = menuItems.find(item => item.index === mainIndex)
-    
-    if (!mainMenu) return
     // console.log('当前激活的菜单是:', mainMenu)
+    if (!mainMenu) return
+    
     activeMainMenu.value = mainIndex
 
     
@@ -110,9 +110,9 @@ export const useMenuStore = () => {
   const initializeActiveMenu = () => {
     const currentPath = route.path
     for (const mainMenu of menuItems) {
-      console.log('进入initializeActiveMenu循环--进入initializeActiveMenu循环--进入initializeActiveMenu循环')
-      console.log('currentPath是', currentPath)
-      console.log('mainMenu.route是', mainMenu.route)
+      // console.log('进入initializeActiveMenu循环--进入initializeActiveMenu循环--进入initializeActiveMenu循环')
+      // console.log('currentPath是', currentPath)
+      // console.log('mainMenu.route是', mainMenu.route)
       // console.log("currentPath.startsWith(mainMenu.route + '/')是", currentPath.startsWith(mainMenu.route + '/'))
       // console.log("mainMenu.subMenus是", mainMenu.subMenus)
       

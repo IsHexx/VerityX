@@ -2,8 +2,8 @@
   <el-header class="header">
     <!-- 导航栏左侧内容 -->
     <div class="header-left">
-      <el-breadcrumb separator="/">
-        <el-breadcrumb-item>Home</el-breadcrumb-item>
+      <el-breadcrumb separator="＞">
+        <el-breadcrumb-item style="font-weight: 800;">项目</el-breadcrumb-item>
         <el-breadcrumb-item>Dashboard</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
