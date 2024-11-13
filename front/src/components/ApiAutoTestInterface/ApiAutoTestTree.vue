@@ -34,14 +34,6 @@
                 >
                   <Folder />
                 </el-icon>
-                <!-- <span
-                  v-else-if="node.level === 2"
-                  class="http-method"
-                  :class="data.method?.toLowerCase()"
-                > -->
-                  <!-- {{ data.method || "GET" }} -->
-                  
-                <!-- </span> -->
                 <el-icon v-else-if="node.level === 2" style="color: #45c8dc"><Postcard /></el-icon>
               </span>
               <span>{{ node.label }}</span>
@@ -364,6 +356,8 @@
     const colors = ["#409EFF", "#67C23A", "#E6A23C", "#F56C6C", "#909399"];
     return colors[id % colors.length];
   };
+
+  
   
   // 过滤节点
   const filterNode = (value, data) => {

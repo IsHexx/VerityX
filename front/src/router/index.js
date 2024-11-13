@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import UserLogin from '@/components/UserLogin.vue';
 import TestPlanPage from '@/views/TestManage/TestPlanPage.vue';
 import OverviewPage from '@/views/TestManage/OverviewPage.vue';
 import ApiManagePage from '@/views/ApiTest/ApiManagePage.vue';
@@ -12,9 +11,10 @@ import ProjectManagePage from '@/views/ProjectManagePage.vue';
 
 const routes = [
   {
-    path: '/',
+    path: '/login',
     name: 'Login',
-    component: UserLogin
+    component: () => import('@/components/UserLogin.vue'),
+    meta: { requiresMenu: false } // 标记不需要菜单导航
   },
   {
     path: '/projectmanage',
@@ -30,6 +30,7 @@ const routes = [
     path: '/overview',
     name: 'Overview',
     component: OverviewPage,
+    meta: { requiresMenu: true },
   },
   {
     path: '/overview/testplan',
@@ -68,14 +69,17 @@ const router = createRouter({
   routes,
 });
 
-// 路由守卫，检查登录状态
+// 可以添加导航守卫来处理登录验证
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token');
-  if (to.matched.some(record => record.meta.requiresAuth) && !token) {
-    next({ name: 'Login' });
-  } else {
-    next();
-  }
-});
+  const token = localStorage.getItem('token')
+  
+
+    if (!token && to.path !== '/login') {
+      next('/login')
+    } else {
+      next()
+    }
+  
+})
 
 export default router;

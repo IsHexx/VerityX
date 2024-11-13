@@ -48,11 +48,16 @@ export const useMenuStore = () => {
     },
     {
       index: '5',
-      icon: 'ProjectManage',
       title: '',
       route: '/projectmanage',
       subMenus: [
-        
+      ]
+    },
+    {
+      index: '',
+      title: '',
+      route: '/login',
+      subMenus: [
       ]
     }
   ]
@@ -69,7 +74,15 @@ export const useMenuStore = () => {
     return mainMenu ? mainMenu.subMenus : []
   })
 
+
+  
+  // 添加登录页面路径判断
+  const isLoginPage = (path) => {
+    return path === '/login'
+  }
   const setActiveMenu = (mainIndex, subIndex) => {
+    // 如果是登录页面，不执行菜单激活逻辑
+    if (isLoginPage(route.path)) return
     console.log('setActiveMenu被调用，参数是:', mainIndex, subIndex)
     const mainMenu = menuItems.find(item => item.index === mainIndex)
     // console.log('当前激活的菜单是:', mainMenu)
@@ -102,19 +115,23 @@ export const useMenuStore = () => {
     }
   }
 
+  const shouldHandleMenu = computed(() => {
+    return route.meta.requiresMenu !== false
+  })
+  
   // 监听路由变化, 加了这一句实现了左侧菜单和顶部菜单联动
   watch(() => route.path, (newPath) => {
-    initializeActiveMenu()
+    if (!isLoginPage(newPath)) {
+      initializeActiveMenu()
+    }
   })
   
   const initializeActiveMenu = () => {
+    // 如果是登录页面，不执行初始化菜单逻辑
+    if (isLoginPage(route.path)) return
+    
     const currentPath = route.path
     for (const mainMenu of menuItems) {
-      // console.log('进入initializeActiveMenu循环--进入initializeActiveMenu循环--进入initializeActiveMenu循环')
-      // console.log('currentPath是', currentPath)
-      // console.log('mainMenu.route是', mainMenu.route)
-      // console.log("currentPath.startsWith(mainMenu.route + '/')是", currentPath.startsWith(mainMenu.route + '/'))
-      // console.log("mainMenu.subMenus是", mainMenu.subMenus)
       
 
       // 修改menuItems中path路径在每个二级菜单前面加上一级菜单路径
