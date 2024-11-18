@@ -16,7 +16,7 @@
             <el-input
               v-model="form.username"
               placeholder="Email"
-              :prefix-icon="User"
+              prefix-icon="User"
             ></el-input>
           </el-form-item>
           <el-form-item prop="password">
@@ -24,7 +24,7 @@
               type="password"
               v-model="form.password"
               placeholder="Password"
-              :prefix-icon="Lock"
+              prefix-icon="Lock"
               @keyup.enter="handleLogin"
             ></el-input>
           </el-form-item>
