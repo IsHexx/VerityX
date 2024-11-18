@@ -46,18 +46,30 @@
 </template>
 
 <script setup>
-import { ref, onMounted , watch} from 'vue';
+import { ref, onMounted } from 'vue';
 import { useMenuStore } from '@/store/menuStore';
 import image from '@/assets/image.png';  
+import { useRouter } from 'vue-router'
+import { authState } from '@/auth';
+
 const { activeMainMenu, activeSubMenu, currentSubMenus, setActiveMenu, initializeActiveMenu } = useMenuStore();
 
 // 模拟用户名
 const username = ref('John Doe');
+const isAuthenticated = ref(false)
+const router = useRouter();
 
-// 模拟退出登录方法
+// 退出登录方法
 const logout = () => {
-  console.log('Logout clicked');
-  // 在此处处理退出登录的逻辑
+  // 清理本地存储
+  localStorage.removeItem('token');
+  localStorage.removeItem('userInfo');
+
+  // 更新全局登录状态
+  authState.isAuthenticated = false;
+
+  // 跳转到登录页面
+  router.push('/login');
 };
 
 // 修改菜单点击处理函数

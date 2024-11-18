@@ -1,178 +1,185 @@
-<!-- UserLogin.vue -->
 <template>
-  <div class="login-container">
-    <div class="login-box">
-      <h2 class="login-title">用户登录</h2>
-      <el-form 
-        :model="form" 
-        :rules="rules"
-        ref="loginForm" 
-        @submit.prevent="handleLogin"
-      >
-        <el-form-item prop="username">
-          <el-input 
-            v-model="form.username" 
-            placeholder="请输入用户名"
-            prefix-icon="User"
-          ></el-input>
-        </el-form-item>
-        <el-form-item prop="password">
-          <el-input 
-            type="password" 
-            v-model="form.password" 
-            placeholder="请输入密码"
-            prefix-icon="Lock"
-            @keyup.enter="handleLogin"
-          ></el-input>
-        </el-form-item>
-        <div class="login-options">
-          <el-checkbox v-model="rememberMe">记住我</el-checkbox>
-          <a href="#" class="forget-password">忘记密码？</a>
-        </div>
-        <el-button 
-          type="primary" 
-          class="login-button" 
-          @click="handleLogin"
-          :loading="isLoading"
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-image">
+        <img src="https://via.placeholder.com/150" alt="Login Icon" />
+      </div>
+      <div class="login-form">
+        <h2>Member Login</h2>
+        <el-form
+          :model="form"
+          :rules="rules"
+          ref="loginForm"
+          @submit.prevent="handleLogin"
         >
-          {{ isLoading ? '登录中...' : '登录' }}
-        </el-button>
-      </el-form>
+          <el-form-item prop="username">
+            <el-input
+              v-model="form.username"
+              placeholder="Email"
+              :prefix-icon="User"
+            ></el-input>
+          </el-form-item>
+          <el-form-item prop="password">
+            <el-input
+              type="password"
+              v-model="form.password"
+              placeholder="Password"
+              :prefix-icon="Lock"
+              @keyup.enter="handleLogin"
+            ></el-input>
+          </el-form-item>
+          <div class="login-options">
+            <a href="#" class="forget-password">Forgot Username / Password?</a>
+          </div>
+          <el-button
+            type="primary"
+            class="login-button"
+            @click="handleLogin"
+            :loading="isLoading"
+          >
+            {{ isLoading ? 'Logging In...' : 'LOGIN' }}
+          </el-button>
+        </el-form>
+        <p class="create-account">
+          <a href="#">Create your Account →</a>
+        </p>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, reactive } from "vue";
+import { ElMessage } from "element-plus";
+import axios from "axios";
+import { useRouter } from "vue-router";
+import { User, Lock } from "@element-plus/icons-vue";
 
 export default {
-  name: 'UserLogin',
-  emits: ['login-success'],
-  
+  name: "UserLogin",
+  emits: ["login-success"],
   setup(props, { emit }) {
-    const loginForm = ref(null)
-    const isLoading = ref(false)
-    const rememberMe = ref(false)
-    
+    const loginForm = ref(null);
+    const isLoading = ref(false);
+
     const form = reactive({
-      username: '',
-      password: ''
-    })
-    
+      username: "",
+      password: "",
+    });
+    const router = useRouter();
+
     // 表单验证规则
     const rules = {
       username: [
-        { required: true, message: '请输入用户名', trigger: 'blur' },
-        { min: 3, message: '用户名长度不能小于3位', trigger: 'blur' }
+        { required: true, message: "请输入用户名", trigger: "blur" },
+        { type: "email", message: "请输入有效的邮箱地址", trigger: "blur" },
       ],
       password: [
-        { required: true, message: '请输入密码', trigger: 'blur' },
-        { min: 6, message: '密码长度不能小于6位', trigger: 'blur' }
-      ]
-    }
-    
+        { required: true, message: "请输入密码", trigger: "blur" },
+        { min: 6, message: "密码长度至少6位", trigger: "blur" },
+      ],
+    };
+
     const handleLogin = async () => {
-      if (!loginForm.value) return
-      
+      if (!loginForm.value) return;
+
       try {
-        await loginForm.value.validate()
-        isLoading.value = true
-        
-        // 这里调用你的登录API
-        // const response = await login(form)
-        // 模拟登录API调用
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // 模拟登录成功
-        const mockUserData = {
-          token: 'mock-token-' + Date.now(),
-          userInfo: {
-            id: 1,
-            username: form.username,
-            role: 'admin'
-          }
-        }
-        
-        if (rememberMe.value) {
-          localStorage.setItem('rememberedUser', form.username)
+        await loginForm.value.validate();
+        isLoading.value = true;
+
+        const response = await axios.post("/api/user/login", {
+          username: form.username,
+          password: form.password,
+        });
+
+        const { token, userInfo } = response.data;
+
+        if (response.data.status === "success") {
+          emit("login-success", { token, userInfo });
+          ElMessage.success("登录成功");
         } else {
-          localStorage.removeItem('rememberedUser')
+          throw new Error(response.data.message || "登录失败");
         }
-        
-        emit('login-success', mockUserData)
-        ElMessage.success('登录成功')
-        
       } catch (error) {
-        console.error('Login failed:', error)
-        ElMessage.error('登录失败，请检查用户名和密码')
+        ElMessage.error(error.message || "登录失败，请检查用户名和密码");
       } finally {
-        isLoading.value = false
+        isLoading.value = false;
       }
-    }
-    
-    // 检查是否有记住的用户名
-    const initRememberedUser = () => {
-      const rememberedUser = localStorage.getItem('rememberedUser')
-      if (rememberedUser) {
-        form.username = rememberedUser
-        rememberMe.value = true
-      }
-    }
-    
-    // 初始化
-    initRememberedUser()
-    
+    };
+
     return {
       loginForm,
       form,
       rules,
       isLoading,
-      rememberMe,
-      handleLogin
-    }
-  }
-}
+      handleLogin,
+    };
+  },
+};
 </script>
 
 <style scoped>
-.login-container {
+.login-page {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: linear-gradient(135deg, #81c784, #4caf50);
+  background: linear-gradient(135deg, 
+  #0093E9,   /* 第一个颜色：浅橙色 */
+  #0093E9 20%, /* 第一个颜色的结束位置 */
+  #80D0C7,   /* 第二个颜色：浅粉色 */
+  #80D0C7 40%, /* 第二个颜色的结束位置 */
+  #E0FBFC,   /* 第三个颜色：浅橙色 */
+  #E0FBFC 60%, /* 第三个颜色的结束位置 */
+  #FFBB00,   /* 第四个颜色：浅橙色 */
+  #FFBB00 80%, /* 第四个颜色的结束位置 */
+  #FF6347    /* 第五个颜色：浅橙色 */
+);
+
+
+  font-family: "Arial", sans-serif;
 }
 
-.login-box {
-  background: #fff;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  width: 400px;
+.login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  width: 450px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.login-title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 30px;
+.login-image img {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 20px;
+}
+
+.login-form {
+  width: 100%;
+}
+
+.login-form h2 {
   text-align: center;
+  font-size: 22px;
+  margin-bottom: 20px;
   color: #333;
 }
 
 .el-form-item {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
 .login-options {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: flex-end;
   margin-bottom: 20px;
 }
 
 .forget-password {
-  color: #409EFF;
+  color: #409eff;
   text-decoration: none;
   font-size: 14px;
 }
@@ -183,12 +190,22 @@ export default {
 
 .login-button {
   width: 100%;
+  font-size: 16px;
+  font-weight: bold;
 }
 
-@media screen and (max-width: 768px) {
-  .login-box {
-    width: 90%;
-    margin: 0 20px;
-  }
+.create-account {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.create-account a {
+  color: #409eff;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.create-account a:hover {
+  color: #66b1ff;
 }
 </style>

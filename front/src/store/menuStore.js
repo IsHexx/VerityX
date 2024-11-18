@@ -83,7 +83,7 @@ export const useMenuStore = () => {
   const setActiveMenu = (mainIndex, subIndex) => {
     // 如果是登录页面，不执行菜单激活逻辑
     if (isLoginPage(route.path)) return
-    console.log('setActiveMenu被调用，参数是:', mainIndex, subIndex)
+    // console.log('setActiveMenu被调用，参数是:', mainIndex, subIndex)
     const mainMenu = menuItems.find(item => item.index === mainIndex)
     // console.log('当前激活的菜单是:', mainMenu)
     if (!mainMenu) return
@@ -139,7 +139,7 @@ export const useMenuStore = () => {
       // if (currentPath) {
         
         activeMainMenu.value = mainMenu.index
-        console.log('initializeActiveMenu中activeMainMenu的值是:', activeMainMenu.value)
+        // console.log('initializeActiveMenu中activeMainMenu的值是:', activeMainMenu.value)
         const subMenu = mainMenu.subMenus.find(sub => sub.route === currentPath)
         activeSubMenu.value = subMenu ? subMenu.index : (mainMenu.subMenus[0]?.index || '')
         return
