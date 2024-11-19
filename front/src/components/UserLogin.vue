@@ -15,7 +15,7 @@
           <el-form-item prop="username">
             <el-input
               v-model="form.username"
-              placeholder="Email"
+              placeholder="Username"
               prefix-icon="User"
             ></el-input>
           </el-form-item>
@@ -72,11 +72,11 @@ export default {
     const rules = {
       username: [
         { required: true, message: "请输入用户名", trigger: "blur" },
-        { type: "email", message: "请输入有效的邮箱地址", trigger: "blur" },
+        { min: 1, message: "用户名不能为空", trigger: "blur"},
       ],
       password: [
         { required: true, message: "请输入密码", trigger: "blur" },
-        { min: 6, message: "密码长度至少6位", trigger: "blur" },
+        { min: 1, message: "密码不能为空", trigger: "blur" },
       ],
     };
 

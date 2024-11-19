@@ -16,21 +16,11 @@ module.exports = defineConfig({
     client: {
       overlay: false
     }
-  }
+  },
 
-  // configureWebpack: {
-  //   resolve: { extensions: [".ts", ".tsx", ".js", ".json"] },
-  //   module: {
-  //     rules: [
-  //       {
-  //         test: /\.tsx?$/,
-  //         loader: 'ts-loader',
-  //         exclude: /node_modules/,
-  //         options: {
-  //           appendTsSuffixTo: [/\.vue$/],
-  //         }
-  //       }
-  //     ]
-  //   }
-  // }
+  configureWebpack: (config) => {
+    if (process.env.NODE_ENV === 'production') {
+      config.optimization.minimizer[0].options.terserOptions.compress.drop_console = true
+    }
+  }
 })

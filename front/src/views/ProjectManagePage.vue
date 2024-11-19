@@ -9,6 +9,7 @@
           :lg="6"
           v-for="project in projects"
           :key="project.id"
+          style="margin-bottom: 5px;"
         >
           <el-card class="project-card mb-4" :body-style="{ padding: '12px' }">
             <div class="card-content">
@@ -54,23 +55,23 @@
                 <!-- 项目信息 -->
                 <div class="project-info">
                   <el-tooltip
-                    :content="project.name"
+                    :content="project.projectName"
                     
                     :show-after="200"
                     :hide-after="0"
                      popper-class="custom-tooltip"
                   >
-                    <h3 class="project-title">{{ project.name }}</h3>
+                    <h3 class="project-title">{{ project.projectName }}</h3>
                   </el-tooltip>
                   
                   <el-tooltip
-                    :content="project.overview"
+                    :content="project.description"
                     
                     :show-after="200"
                     :hide-after="0"
                     popper-class="custom-tooltip"
                     >
-                    <p class="project-overview">{{ project.overview }}</p>
+                    <p class="project-overview">{{ project.description }}</p>
                     </el-tooltip>
                 </div>
               </div>
@@ -104,7 +105,26 @@
           <el-form-item label="项目名称" prop="name">
             <el-input v-model="projectForm.name" placeholder="请输入项目名称" />
           </el-form-item>
-  
+          <el-form-item label="项目描述" prop="description">
+            <el-input v-model="projectForm.description" placeholder="请输入项目描述" />
+          </el-form-item>
+          <el-form-item label="开始时间" prop="startDate">
+            <el-date-picker
+            v-model="projectForm.startDate"
+            type="dates"
+            placeholder="项目开始时间"
+            value-format="YYYY-MM-DD"
+          />
+          </el-form-item>
+          <el-form-item label="结束时间" prop="endDate">
+            <el-date-picker
+            v-model="projectForm.endDate"
+            type="dates"
+            placeholder="项目结束时间"
+            value-format="YYYY-MM-DD"
+          />
+          </el-form-item>
+          
           <el-form-item label="项目图标" prop="image">
             <el-upload
               class="project-icon-upload"
@@ -162,7 +182,7 @@
   </template>
   
   <script setup>
-  import { ref, reactive } from "vue";
+  import { ref, reactive, onMounted } from "vue";
   import {
     Edit,
     Right,
@@ -174,28 +194,47 @@
   } from "@element-plus/icons-vue";
   import { ElMessage } from "element-plus";
   import { useRouter } from "vue-router";
+  import { projectApi } from '@/api/projectService'
+  import axios from 'axios'
   
   const router = useRouter();
-  
-  // 项目列表数据
-  const projects = ref([
-    {
-      id: 1,
-      name: "示例项目1示例项目1示例项目1示例项目1示例项目1示例项目1示例项目1",
-      image: "https://cdn.apifox.com/app/project-icon/builtin/11.jpg",
-      overview: "这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目这是一个示例项目"
-    },
-  ]);
-  
-  // 表单相关
+   // 表单相关
   const dialogVisible = ref(false);
   const dialogTitle = ref("");
   const projectFormRef = ref(null);
+  // const value1 = ref(null)
+  // const value2 = ref(null)
   const projectForm = reactive({
     name: "",
-    image: "",
+    description: "",
+    startDate: "",
+    endDate: "",
   });
   
+  // 项目列表数据
+  const projects = ref([]);
+
+  const fetchProjects = async () => {
+  try {
+    const res = await projectApi.getProjects()
+    // const res = await axios.get("/api/projects");
+    
+    projects.value = res.data
+  } catch (error) {
+    ElMessage.error('获取项目列表失败');
+    console.error('获取项目列表失败:', error);
+  } finally {
+    console.log('项目列表数据加载完成');
+  }
+};
+
+// 在组件挂载时获取项目列表
+onMounted(() => {
+  fetchProjects();
+});
+
+  
+
   // 表单校验规则
   const rules = {
     name: [
@@ -229,7 +268,9 @@
   const handleAddProject = () => {
     dialogTitle.value = "添加项目";
     projectForm.name = "";
-    projectForm.image = "";
+    projectForm.description = "";
+    projectForm.startDate = "";
+    projectForm.endDate = "";
     dialogVisible.value = true;
   };
   
@@ -278,16 +319,39 @@
   };
   
   // 提交表单
-  const submitForm = async () => {
-    if (!projectFormRef.value) return;
-  
-    await projectFormRef.value.validate(async (valid) => {
-      if (valid) {
-        ElMessage.success("保存成功");
-        dialogVisible.value = false;
-      }
-    });
-  };
+const submitForm = async () => {
+  if (!projectFormRef.value) return;
+
+  try {
+    await projectFormRef.value.validate();
+    
+    if (projectForm.id) {
+      // 更新项目
+      await projectApi.updateProject(projectForm.id, {
+        name: projectForm.name,
+        image: projectForm.image
+      });
+      ElMessage.success('项目更新成功');
+    } else {
+      // 创建新项目
+      await projectApi.createProject({
+        projectName: projectForm.name,
+        description: projectForm.description,
+        startDate: projectForm.startDate[0],
+        endDate: projectForm.endDate[0],
+        status: "1",
+        // image: projectForm.image
+      });
+      ElMessage.success('项目创建成功');
+    }
+    
+    dialogVisible.value = false;
+    fetchProjects(); // 刷新项目列表
+  } catch (error) {
+    ElMessage.error(error.message || '保存失败');
+    console.error('保存项目失败:', error);
+  }
+};
   
   // 成员管理相关方法
   const removeMember = (member) => {
@@ -298,6 +362,9 @@
     // 实现添加成员的逻辑
   };
   </script>
+  
+
+
   
   <style>
   .project-list-container {

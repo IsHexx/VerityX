@@ -53,13 +53,7 @@ export const useMenuStore = () => {
       subMenus: [
       ]
     },
-    {
-      index: '',
-      title: '',
-      route: '/login',
-      subMenus: [
-      ]
-    }
+
   ]
 
   const activeMainMenu = ref(menuItems[0].index)
