@@ -59,7 +59,7 @@
           </el-form-item>
           <el-form-item label="版本">
               <el-input v-model="form.region"  placeholder="请输入版本号"/>
-            </el-form-item>
+          </el-form-item>
           <el-form-item label="日期">
             <el-col :span="11">
               <el-date-picker
