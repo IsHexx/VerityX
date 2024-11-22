@@ -3,9 +3,14 @@ import { http } from '@/utils/request'
 
 export const testplanApi = {
   // 获取所有测试计划列表
-  getTestplans() {
-    console.log('getTestplan')
-    return http.get('/api/testplans')
+  getTestplans: (params) => {
+    return http.get('/api/testplans', { 
+      params: {
+        page: params.page,
+        pageSize: params.pageSize,
+        status: params.status
+      }
+    })
   },
 
   // 获取单个测试计划详情

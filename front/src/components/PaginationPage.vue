@@ -1,45 +1,53 @@
 <template>
-    <div class="demo-pagination-block">
-      <el-pagination
-        :current-page="currentPage1"
-        :page-size="pageSize4"
-        :page-sizes="[100, 200, 300, 400]"
-        :size="size"
-        :disabled="disabled"
-        :background="background"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="400"
-        @update:current-page="currentPage4 = $event"
-        @update:page-size="pageSize4 = $event"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
-  </template>
-  
-  <script setup>
-  import { ref } from 'vue'
-  
+  <div class="demo-pagination-block">
+    <el-pagination
+      v-model:current-page="currentPage"
+      v-model:page-size="pageSize"
+      :page-sizes="[10, 20, 50, 100]"
+      :background="true"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    />
+  </div>
+</template>
 
-  const currentPage4 = ref(4)
-  const pageSize4 = ref(100)
-  const size = ref('default')
-  const background = ref(false)
-  const disabled = ref(false)
-  
-  const handleSizeChange = (val) => {
-    console.log(`${val} items per page`)
+<script setup>
+import { ref, defineProps, defineEmits } from 'vue'
+
+const props = defineProps({
+  total: {
+    type: Number,
+    default: 0
   }
-  const handleCurrentChange = (val) => {
-    console.log(`current page: ${val}`)
-  }
-  </script>
-  
-  <style scoped>
-  .demo-pagination-block + .demo-pagination-block {
-    margin-top: 10px;
-  }
-  .demo-pagination-block .demonstration {
-    margin-bottom: 16px;
-  }
-  </style>
+})
+
+const emit = defineEmits(['update:pagination'])
+
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+const handleSizeChange = (val) => {
+  pageSize.value = val
+  emit('update:pagination', {
+    page: currentPage.value,
+    pageSize: val
+  })
+}
+
+const handleCurrentChange = (val) => {
+  currentPage.value = val
+  emit('update:pagination', {
+    page: val,
+    pageSize: pageSize.value
+  })
+}
+</script>
+
+<style scoped>
+.demo-pagination-block {
+  margin-top: 20px;
+  text-align: right;
+}
+</style>
