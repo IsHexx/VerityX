@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.TestReportMapper">
+
+    <!-- 插入测试报告 -->
+    <insert id="insertTestReport" parameterType="com.example.verityx.entity.TestReport">
+        INSERT INTO test_report (
+        report_title, created_by, created_at, plan_id, test_version, participants,
+        responsible_person, summary, conclusion, attachments, related_cases, remaining_bugs
+        ) VALUES (
+        #{reportTitle}, #{createdBy}, #{createdAt}, #{planId}, #{testVersion}, #{participants},
+        #{responsiblePerson}, #{summary}, #{conclusion}, #{attachments}, #{relatedCases}, #{remainingBugs}
+        )
+    </insert>
+
+    <!-- 根据 reportId 查询测试报告 -->
+    <select id="selectTestReportById" resultType="com.example.verityx.entity.TestReport">
+        SELECT * FROM test_report WHERE report_id = #{reportId}
+    </select>
+
+    <!-- 查询所有测试报告 -->
+    <select id="selectAllTestReports" resultType="com.example.verityx.entity.TestReport">
+        SELECT * FROM test_report
+    </select>
+
+    <!-- 更新测试报告 -->
+    <update id="updateTestReport" parameterType="com.example.verityx.entity.TestReport">
+        UPDATE test_report
+        SET
+        report_title = #{reportTitle},
+        plan_id = #{planId},
+        test_version = #{testVersion},
+        participants = #{participants},
+        responsible_person = #{responsiblePerson},
+        summary = #{summary},
+        conclusion = #{conclusion},
+        attachments = #{attachments},
+        related_cases = #{relatedCases},
+        remaining_bugs = #{remainingBugs}
+        WHERE report_id = #{reportId}
+    </update>
+
+    <!-- 删除测试报告 -->
+    <delete id="deleteTestReport" parameterType="int">
+        DELETE FROM test_report WHERE report_id = #{reportId}
+    </delete>
+
+</mapper>

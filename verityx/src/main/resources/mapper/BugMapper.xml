@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.BugMapper">
+
+    <!-- 插入缺陷 -->
+    <insert id="insertBug" parameterType="com.example.verityx.entity.Bug">
+        INSERT INTO bug (bug_title, level, severity, created_by, created_at, assigned_to, bug_type, status, plan_id, project_id, operating_system, browser, reproduction_steps, attachments)
+        VALUES (#{bugTitle}, #{level}, #{severity}, #{createdBy}, #{createdAt}, #{assignedTo}, #{bugType}, #{status}, #{planId}, #{projectId}, #{operatingSystem}, #{browser}, #{reproductionSteps}, #{attachments})
+    </insert>
+
+    <!-- 根据 bugId 查询缺陷 -->
+    <select id="selectBugById" resultType="com.example.verityx.entity.Bug">
+        SELECT * FROM bug WHERE bug_id = #{bugId}
+    </select>
+
+    <!-- 查询所有缺陷 -->
+    <select id="selectAllBugs" resultType="com.example.verityx.entity.Bug">
+        SELECT * FROM bug
+    </select>
+
+    <!-- 更新缺陷 -->
+    <update id="updateBug" parameterType="com.example.verityx.entity.Bug">
+        UPDATE bug
+        SET bug_title = #{bugTitle},
+        level = #{level},
+        severity = #{severity},
+        assigned_to = #{assignedTo},
+        bug_type = #{bugType},
+        status = #{status},
+        plan_id = #{planId},
+        project_id = #{projectId},
+        operating_system = #{operatingSystem},
+        browser = #{browser},
+        reproduction_steps = #{reproductionSteps},
+        attachments = #{attachments}
+        WHERE bug_id = #{bugId}
+    </update>
+
+    <!-- 删除缺陷 -->
+    <delete id="deleteBug" parameterType="int">
+        DELETE FROM bug WHERE bug_id = #{bugId}
+    </delete>
+
+</mapper>

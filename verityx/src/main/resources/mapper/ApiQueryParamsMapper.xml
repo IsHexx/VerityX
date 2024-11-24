@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.ApiQueryParamsMapper">
+
+    <!-- 插入查询参数 -->
+    <insert id="insertParam" parameterType="com.example.verityx.entity.ApiQueryParams">
+        INSERT INTO api_query_params (api_id, parameter, param_type, description)
+        VALUES (#{apiId}, #{parameter}, #{paramType}, #{description})
+    </insert>
+
+    <!-- 根据参数ID查询参数 -->
+    <select id="selectParamById" resultType="com.example.verityx.entity.ApiQueryParams">
+        SELECT * FROM api_query_params WHERE param_id = #{paramId}
+    </select>
+
+    <!-- 根据接口ID查询所有参数 -->
+    <select id="selectParamsByApiId" resultType="com.example.verityx.entity.ApiQueryParams">
+        SELECT * FROM api_query_params WHERE api_id = #{apiId}
+    </select>
+
+    <!-- 更新查询参数 -->
+    <update id="updateParam" parameterType="com.example.verityx.entity.ApiQueryParams">
+        UPDATE api_query_params
+        SET
+        parameter = #{parameter},
+        param_type = #{paramType},
+        description = #{description}
+        WHERE param_id = #{paramId}
+    </update>
+
+    <!-- 删除查询参数 -->
+    <delete id="deleteParam" parameterType="int">
+        DELETE FROM api_query_params WHERE param_id = #{paramId}
+    </delete>
+
+</mapper>

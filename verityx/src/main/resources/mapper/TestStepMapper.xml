@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.TestStepMapper">
+
+    <!-- 插入测试步骤 -->
+    <insert id="insertTestStep" parameterType="com.example.verityx.entity.TestStep">
+        INSERT INTO test_step (case_id, step_description, expected_result, actual_result)
+        VALUES (#{caseId}, #{stepDescription}, #{expectedResult}, #{actualResult})
+    </insert>
+
+    <!-- 查询单个测试步骤 -->
+    <select id="selectTestStepById" resultType="com.example.verityx.entity.TestStep">
+        SELECT * FROM test_step WHERE step_id = #{stepId}
+    </select>
+
+    <!-- 查询某个用例的所有测试步骤 -->
+    <select id="selectTestStepsByCaseId" resultType="com.example.verityx.entity.TestStep">
+        SELECT * FROM test_step WHERE case_id = #{caseId}
+    </select>
+
+    <!-- 更新测试步骤 -->
+    <update id="updateTestStep" parameterType="com.example.verityx.entity.TestStep">
+        UPDATE test_step
+        SET step_description = #{stepDescription},
+        expected_result = #{expectedResult},
+        actual_result = #{actualResult}
+        WHERE step_id = #{stepId}
+    </update>
+
+    <!-- 删除测试步骤 -->
+    <delete id="deleteTestStep" parameterType="int">
+        DELETE FROM test_step WHERE step_id = #{stepId}
+    </delete>
+
+</mapper>

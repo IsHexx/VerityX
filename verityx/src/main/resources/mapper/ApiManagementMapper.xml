@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.ApiManagementMapper">
+
+    <!-- 插入接口 -->
+    <insert id="insertApi" parameterType="com.example.verityx.entity.ApiManagement">
+        INSERT INTO api_management (
+        api_directory, api_name, related_test_cases, request_method, api_path,
+        status, created_at, updated_at, mock_url, response_body
+        ) VALUES (
+        #{apiDirectory}, #{apiName}, #{relatedTestCases}, #{requestMethod}, #{apiPath},
+        #{status}, #{createdAt}, #{updatedAt}, #{mockUrl}, #{responseBody}
+        )
+    </insert>
+
+    <!-- 根据ID查询接口 -->
+    <select id="selectApiById" resultType="com.example.verityx.entity.ApiManagement">
+        SELECT * FROM api_management WHERE api_id = #{apiId}
+    </select>
+
+    <!-- 查询所有接口 -->
+    <select id="selectAllApis" resultType="com.example.verityx.entity.ApiManagement">
+        SELECT * FROM api_management
+    </select>
+
+    <!-- 更新接口 -->
+    <update id="updateApi" parameterType="com.example.verityx.entity.ApiManagement">
+        UPDATE api_management
+        SET
+        api_directory = #{apiDirectory},
+        api_name = #{apiName},
+        related_test_cases = #{relatedTestCases},
+        request_method = #{requestMethod},
+        api_path = #{apiPath},
+        status = #{status},
+        mock_url = #{mockUrl},
+        response_body = #{responseBody},
+        updated_at = NOW()
+        WHERE api_id = #{apiId}
+    </update>
+
+    <!-- 删除接口 -->
+    <delete id="deleteApi" parameterType="int">
+        DELETE FROM api_management WHERE api_id = #{apiId}
+    </delete>
+
+</mapper>

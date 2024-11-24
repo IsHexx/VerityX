@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.ApiRequestBodyMapper">
+
+    <!-- 插入请求Body -->
+    <insert id="insertBody" parameterType="com.example.verityx.entity.ApiRequestBody">
+        INSERT INTO api_request_body (api_id, parameter, description)
+        VALUES (#{apiId}, #{parameter}, #{description})
+    </insert>
+
+    <!-- 根据Body ID查询请求Body -->
+    <select id="selectBodyById" resultType="com.example.verityx.entity.ApiRequestBody">
+        SELECT * FROM api_request_body WHERE body_id = #{bodyId}
+    </select>
+
+    <!-- 根据接口ID查询所有请求Body -->
+    <select id="selectBodiesByApiId" resultType="com.example.verityx.entity.ApiRequestBody">
+        SELECT * FROM api_request_body WHERE api_id = #{apiId}
+    </select>
+
+    <!-- 更新请求Body -->
+    <update id="updateBody" parameterType="com.example.verityx.entity.ApiRequestBody">
+        UPDATE api_request_body
+        SET
+        parameter = #{parameter},
+        description = #{description}
+        WHERE body_id = #{bodyId}
+    </update>
+
+    <!-- 删除请求Body -->
+    <delete id="deleteBody" parameterType="int">
+        DELETE FROM api_request_body WHERE body_id = #{bodyId}
+    </delete>
+
+</mapper>

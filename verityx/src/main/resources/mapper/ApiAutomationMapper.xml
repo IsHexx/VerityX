@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.ApiAutomationMapper">
+
+    <!-- 插入自动化场景 -->
+    <insert id="insertScene" parameterType="com.example.verityx.entity.ApiAutomation">
+        INSERT INTO api_automation (directory, scene_name, step_method, step_name, remark)
+        VALUES (#{directory}, #{sceneName}, #{stepMethod}, #{stepName}, #{remark})
+    </insert>
+
+    <!-- 根据ID查询自动化场景 -->
+    <select id="selectSceneById" resultType="com.example.verityx.entity.ApiAutomation">
+        SELECT * FROM api_automation WHERE scene_id = #{sceneId}
+    </select>
+
+    <!-- 查询所有自动化场景 -->
+    <select id="selectAllScenes" resultType="com.example.verityx.entity.ApiAutomation">
+        SELECT * FROM api_automation
+    </select>
+
+    <!-- 更新自动化场景 -->
+    <update id="updateScene" parameterType="com.example.verityx.entity.ApiAutomation">
+        UPDATE api_automation
+        SET
+        directory = #{directory},
+        scene_name = #{sceneName},
+        step_method = #{stepMethod},
+        step_name = #{stepName},
+        remark = #{remark}
+        WHERE scene_id = #{sceneId}
+    </update>
+
+    <!-- 删除自动化场景 -->
+    <delete id="deleteScene" parameterType="int">
+        DELETE FROM api_automation WHERE scene_id = #{sceneId}
+    </delete>
+
+</mapper>

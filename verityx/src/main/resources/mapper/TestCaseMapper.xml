@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.TestCaseMapper">
+
+    <!-- 插入测试用例 -->
+    <insert id="insertTestCase" parameterType="com.example.verityx.entity.TestCase">
+        INSERT INTO test_case (case_title, importance_level, preconditions, created_by, execution_time,
+        created_at, last_modified_by, case_type, execution_result, remarks, attachments)
+        VALUES (#{caseTitle}, #{importanceLevel}, #{preconditions}, #{createdBy}, #{executionTime},
+        #{createdAt}, #{lastModifiedBy}, #{caseType}, #{executionResult}, #{remarks}, #{attachments})
+    </insert>
+
+    <!-- 查询单个测试用例 -->
+    <select id="selectTestCaseById" resultType="com.example.verityx.entity.TestCase">
+        SELECT * FROM test_case WHERE case_id = #{caseId}
+    </select>
+
+    <!-- 查询所有测试用例 -->
+    <select id="selectAllTestCases" resultType="com.example.verityx.entity.TestCase">
+        SELECT * FROM test_case
+    </select>
+
+    <!-- 更新测试用例 -->
+    <update id="updateTestCase" parameterType="com.example.verityx.entity.TestCase">
+        UPDATE test_case
+        SET case_title = #{caseTitle},
+        importance_level = #{importanceLevel},
+        preconditions = #{preconditions},
+        created_by = #{createdBy},
+        execution_time = #{executionTime},
+        last_modified_by = #{lastModifiedBy},
+        case_type = #{caseType},
+        execution_result = #{executionResult},
+        remarks = #{remarks},
+        attachments = #{attachments}
+        WHERE case_id = #{caseId}
+    </update>
+
+    <!-- 删除测试用例 -->
+    <delete id="deleteTestCase" parameterType="int">
+        DELETE FROM test_case WHERE case_id = #{caseId}
+    </delete>
+
+</mapper>

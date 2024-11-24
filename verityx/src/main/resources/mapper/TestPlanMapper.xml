@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.verityx.mapper.TestPlanMapper">
+    <!-- 创建测试计划 -->
+    <insert id="insertTestPlan" parameterType="com.example.verityx.entity.TestPlan">
+        INSERT INTO test_plan (plan_name, description, project_id, status, participants, start_date, end_date, plan_version)
+        VALUES (#{planName}, #{description}, #{projectId}, #{status}, #{participants}, #{startDate}, #{endDate}, #{planVersion})
+    </insert>
+
+    <!-- 查询单个测试计划 -->
+    <select id="selectTestPlanById" resultType="com.example.verityx.entity.TestPlan">
+        SELECT * FROM test_plan WHERE plan_id = #{planId}
+    </select>
+
+    <!-- 查询所有测试计划 -->
+    <select id="selectAllTestPlans" resultType="com.example.verityx.entity.TestPlan">
+        SELECT * FROM test_plan
+    </select>
+
+    <!-- 更新测试计划 -->
+    <update id="updateTestPlan" parameterType="com.example.verityx.entity.TestPlan">
+        UPDATE test_plan
+        SET
+        plan_name = #{planName},
+        description = #{description},
+        project_id = #{projectId},
+        status = #{status},
+        participants = #{participants},
+        start_date = #{startDate},
+        end_date = #{endDate},
+        plan_version = #{planVersion}
+        WHERE plan_id = #{planId}
+    </update>
+
+    <!-- 删除测试计划 -->
+    <delete id="deleteTestPlan" parameterType="int">
+        DELETE FROM test_plan WHERE plan_id = #{planId}
+    </delete>
+</mapper>
+

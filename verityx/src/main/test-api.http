@@ -1,0 +1,32 @@
+POST http://localhost:8089/api/testplans
+Content-Type: application/json
+
+{
+  "planName": "Test Plan 3",
+  "description": "This is a description for Test Plan 1.",
+  "projectId": 101,
+  "status": "pending",
+  "participants": "1,2,3",
+  "startDate": "2024-11-20",
+  "endDate": "2024-11-30",
+  "planVersion": "v1.0"
+}
+
+###
+###
+GET http://localhost:8089/api/testplans
+Accept: application/json
+
+###
+# @no-cookie-jar
+GET http://localhost:8089/api/user/test
+Accept: application/json
+
+###
+POST http://localhost:8089/api/user/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "123456"
+}

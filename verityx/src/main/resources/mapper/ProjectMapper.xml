@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.ProjectMapper">
+
+    <!-- 插入项目 -->
+    <insert id="insertProject" parameterType="com.example.verityx.entity.Project">
+        INSERT INTO project (project_name, description, start_date, end_date, status)
+        VALUES (#{projectName}, #{description}, #{startDate}, #{endDate}, #{status})
+    </insert>
+
+    <!-- 查询单个项目 -->
+    <select id="selectProjectById" resultType="com.example.verityx.entity.Project">
+        SELECT * FROM project WHERE project_id = #{projectId}
+    </select>
+
+    <!-- 查询所有项目 -->
+    <select id="selectAllProjects" resultType="com.example.verityx.entity.Project">
+        SELECT * FROM project
+    </select>
+
+    <!-- 更新项目 -->
+    <update id="updateProject" parameterType="com.example.verityx.entity.Project">
+        UPDATE project
+        SET
+        project_name = #{projectName},
+        description = #{description},
+        start_date = #{startDate},
+        end_date = #{endDate},
+        status = #{status}
+        WHERE project_id = #{projectId}
+    </update>
+
+    <!-- 删除项目 -->
+    <delete id="deleteProject" parameterType="int">
+        DELETE FROM project WHERE project_id = #{projectId}
+    </delete>
+
+</mapper>
