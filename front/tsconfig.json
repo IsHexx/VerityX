@@ -1,16 +1,13 @@
 {
   "compilerOptions": {
+    "lib": ["esnext", "dom"],
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "node",
-    "jsx": "preserve",
     "strict": true,
+    "jsx": "preserve",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "types": ["vite/client"], // 如果你使用 Vite
-    "lib": ["dom", "esnext"]
-  },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
-  "exclude": ["node_modules"]
+    "allowSyntheticDefaultImports": true,
+  }
 }

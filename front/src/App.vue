@@ -1,82 +1,86 @@
 <template>
-  <div class="common-layout">
-    <el-container>
-      <!-- 侧边栏 -->
-      <el-aside class="fixed-aside">
-        <common-aside @update-top-menu="updateTopMenu"></common-aside>
-      </el-aside>
-
-      <!-- 右侧内容，Header 和 Main 为上下布局 -->
-      <el-container direction="vertical">
-        <!-- Header 部分 -->
-        <el-header>
-          <!-- 引用 CommonHeader，传递顶部菜单 -->
-          <common-header :sub-menus="currentSubMenus"></common-header>
-        </el-header>
-
-        <!-- Main 部分 -->
-        <el-main>
-          <router-view></router-view>
-        </el-main>
-      </el-container>
-    </el-container>
+  <div id="app">
+    <!-- 使用全局状态动态控制 -->
+    <UserLogin v-if="!authState.isAuthenticated" @login-success="handleLoginSuccess"/>
+    <home-page v-else @logout="handleLogout"/>
   </div>
 </template>
 
 <script>
-import CommonHeader from "./components/CommonHeader.vue";
-import CommonAside from "./components/CommonAside.vue";
-import { useMenuStore } from '@/store/menuStore';
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import UserLogin from '@/components/UserLogin.vue';
+import HomePage from './views/HomePage.vue';
+import { authState } from '@/auth';
 
 export default {
+  name: 'App',
   components: {
-    CommonAside,
-    CommonHeader,
+    UserLogin,
+    HomePage,
   },
-  data() {
+  setup() {
+    const router = useRouter();
+
+    // 检查登录状态
+    const checkAuthStatus = () => {
+      const token = localStorage.getItem('token');
+      authState.isAuthenticated = !!token;
+      console.log('检查登录状态:', authState.isAuthenticated);
+    };
+
+    // 处理登录成功
+    const handleLoginSuccess = (userData) => {
+      // 存储 Token 和用户信息
+      localStorage.setItem('token', userData.token);
+      if (userData.userInfo) {
+        localStorage.setItem('userInfo', JSON.stringify(userData.userInfo));
+      }
+      authState.isAuthenticated = true;
+      router.push('/overview');
+    };
+
+    // 处理登出
+    const handleLogout = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('userInfo');
+      authState.isAuthenticated = false;
+      router.push('/login');
+    };
+
+    // 组件挂载时检查登录状态
+    onMounted(() => {
+      checkAuthStatus();
+      if (!authState.isAuthenticated && router.currentRoute.value.path !== '/login') {
+        router.push('/login');
+      }
+    });
+
     return {
-      currentSubMenus: [] // 用于存储当前顶部菜单的子菜单
-    }
+      authState,
+      handleLoginSuccess,
+      handleLogout,
+    };
   },
-  methods: {
-    updateTopMenu(mainMenuIndex) {
-      const { menuItems } = useMenuStore();
-      const mainMenu = menuItems.find(item => item.index === mainMenuIndex);
-      this.currentSubMenus = mainMenu ? mainMenu.subMenus : [];
-    }
-  }
 };
 </script>
 
-
-<style scoped>
-.common-layout {
-  height: 100vh; /* 设置整体布局占满整个视口高度 */
-}
-
-.fixed-aside {
-  background-color: #ffffff;
-  color: #333;
-  height: calc(100vh);
-  overflow-y: auto;
-  width: auto;
-  max-width: 200px;
-  border-radius: 20px 0px 0px 20px;
-}
-
-.common-layout > .el-container {
-  height: 100%;
-}
-
-.common-layout > .el-container > .el-container > .el-main {
-  background-color: #fff;
-  height: calc(100vh - 7%); /* Main 高度等于视口高度减去 Header 的高度 */
-  margin-top: 20px;
-  padding: 20px;
-}
-
+<style>
 * {
   margin: 0;
   padding: 0;
+}
+
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 </style>

@@ -1,30 +1,61 @@
 <template>
-    <div class="demo-progress">
-      <el-progress :text-inside="true" :stroke-width="26" :percentage="70" />
-      <el-progress
-        :text-inside="true"
-        :stroke-width="24"
-        :percentage="100"
-        status="success"
-      />
-      <el-progress
-        :text-inside="true"
-        :stroke-width="22"
-        :percentage="80"
-        status="warning"
-      />
-      <el-progress
-        :text-inside="true"
-        :stroke-width="20"
-        :percentage="50"
-        status="exception"
-      />
-    </div>
-  </template>
-  
-  <style scoped>
-  .demo-progress .el-progress--line {
-    margin-bottom: 15px;
-    max-width: 600px;
-  }
-  </style>
+  <div class="content">
+    <!-- eltree -->
+    <api-tree></api-tree>
+    <!-- eltree end-->
+
+    <el-card style="width: 76%">
+      <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
+        <!-- 预览 -->
+
+        <preview-page> </preview-page>
+        <!-- 预览 end-->
+
+        <!-- 编辑 -->
+        <edit-page> </edit-page>
+        <!-- 编辑 end-->
+
+        <!-- 运行 -->
+        <run-page> </run-page>
+        <!-- 运行 end-->
+      </el-tabs>
+    </el-card>
+  </div>
+</template>
+
+<script setup>
+import { reactive, ref, watch } from "vue";
+import { Folder, Link, Plus, More } from "@element-plus/icons-vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import ApiTree from "../../components/interface/ApiTree.vue";
+import PreviewPage from "../../components/interface/PreviewPage.vue";
+import EditPage from "../../components/interface/EditPage.vue";
+import RunPage from "../../components/interface/RunPage.vue";
+
+const activeName = ref("preview");
+
+
+// const ruleFormRef = ref(null);
+
+// const submitForm = async (formEl) => {
+//   if (!formEl) return;
+//   await formEl.validate((valid, fields) => {
+//     if (valid) {
+//       console.log("submit!");
+//     } else {
+//       console.log("error submit!", fields);
+//     }
+//   });
+// };
+
+
+</script>
+
+<style scoped>
+.content {
+  flex: 2;
+  background-color: #f5f5f5;
+  display: flex;
+  justify-content: space-between;
+}
+</style>

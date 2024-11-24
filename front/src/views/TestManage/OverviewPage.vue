@@ -1,21 +1,23 @@
 <!-- src/components/MainContent.vue -->
 <template>
+  
   <div class="main-layout">
-    <!-- 上部内容 -->
     <div class="upper-content">
-      上部内容
+      <CaseStatisticsCard />
+      <BugStatisticsCard />
     </div>
-    <!-- 下部内容 -->
-    <div class="lower-content">
-      下部内容
-    </div>
+    <div class="lower-content"><AutocaseStatisticsChart /></div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'MainContent',
-};
+<script setup>
+import { ref, onMounted, nextTick, watch } from "vue";
+import * as echarts from "echarts";
+import CaseStatisticsCard from "@/components/CaseStatisticsCard.vue";
+import BugStatisticsCard from "@/components/BugStatisticsCard.vue";
+import AutocaseStatisticsChart from "@/components/AutocaseStatisticsChart.vue";
+
+
 </script>
 
 <style scoped>
@@ -26,20 +28,28 @@ export default {
 }
 
 .upper-content {
-  flex: 2; /* 上部区域占 2/3 高度 */
-  background-color: #f5f5f5;
-  padding: 20px;
+  flex: 2;
+  padding: 2px 10px 4px 10px;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+}
+
+
+.chart-card {
+  height: 100%;
+  width: 49%;
+}
+
+.chart {
   width: 100%;
-  text-align: center;
-  border-radius: 4px;
+  height: 100%;
 }
 
 .lower-content {
-  flex: 1; /* 下部区域占 1/3 高度 */
-  background-color: #e0e0e0;
-  padding: 20px;
-  width: 100%;
+  flex: 1;
+  background-color: #ffffff;
+  padding: 0px 10px 0px 10px;
   text-align: center;
-  border-radius: 4px;
 }
 </style>
