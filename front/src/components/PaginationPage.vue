@@ -1,5 +1,6 @@
 <template>
   <div class="demo-pagination-block">
+    <el-config-provider :locale="zhCn">
     <el-pagination
       v-model:current-page="currentPage"
       v-model:page-size="pageSize"
@@ -9,12 +10,20 @@
       :total="total"
       @size-change="handleSizeChange"
       @current-change="handleCurrentChange"
-    />
+    >
+  </el-pagination>
+</el-config-provider>
   </div>
 </template>
 
 <script setup>
 import { ref, defineProps, defineEmits } from 'vue'
+import zhCn from 'element-plus/es/locale/lang/zh-cn';
+// 更改分页文字
+zhCn.el.pagination.total = '共 {total} 条';
+zhCn.el.pagination.goto = '跳至';
+zhCn.el.pagination.pagesize = '条/页';
+zhCn.el.pagination.pageClassifier = '页';
 
 const props = defineProps({
   total: {

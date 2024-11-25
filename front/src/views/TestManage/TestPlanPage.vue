@@ -64,8 +64,8 @@
 
           <el-form-item label="所属项目">
             <el-select v-model="form.projectId" placeholder="请选择所属项目">
-              <el-option label="项目A" value="shanghai" />
-              <el-option label="项目B" value="beijing" />
+              <el-option label="项目A" value="01" />
+              <el-option label="项目B" value="02" />
             </el-select>
           </el-form-item>
 
@@ -220,9 +220,23 @@ const handleDelete = async (row) => {
 
 // 修改标签页切换处理
 const handleTabClick = (tab) => {
-  pagination.page = 1 // 切换标签时重置到第一页
-  fetchTestplan()
-}
+  // 映射标签页的值到状态
+  const tabStatusMap = {
+    all_plan: '', // 默认查询所有
+    under_plan: 'Active',
+    over_plan: 'Completed',
+  };
+  console.log('tab.props.name', tab.props.name); 
+  // 根据选中的标签页动态设置状态
+  activeTab.value = tab.props.name; 
+  console.log('activeTab.value:', activeTab.value); 
+  const status = tabStatusMap[tab.props.name] || ''; 
+  console.log('fetchTestplan调用前status:', status); 
+
+  pagination.page = 1; // 切换标签时重置到第一页
+  fetchTestplan(status); // 传入状态进行数据加载
+};
+
 
 // 提交表单
 const onSubmit = async () => {
@@ -256,25 +270,25 @@ const onSubmit = async () => {
   }
 }
 
-// 修改获取测试计划列表方法
-const fetchTestplan = async () => {
-  loading.value = true
+const fetchTestplan = async (status = '') => {
+  
+  loading.value = true;
   try {
     const res = await testplanApi.getTestplans({
       page: pagination.page,
       pageSize: pagination.pageSize,
-      // 可以添加其他查询参数，比如状态筛选
-      status: activeTab.value === 'all_plan' ? '' : activeTab.value
-    })
-    testplans.value = res.data.list // 假设后端返回 { list: [], total: number }
+      status: status, // 根据状态动态加载数据
+    });
+    testplans.value = res.data.data; // 假设后端返回 { list: [], total: number }
     total.value = res.data.total
+    
   } catch (error) {
-    ElMessage.error('获取计划列表失败')
-    console.error('获取计划列表失败:', error)
+    ElMessage.error('获取计划列表失败');
+    console.error('获取计划列表失败:', error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // 新增分页相关状态
 const loading = ref(false)

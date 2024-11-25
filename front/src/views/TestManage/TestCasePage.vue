@@ -27,7 +27,7 @@
         >
       </el-row>
       <el-table
-        :data="tableData"
+        :data="testCaseData"
         :border="true"
         :resizable="true"
         :fit="true"
@@ -36,15 +36,15 @@
       >
         <el-table-column type="selection" width="55" />
         <el-table-column prop="id" label="ID" min-width="100" />
-        <el-table-column prop="name" label="用例标题" min-width="150" />
-        <el-table-column prop="P" label="P" min-width="100">
+        <el-table-column prop="caseName" label="用例标题" min-width="150" />
+        <el-table-column prop="Priority" label="Priority" min-width="100">
           <template #default="scope">
-            <el-tag :type="getPTagType(scope.row.P)" :effect="'light'">
-              {{ scope.row.P }}
+            <el-tag :type="getPTagType(scope.row.Priority)" :effect="'light'">
+              {{ scope.row.Priority }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="case_state" label="用例状态" min-width="130">
+        <el-table-column prop="caseStatus" label="用例状态" min-width="130">
           <template #default="scope">
             <el-tag
               :type="getStateTagType(scope.row.case_state)"
@@ -56,7 +56,7 @@
         </el-table-column>
         <el-table-column prop="Person" label="创建人" min-width="220" />
         <el-table-column prop="startDate" label="创建日期" min-width="220" />
-        <el-table-column prop="case_type" label="用例类型" min-width="220">
+        <el-table-column prop="caseType" label="用例类型" min-width="220">
           <template #default="scope">
             <el-tag
               :type="getTypeTagType(scope.row.case_type)"
@@ -82,31 +82,43 @@
         style="font-size: large"
         width="650px"
       >
-        <el-form :model="form" label-width="auto" style="max-width: 600px">
+        <el-form :model="testCaseform" label-width="auto" style="max-width: 600px">
+          <el-form-item label="用例标题">
+            <el-input v-model="testCaseform.caseName" placeholder="请输入用例标题" />
+          </el-form-item>
           <el-form-item label="所属项目">
-            <el-select v-model="form.name" placeholder="请选择所属项目">
+            <el-select v-model="testCaseform.projectName" placeholder="请选择所属项目">
               <el-option label="项目A" value="shanghai" />
               <el-option label="项目B" value="beijing" />
             </el-select>
           </el-form-item>
-
-          <el-form-item label="状态">
-            <el-select v-model="form.stat" placeholder="请选择计划状态">
-              <el-option label="待审批" value="shanghai" />
-            </el-select>
-          </el-form-item>
           <el-form-item label="用例类型">
-            <el-select v-model="form.region" placeholder="请选择用例类型">
+            <el-select v-model="testCaseform.caseType" placeholder="请选择用例类型">
               <el-option label="功能测试" value="function_case" />
               <el-option label="接口测试" value="api_case" />
               <el-option label="性能测试" value="benchmark_case" />
               <el-option label="安全测试" value="security_case" />
             </el-select>
           </el-form-item>
+          <el-form-item label="优先级">
+            <el-select v-model="testCaseform.Priority" placeholder="请选择用例优先级">
+              <el-option label="P1" value="1" />
+              <el-option label="P2" value="2" />
+              <el-option label="P3" value="2" />
+              <el-option label="P4" value="3" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-select v-model="testCaseform.status" placeholder="请选择计划状态">
+              <el-option label="待审批" value="shanghai" />
+            </el-select>
+          </el-form-item>
+          
+          
           <el-form-item label="日期">
             <el-col :span="11">
               <el-date-picker
-                v-model="form.date1"
+                v-model="testCaseform.startDate"
                 type="date"
                 placeholder="开始时间"
                 style="width: 100%"
@@ -117,20 +129,17 @@
             </el-col>
             <el-col :span="11">
               <el-date-picker
-                v-model="form.date2"
+                v-model="testCaseform.endDate"
                 type="date"
                 placeholder="结束时间"
                 style="width: 100%"
               />
             </el-col>
           </el-form-item>
-          <el-form-item label="选项">
-            <el-switch v-model="form.delivery" />
-          </el-form-item>
 
           <el-form-item label="描述">
             <el-input
-              v-model="form.desc"
+              v-model="testCaseform.desc"
               type="textarea"
               placeholder="请输入描述"
             />
@@ -141,7 +150,10 @@
           </el-row>
         </el-form>
       </el-dialog>
-      <PaginationPage></PaginationPage>
+      <PaginationPage 
+        :total="total" 
+        @update:pagination="handlePaginationChange"
+      />
     </el-card>
   </div>
 </template>
@@ -175,16 +187,20 @@ const handleBlur = () => {
 }
 
 // 表单数据
-const form = reactive({
-  name: "",
-  region: "",
-  date1: "",
-  date2: "",
-  delivery: false,
-  type: [],
-  resource: "",
+const testCaseform = reactive({
+  id: "",
+  caseName: "",
+  projectName: "",
+  caseType: "",
+  Priority: "",
+  status: "",
+  startDate: "",
+  endDate: "",
   desc: "",
 });
+
+//列表数据
+const testCaseData = ref([])
 
 // 用例状态标签类型
 const getStateTagType = (state) => {
@@ -226,48 +242,7 @@ const onSubmit = () => {
   dialogVisible.value = false; // 提交后关闭弹窗
 };
 
-const tableData = [
-  {
-    id: "1",
-    startDate: "2016-05-03",
-    Person: "Tom",
-    case_state: "已评审",
-    case_type: "功能测试",
-    endData: "2019-07-13",
-    P: "①",
-    name: "Home",
-  },
-  {
-    id: "2",
-    startDate: "2016-05-03",
-    Person: "Tom",
-    case_state: "待评审",
-    case_type: "接口测试",
-    endData: "2019-07-13",
-    P: "②",
-    name: "Home",
-  },
-  {
-    id: "3",
-    startDate: "2016-05-03",
-    Person: "Tom",
-    case_state: "已评审未通过",
-    case_type: "性能测试",
-    endData: "2019-07-13",
-    P: "③",
-    name: "Home",
-  },
-  {
-    id: "4",
-    startDate: "2016-05-03",
-    Person: "Tom",
-    case_state: "草稿",
-    case_type: "兼容性测试",
-    endData: "2019-07-13",
-    P: "④",
-    name: "Home",
-  },
-];
+
 </script>
   
 <style scoped>
