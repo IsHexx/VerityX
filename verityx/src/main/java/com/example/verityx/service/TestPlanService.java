@@ -12,6 +12,10 @@ public interface TestPlanService {
 
     List<TestPlan> getAllTestPlans();
 
+    List<TestPlan> getTestPlansWithPagination(int pageSize, int offset, String status);
+
+    int getTestPlanCount(String status);
+
     boolean updateTestPlan(TestPlan testPlan);
 
     boolean deleteTestPlan(Integer planId);

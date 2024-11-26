@@ -18,18 +18,42 @@
         SELECT * FROM test_plan
     </select>
 
+    <!-- 统计所有测试计划 -->
+    <select id="selectTestPlanCount" resultType="int">
+        SELECT COUNT(*) FROM test_plan
+        <where>
+            1=1
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- 分页查询测试计划 -->
+    <select id="selectTestPlansWithPagination" resultType="com.example.verityx.entity.TestPlan">
+        SELECT * FROM test_plan
+        <where>
+            1=1
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY plan_id
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
     <!-- 更新测试计划 -->
     <update id="updateTestPlan" parameterType="com.example.verityx.entity.TestPlan">
         UPDATE test_plan
         SET
-        plan_name = #{planName},
-        description = #{description},
-        project_id = #{projectId},
-        status = #{status},
-        participants = #{participants},
-        start_date = #{startDate},
-        end_date = #{endDate},
-        plan_version = #{planVersion}
+            plan_name = #{planName},
+            description = #{description},
+            project_id = #{projectId},
+            status = #{status},
+            participants = #{participants},
+            start_date = #{startDate},
+            end_date = #{endDate},
+            plan_version = #{planVersion}
         WHERE plan_id = #{planId}
     </update>
 

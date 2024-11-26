@@ -32,6 +32,17 @@ public class TestPlanServiceImpl implements TestPlanService {
     }
 
     @Override
+    public List<TestPlan> getTestPlansWithPagination(int pageSize, int offset, String status) {
+        System.out.println("====== 分页查询测试计划 ======");
+        return testPlanMapper.selectTestPlansWithPagination(pageSize, offset, status);
+    }
+
+    @Override
+    public int getTestPlanCount(String status) {
+        return testPlanMapper.selectTestPlanCount(status);
+    }
+
+    @Override
     public boolean updateTestPlan(TestPlan testPlan) {
         return testPlanMapper.updateTestPlan(testPlan) > 0;
     }
