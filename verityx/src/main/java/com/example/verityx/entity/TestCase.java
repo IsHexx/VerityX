@@ -1,18 +1,55 @@
 package com.example.verityx.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 
+@Data
+@Schema(description = "测试用例实体")
+@TableName("test_case")
 public class TestCase {
 
     private Integer caseId;              // 用例ID
     private String caseTitle;            // 用例标题
     private String importanceLevel;      // 用例重要级别
     private String preconditions;        // 前置条件
-    private Integer createdBy;           // 创建人（用户ID）
+    private String createdBy;           // 创建人（用户ID）
     private LocalDateTime executionTime; // 执行时间
     private LocalDateTime createdAt;     // 创建时间
     private Integer lastModifiedBy;      // 最后修改者（用户ID）
     private String caseType;             // 用例类型
+
+    public String getCaseStatus() {
+        return caseStatus;
+    }
+
+    public void setCaseStatus(String caseStatus) {
+        this.caseStatus = caseStatus;
+    }
+
+    private String caseStatus;             // 用例类型
+
+    public Integer getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Integer projectId) {
+        this.projectId = projectId;
+    }
+
+    private Integer projectId;             // 项目ID
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    private String  description;        //用例详情
     private String executionResult;      // 执行结果
     private String remarks;              // 备注
     private String attachments;          // 附件链接或路径
@@ -51,11 +88,11 @@ public class TestCase {
         this.preconditions = preconditions;
     }
 
-    public Integer getCreatedBy() {
+    public String getCreatedBy() {
         return createdBy;
     }
 
-    public void setCreatedBy(Integer createdBy) {
+    public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
     }
 

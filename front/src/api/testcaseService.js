@@ -11,16 +11,14 @@ export const TestcaseApi = {
     };
   
     // 仅在 status 有值时添加
-    if (params.status) {
-      cleanParams.status = params.status;
-      cleanParams.status = encodeURIComponent(params.status);
-
+    if (params.caseStatus) {
+      cleanParams.caseStatus = params.caseStatus;
     }
   
     return http.get('/api/testcases/list', {
       page: cleanParams.page, // 使用清理后的参数
       pageSize: cleanParams.pageSize, // 使用清理后的参数
-      status: cleanParams.status,
+      caseStatus: cleanParams.caseStatus,
     });
   },
 

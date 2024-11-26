@@ -1,13 +1,18 @@
 package com.example.verityx.controller;
 
+import com.example.verityx.dto.ApiResponse;
+import com.example.verityx.entity.Project;
 import com.example.verityx.entity.TestCase;
+import com.example.verityx.entity.TestPlan;
 import com.example.verityx.service.TestCaseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/testcases")
@@ -20,8 +25,9 @@ public class TestCaseController {
     // 创建测试用例
     @Operation(summary = "创建测试用例", description = "创建一个新的测试用例")
     @PostMapping
-    public TestCase createTestCase(@RequestBody TestCase testCase) {
-        return testCaseService.createTestCase(testCase);
+    public ApiResponse<TestCase> createTestCase(@RequestBody TestCase testCase) {
+        TestCase createdTestCase = testCaseService.createTestCase(testCase);
+        return ApiResponse.success(createdTestCase);
     }
 
     // 查询单个测试用例
@@ -38,17 +44,46 @@ public class TestCaseController {
         return testCaseService.getAllTestCases();
     }
 
-    // 更新测试用例
+    // 分页获取测试计划
     @Operation(summary = "分页查询测试用例", description = "根据分页参数查询测试用例")
+    @GetMapping("/list")
+    public ApiResponse<Map<String, Object>> getTestCasesWithPagination(@RequestParam int page, @RequestParam int pageSize, @RequestParam(required = false) String caseStatus) {
+
+        int offset = (page - 1) * pageSize;
+        System.out.println("pageSize是:" + pageSize);
+        System.out.println("offset:" + offset);
+        List<TestCase> testCase = testCaseService.getTestCasesWithPagination(pageSize, offset, caseStatus);
+        int total = testCaseService.getTestCaseCount(caseStatus); // 获取总记录数
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", testCase);
+        response.put("total", total);
+        response.put("page", page);
+        response.put("pageSize", pageSize);
+
+        return ApiResponse.success(response);
+    }
+
+    // 更新测试用例
+    @Operation(summary = "更新测试用例", description = "更新测试用例")
     @PutMapping("/{id}")
-    public boolean updateTestCase(@PathVariable int id, @RequestBody TestCase testCase) {
+    public ApiResponse<Boolean> updateTestCase(@PathVariable int id, @RequestBody TestCase testCase) {
         testCase.setCaseId(id);
-        return testCaseService.updateTestCase(testCase);
+        boolean updated = testCaseService.updateTestCase(testCase);
+        if (updated) {
+            return ApiResponse.success(true);
+        }
+        return ApiResponse.error(400, "更新失败");
     }
 
     // 删除测试用例
+    @Operation(summary = "删除测试用例", description = "删除测试用例")
     @DeleteMapping("/{id}")
-    public boolean deleteTestCase(@PathVariable int id) {
-        return testCaseService.deleteTestCase(id);
+    public ApiResponse<Boolean> deleteTestCase(@PathVariable int id) {
+        boolean deleted = testCaseService.deleteTestCase(id);
+        if (deleted) {
+            return ApiResponse.success(true);
+        }
+        return ApiResponse.error(400, "删除失败");
     }
 }

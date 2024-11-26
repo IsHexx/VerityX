@@ -5,14 +5,38 @@
     <!-- 插入测试用例 -->
     <insert id="insertTestCase" parameterType="com.example.verityx.entity.TestCase">
         INSERT INTO test_case (case_title, importance_level, preconditions, created_by, execution_time,
-        created_at, last_modified_by, case_type, execution_result, remarks, attachments)
+        created_at, last_modified_by, case_status, case_type, execution_result, remarks, attachments, project_id)
         VALUES (#{caseTitle}, #{importanceLevel}, #{preconditions}, #{createdBy}, #{executionTime},
-        #{createdAt}, #{lastModifiedBy}, #{caseType}, #{executionResult}, #{remarks}, #{attachments})
+        #{createdAt}, #{lastModifiedBy}, #{caseStatus}, #{caseType}, #{executionResult}, #{remarks}, #{attachments}, #{projectId})
     </insert>
 
     <!-- 查询单个测试用例 -->
     <select id="selectTestCaseById" resultType="com.example.verityx.entity.TestCase">
         SELECT * FROM test_case WHERE case_id = #{caseId}
+    </select>
+
+    <!-- 统计所有测试用例  -->
+    <select id="selectTestCaseCount" resultType="int">
+        SELECT COUNT(*) FROM test_case
+        <where>
+            1=1
+            <if test="caseStatus != null">
+                AND case_status = #{caseStatus}
+            </if>
+        </where>
+    </select>
+
+    <!-- 分页查询测试用例  -->
+    <select id="selectTestCasesWithPagination" resultType="com.example.verityx.entity.TestCase">
+        SELECT * FROM test_case
+        <where>
+            1=1
+            <if test="caseStatus != null">
+                AND case_status = #{caseStatus}
+            </if>
+        </where>
+        ORDER BY case_id
+        LIMIT #{pageSize} OFFSET #{offset}
     </select>
 
     <!-- 查询所有测试用例 -->
@@ -30,6 +54,7 @@
         execution_time = #{executionTime},
         last_modified_by = #{lastModifiedBy},
         case_type = #{caseType},
+        case_status = #{caseStatus},
         execution_result = #{executionResult},
         remarks = #{remarks},
         attachments = #{attachments}
