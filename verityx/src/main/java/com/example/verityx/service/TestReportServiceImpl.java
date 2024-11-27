@@ -1,5 +1,6 @@
 package com.example.verityx.service.impl;
 
+import com.example.verityx.entity.TestPlan;
 import com.example.verityx.entity.TestReport;
 import com.example.verityx.mapper.TestReportMapper;
 import com.example.verityx.service.TestReportService;
@@ -28,6 +29,16 @@ public class TestReportServiceImpl implements TestReportService {
     @Override
     public List<TestReport> getAllTestReports() {
         return testReportMapper.selectAllTestReports();
+    }
+
+    @Override
+    public List<TestReport> getTestReportsWithPagination(int pageSize, int offset) {
+        System.out.println("====== 分页查询测试报告 ======");
+        return testReportMapper.selectTestReportsWithPagination(pageSize, offset);
+    }
+    @Override
+    public int getTestReportCount() {
+        return testReportMapper.selectTestReportCount();
     }
 
     @Override

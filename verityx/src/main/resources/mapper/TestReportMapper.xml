@@ -19,8 +19,15 @@
     </select>
 
     <!-- 查询所有测试报告 -->
-    <select id="selectAllTestReports" resultType="com.example.verityx.entity.TestReport">
+    <select id="selectTestReportsWithPagination" resultType="com.example.verityx.entity.TestReport">
         SELECT * FROM test_report
+        ORDER BY report_id
+            LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- 统计所有测试报告  -->
+    <select id="selectTestReportCount" resultType="int">
+        SELECT COUNT(*) FROM test_report
     </select>
 
     <!-- 更新测试报告 -->

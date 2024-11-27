@@ -1,9 +1,7 @@
 package com.example.verityx.controller;
 
 import com.example.verityx.dto.ApiResponse;
-import com.example.verityx.entity.Project;
 import com.example.verityx.entity.TestCase;
-import com.example.verityx.entity.TestPlan;
 import com.example.verityx.service.TestCaseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -54,7 +52,6 @@ public class TestCaseController {
         System.out.println("offset:" + offset);
         List<TestCase> testCase = testCaseService.getTestCasesWithPagination(pageSize, offset, caseStatus);
         int total = testCaseService.getTestCaseCount(caseStatus); // 获取总记录数
-
         Map<String, Object> response = new HashMap<>();
         response.put("data", testCase);
         response.put("total", total);

@@ -59,7 +59,6 @@ public class TestPlanController {
         System.out.println("offset:" + offset);
         List<TestPlan> testPlans = testPlanService.getTestPlansWithPagination(pageSize, offset, status);
         int total = testPlanService.getTestPlanCount(status); // 获取总记录数
-
         Map<String, Object> response = new HashMap<>();
         response.put("data", testPlans);
         response.put("total", total);

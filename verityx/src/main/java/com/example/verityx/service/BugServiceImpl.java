@@ -1,6 +1,7 @@
 package com.example.verityx.service.impl;
 
 import com.example.verityx.entity.Bug;
+import com.example.verityx.entity.TestCase;
 import com.example.verityx.mapper.BugMapper;
 import com.example.verityx.service.BugService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,17 @@ public class BugServiceImpl implements BugService {
     @Override
     public List<Bug> getAllBugs() {
         return bugMapper.selectAllBugs();
+    }
+
+    @Override
+    public List<Bug> getBugsWithPagination(int pageSize, int offset, String status) {
+        System.out.println("====== 分页查询缺陷 ======");
+        return bugMapper.selectBugsWithPagination(pageSize, offset, status);
+    }
+
+    @Override
+    public int getBugCount(String status) {
+        return bugMapper.selectBugCount(status);
     }
 
     @Override

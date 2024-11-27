@@ -4,23 +4,47 @@
 
     <!-- 插入缺陷 -->
     <insert id="insertBug" parameterType="com.example.verityx.entity.Bug">
-        INSERT INTO bug (bug_title, level, severity, created_by, created_at, assigned_to, bug_type, status, plan_id, project_id, operating_system, browser, reproduction_steps, attachments)
+        INSERT INTO bug_management (bug_title, level, severity, created_by, created_at, assigned_to, bug_type, status, plan_id, project_id, operating_system, browser, reproduction_steps, attachments)
         VALUES (#{bugTitle}, #{level}, #{severity}, #{createdBy}, #{createdAt}, #{assignedTo}, #{bugType}, #{status}, #{planId}, #{projectId}, #{operatingSystem}, #{browser}, #{reproductionSteps}, #{attachments})
     </insert>
 
     <!-- 根据 bugId 查询缺陷 -->
     <select id="selectBugById" resultType="com.example.verityx.entity.Bug">
-        SELECT * FROM bug WHERE bug_id = #{bugId}
+        SELECT * FROM bug_management WHERE bug_id = #{bugId}
     </select>
 
     <!-- 查询所有缺陷 -->
     <select id="selectAllBugs" resultType="com.example.verityx.entity.Bug">
-        SELECT * FROM bug
+        SELECT * FROM bug_management
+    </select>
+
+    <!-- 分页查询所有缺陷 -->
+    <select id="selectBugsWithPagination" resultType="com.example.verityx.entity.Bug">
+        SELECT * FROM bug_management
+         <where>
+         1=1
+             <if test="status !=null">
+                 AND status = #{status}
+             </if>
+         </where>
+        ORDER BY bug_id
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- 统计所有测试用例  -->
+    <select id="selectBugCount" resultType="int">
+        SELECT COUNT(*) FROM bug_management
+        <where>
+            1=1
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
     </select>
 
     <!-- 更新缺陷 -->
     <update id="updateBug" parameterType="com.example.verityx.entity.Bug">
-        UPDATE bug
+        UPDATE bug_management
         SET bug_title = #{bugTitle},
         level = #{level},
         severity = #{severity},
@@ -38,7 +62,7 @@
 
     <!-- 删除缺陷 -->
     <delete id="deleteBug" parameterType="int">
-        DELETE FROM bug WHERE bug_id = #{bugId}
+        DELETE FROM bug_management WHERE bug_id = #{bugId}
     </delete>
 
 </mapper>
