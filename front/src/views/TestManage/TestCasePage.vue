@@ -364,20 +364,21 @@ onMounted(() => {
 </script>
   
 <style scoped>
-.flex-wrap {
-  width: 100%;
-  height: 100%;
-}
-.w-full {
-  width: 100%;
-  height: 100%;
-}
 .customer-table :deep(.el-table__cell) {
-  border-right: none;
+  border-right: none;  /* 隐藏表格纵向边框*/
 }
 
-.demo-tabs > .el-tabs__content {
-  padding: 32px;
-  color: #6b778c;
-  font-size: 32px }
+.customer-table {
+  overflow: hidden;  /* 隐藏溢出的内容 */
+}
+
+.customer-table :deep(.el-table__inner-wrapper) {
+  overflow-x: auto;  /* 仅在需要时显示横向滚动条 */
+  overflow-y: hidden;  /* 隐藏纵向滚动条 */
+}
+
+.customer-table :deep(.el-table__body-wrapper) {
+  overflow-y: auto;  /* 允许内容区域纵向滚动 */
+  max-height: 560px;  /* 限制最大高度 */
+}
   </style>
