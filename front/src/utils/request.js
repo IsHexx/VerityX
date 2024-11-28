@@ -128,9 +128,9 @@ service.interceptors.response.use(
 // 封装常用的请求方法
 const http = {
   get(url, params, config = {}) {
-    console.log('get', url,)
-    console.log('params', params)
-    console.log('config', config)
+    // console.log('get', url,)
+    // console.log('params', params)
+    // console.log('config', config)
     return service.get(url, { params, ...config })
   },
   

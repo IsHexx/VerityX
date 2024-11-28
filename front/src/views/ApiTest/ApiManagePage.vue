@@ -1,54 +1,64 @@
+<!-- ApiManagePage.vue -->
 <template>
   <div class="content">
-    <!-- eltree -->
+    <!-- Api Tree -->
     <api-tree></api-tree>
-    <!-- eltree end-->
+    <!-- Api Tree End -->
 
+    <!-- Main Content -->
     <el-card style="width: 76%">
       <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
-        <!-- 预览 -->
-
-        <preview-page> </preview-page>
-        <!-- 预览 end-->
+         <!-- 预览 -->
+         <el-tab-pane label="预览" name="preview">
+          <preview-page></preview-page>
+        </el-tab-pane>
 
         <!-- 编辑 -->
-        <edit-page> </edit-page>
-        <!-- 编辑 end-->
+        <el-tab-pane label="编辑" name="edit">
+          <edit-page></edit-page>
+        </el-tab-pane>
 
         <!-- 运行 -->
-        <run-page> </run-page>
-        <!-- 运行 end-->
+        <el-tab-pane label="运行" name="run">
+          <run-page></run-page>
+        </el-tab-pane>
       </el-tabs>
     </el-card>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, watch } from "vue";
-import { Folder, Link, Plus, More } from "@element-plus/icons-vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ref, reactive, provide, watch } from "vue";
 import ApiTree from "../../components/interface/ApiTree.vue";
 import PreviewPage from "../../components/interface/PreviewPage.vue";
 import EditPage from "../../components/interface/EditPage.vue";
 import RunPage from "../../components/interface/RunPage.vue";
 
+// 当前激活的标签页
 const activeName = ref("preview");
 
+// 定义响应式数据
+const previewApiData = ref(null);
+const editApiData = ref(null);
+provide("activeName", activeName);
 
-// const ruleFormRef = ref(null);
+provide("previewApiData", previewApiData);
 
-// const submitForm = async (formEl) => {
-//   if (!formEl) return;
-//   await formEl.validate((valid, fields) => {
-//     if (valid) {
-//       console.log("submit!");
-//     } else {
-//       console.log("error submit!", fields);
-//     }
-//   });
+provide("editApiData", editApiData);
+
+
+// Tab 切换事件（可选）
+// const handleClick = (tab) => {
+  
+//   if (tab.props.name === "preview") {
+//     console.log("当前选中标签页:", tab.props.name);
+//     provide("selectedApiData", selectedApiData);
+//   } else if (tab.props.name === "edit") {
+//     console.log("当前选中标签页:", tab.props.name);
+//     provide("editApiData", editApiData);
+//   }
+  
 // };
-
-
 </script>
 
 <style scoped>

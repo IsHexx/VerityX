@@ -1,6 +1,6 @@
 <!-- ApiTree.vue -->
 <template>
-  <div class="api-tree">
+ <div class="api-tree">
     <el-card style="min-height: 660px; height: 100%">
       <template #header>
         <div class="card-header">
@@ -15,10 +15,11 @@
       <el-tree
         ref="treeRef"
         class="filter-tree"
-        :data="data"
+        :data="treeData"
         :props="defaultProps"
         default-expand-all
         :filter-node-method="filterNode"
+        @node-click="handleNodeClick"
       >
         <template #default="{ node, data }">
           <div 
@@ -48,9 +49,9 @@
             <!-- 文件夹操作按钮 (level 1) -->
             <div v-if="node.level === 1 && node.isHovered" class="node-actions">
               <el-button
-                type="text"
+             
                 size="small"
-                @click.stop="handleAddInterface(node, data)"
+                @click.stop="handleAddInterface(node, treeData)"
               >
                 <el-icon><Plus /></el-icon>
               </el-button>
@@ -58,10 +59,10 @@
                 trigger="hover"
                 @visible-change="handleDropdownVisibleChange"
                 :hide-on-click="false"
-                @command="(command) => handleCommand(command, node, data)"
+                @command="(command) => handleCommand(command, node, treeData)"
               >
                 <el-button 
-                  type="text" 
+              
                   size="small" 
                   @mouseenter="cancelMouseLeave"
                 >
@@ -83,9 +84,9 @@
             <!-- 接口操作按钮 (level 2) -->
             <div v-if="node.level === 2 && node.isHovered" class="node-actions">
               <el-button
-                type="text"
+             
                 size="small"
-                @click.stop="handleAddCase(node, data)"
+                @click.stop="handleAddCase(node, treeData)"
               >
                 <el-icon><Plus /></el-icon>
               </el-button>
@@ -93,10 +94,10 @@
                 trigger="hover"
                 @visible-change="handleDropdownVisibleChange"
                 :hide-on-click="false"
-                @command="(command) => handleCommand(command, node, data)"
+                @command="(command) => handleCommand(command, node, treeData)"
               >
                 <el-button 
-                  type="text" 
+                  
                   size="small" 
                   @mouseenter="cancelMouseLeave"
                 >
@@ -119,10 +120,10 @@
                 trigger="hover"
                 @visible-change="handleDropdownVisibleChange"
                 :hide-on-click="false"
-                @command="(command) => handleCommand(command, node, data)"
+                @command="(command) => handleCommand(command, node, treeData)"
               >
                 <el-button 
-                  type="text" 
+                  
                   size="small" 
                   @mouseenter="cancelMouseLeave"
                 >
@@ -146,59 +147,90 @@
   </div>
 </template>
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted,provide, inject } from 'vue';
 import { Folder, Link, Plus, More } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { ApiManageApi } from "@/api/apiManageService";
+import { useStore } from 'vuex'
 
 const treeRef = ref(null);
 const mouseLeaveTimer = ref(null);
 const isDropdownOpen = ref(false);
 const filterText = ref("");
 
-// 事件监听
-const handleClick = (tab, event) => {
-  console.log(tab, event);
+
+const previewApiData = inject('previewApiData', null);
+const editApiData = inject('editApiData', null);
+// 根据当前激活的标签页来更新对应的数据
+const activeTab = inject('activeName', ref('preview')); // 注入当前激活的标签页
+
+// 修改节点点击处理函数
+const handleNodeClick = (api) => {
+  console.log(api);
+
+  
+  if (activeTab.value === 'preview') {
+    if (previewApiData) {
+      previewApiData.value = api;
+    }
+  } else if (activeTab.value === 'edit') {
+    if (editApiData) {
+      editApiData.value = api;
+    }
+  }
 };
 
-//
-const data = [
-  {
-    id: 1,
-    label: "用户管理",
-    children: [
-      {
-        id: 4,
-        label: "获取用户列表",
-        method: "GET",
-        children: [{ id: 9, label: "接口详情 1" }],
-      },
-      {
-        id: 5,
-        label: "创建用户",
-        method: "POST",
-        children: [{ id: 10, label: "接口详情 2" }],
-      },
-    ],
-  },
-  {
-    id: 2,
-    label: "订单管理",
-    children: [
-      {
-        id: 6,
-        label: "更新订单",
-        method: "PUT",
-        children: [{ id: 11, label: "接口详情 3" }],
-      },
-      {
-        id: 7,
-        label: "删除订单",
-        method: "DELETE",
-        children: [{ id: 12, label: "接口详情 4" }],
-      },
-    ],
-  },
-];
+// 树形结构数据
+const treeData = ref([]);
+
+// 数据清洗逻辑
+function transformData(apiResponse) {
+  // 按 `apiDirectory` 分组
+  const groupedData = apiResponse.reduce((acc, item) => {
+    // 查找是否已有对应目录
+    let group = acc.find((g) => g.label === item.apiDirectory);
+    if (!group) {
+      group = {
+        id: item.apiId,
+        label: item.apiDirectory,
+        children: [],
+      };
+      acc.push(group);
+    }
+
+    // 将接口数据转换为子节点
+    group.children.push({
+      id: item.apiId,
+      label: item.apiName,
+      method: item.requestMethod,
+      children: [
+        {
+          id: `${item.apiId}`,
+          label: ` ${item.relatedTestCases}`,
+        },
+      ],
+    });
+
+    return acc;
+  }, []);
+
+  return groupedData;
+}
+
+// 请求数据并处理为树形结构
+const fetchTreeData = async () => {
+  try {
+    const response = await ApiManageApi.getApis("/api/apis");   // 替换为后端 API
+    const rawData = response.data;
+    // 转换数据为树形结构
+    const transformedData = transformData(rawData);
+    
+    // 直接赋值给 treeData
+    treeData.value = transformedData;
+  } catch (error) {
+    console.error("请求数据失败:", error);
+  }
+};
 
 const defaultProps = {
   children: "children",
@@ -207,17 +239,17 @@ const defaultProps = {
 
 
 // 处理各种操作命令
-const handleCommand = (command, node, data) => {
+const handleCommand = (command, node, rawData) => {
   event?.stopPropagation();
   switch (command) {
     case 'addFolder':
-      handleAddFolder(node, data);
+      handleAddFolder(node, rawData);
       break;
     case 'rename':
-      handleRename(node, data);
+      handleRename(node, rawData);
       break;
     case 'delete':
-      handleDelete(node, data);
+      handleDelete(node, rawData);
       break;
   }
 };
@@ -353,7 +385,7 @@ const handleAddInterface = (node, data) => {
 };
 
 // 文件夹操作
-const handleFolderCommand = (command, node, data) => {
+const handleFolderCommand = (command, node, rawData) => {
   event?.stopPropagation();
   switch (command) {
     case 'addFolder':
@@ -367,7 +399,7 @@ const handleFolderCommand = (command, node, data) => {
             label: value,
             children: [],
           };
-          data.children = [...(data.children || []), newFolder];
+          rawData.children = [...(rawData.children || []), newFolder];
           ElMessage.success('目录添加成功');
         }
       });
@@ -376,7 +408,7 @@ const handleFolderCommand = (command, node, data) => {
       ElMessageBox.prompt('请输入新的目录名称', '重命名目录', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        inputValue: data.label,
+        inputValue: rawData.label,
       }).then(({ value }) => {
         if (value) {
           data.label = value;
@@ -391,8 +423,8 @@ const handleFolderCommand = (command, node, data) => {
         type: 'warning',
       }).then(() => {
         const parent = node.parent;
-        const children = parent.data.children || parent.data;
-        const index = children.findIndex(d => d.id === data.id);
+        const children = parent.rawData.children || parent.rawData;
+        const index = children.findIndex(d => d.id === rawData.id);
         children.splice(index, 1);
         ElMessage.success('删除成功');
       });
@@ -407,9 +439,9 @@ const getFolderColor = (id) => {
 };
 
 // 过滤节点
-const filterNode = (value, data) => {
+const filterNode = (value, rawData) => {
   if (!value) return true;
-  return data.label.includes(value);
+  return rawData.label.includes(value);
 };
 // 重置表单
 const resetForm = (formEl) => {
@@ -421,6 +453,11 @@ watch(filterText, (val) => {
   if (treeRef.value) {
     treeRef.value.filter(val);
   }
+});
+
+// 组件挂载时获取数据
+onMounted(() => {
+  fetchTreeData();
 });
 
 </script>

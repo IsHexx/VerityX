@@ -1,8 +1,7 @@
 <!-- RunPage.vue -->
 <template>
     <div class="run-page">
-        <el-tab-pane label="运行" name="third"
-          ><el-form
+      <el-form
             ref="ruleFormRef"
             :model="ruleForm"
             :rules="rules"
@@ -260,7 +259,7 @@
                 </el-card>
               </div>
             </div> </el-form
-        ></el-tab-pane>
+        >
     </div>
   </template>
   

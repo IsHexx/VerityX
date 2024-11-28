@@ -1,8 +1,7 @@
 <!-- EditPage.vue -->
 <template>
     <div class="edit-page">
-        <el-tab-pane label="编辑" name="second"
-          ><!-- Embed the form here -->
+
           <el-form
             ref="ruleFormRef"
             :model="ruleForm"
@@ -67,29 +66,64 @@
                 </el-form-item></el-col
               >
             </el-row>
-          </el-form></el-tab-pane
-        >
+          </el-form>
     </div>
   </template>
   
   <script setup>
-  import { reactive, ref } from 'vue';
+import { reactive, ref, inject, watch, watchEffect, computed } from "vue";
+import { ApiManageApi } from "@/api/apiManageService";
   
-  const formSize = ref('default');
-  const ruleFormRef = ref(null);
-  
-  const ruleForm = reactive({
-    meth: 'GET',
-    environment: '',
-    uri: '',
-    code: '',
-    value: '',
-    user: '',
-    ContentType: '',
-    Cookies: '',
-    responseHeader: '',
-    responseBody: '',
-  });
+const editApiData = inject('editApiData', null);
+
+const formSize = ref("default");
+const ruleFormRef = ref(null);
+
+const ruleForm = reactive({
+  name: '',
+  method: '',
+  path: '',
+  status: '',
+  createdAt: '',
+  updatedAt: '',
+  mockUrl: '',
+  responseBody: ''
+});
+
+
+
+// 监听 editApiData 变化
+watch(
+  () => editApiData?.value,
+  (newData) => {
+    if (newData) {
+      console.log('编辑页数据更新:', newData.id);
+      fetchApiDetails(newData.id);
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+// 获取 API 详情的方法
+const fetchApiDetails = async (apiId) => {
+  try {
+    const response = await ApiManageApi.getApiDetail(apiId);
+    const apiDetail = response.data;
+
+    // 更新表单数据
+    ruleForm.name = apiDetail.apiName;
+    ruleForm.method = apiDetail.requestMethod;
+    ruleForm.path = apiDetail.apiPath;
+    ruleForm.status = apiDetail.status;
+    ruleForm.createdAt = apiDetail.createdAt;
+    ruleForm.updatedAt = apiDetail.updatedAt;
+    ruleForm.mockUrl = apiDetail.mockUrl;
+    ruleForm.responseBody = apiDetail.responseBody;
+  } catch (error) {
+    console.error('获取接口详情失败', error);
+  }
+};
+
   
   // Same script setup as PreviewPage.vue with additional methods
   const onSubmit = () => {

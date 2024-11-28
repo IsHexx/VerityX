@@ -9,6 +9,7 @@ import * as echarts from 'echarts';
 import axios from 'axios';
 import { authState } from '@/auth';
 import * as ElIconModules from '@element-plus/icons-vue';
+import { createPinia } from 'pinia'
 
 authState.isAuthenticated = !!localStorage.getItem('token'); // 初始化登录状态
 const app = createApp(App);
@@ -25,6 +26,7 @@ app.config.globalProperties.$echarts = echarts;
 app.use(router);
 app.use(store);
 app.use(ElementPlus);
+app.use(createPinia())
 
 
 app.mount('#app');
