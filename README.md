@@ -1,14 +1,33 @@
 # VerityX 测试平台
 
-VerityX 是一个综合性测试管理平台，用于管理测试用例、接口测试、缺陷跟踪和测试报告等。该平台由前端（Vue.js）和后端（Spring Boot）两部分组成。
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-green)
+![Vue.js](https://img.shields.io/badge/Vue.js-3.x-brightgreen)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)
+
+VerityX 是一个综合性测试管理平台，用于管理测试用例、接口测试、缺陷跟踪和测试报告等。该平台由前端（Vue.js）和后端（Spring Boot）两部分组成，旨在为测试团队提供高效、易用的测试管理工具。
+
+## 目录
+
+- [系统要求](#系统要求)
+- [数据库配置](#数据库配置)
+- [后端项目启动](#后端项目启动)
+- [前端项目启动](#前端项目启动)
+- [默认用户](#默认用户)
+- [项目结构](#项目结构)
+- [API 文档](#api-文档)
+- [常见问题](#常见问题)
+- [贡献指南](#贡献指南)
+- [许可证](#许可证)
 
 ## 系统要求
 
-- JDK 17 或更高版本
-- Maven 3.6.3 或更高版本
-- MySQL 8.0 或更高版本
-- Node.js 16.x 或更高版本
-- npm 8.x 或更高版本
+- **JDK 17** 或更高版本
+- **Maven 3.6.3** 或更高版本
+- **MySQL 8.0** 或更高版本
+- **Node.js 16.x** 或更高版本
+- **npm 8.x** 或更高版本
 
 ## 数据库配置
 
@@ -83,8 +102,8 @@ npm run serve
 
 系统默认包含一个管理员用户：
 
-- 用户名：admin
-- 密码：123456 (如果你忘记了密码，可以通过下面的 SQL 语句重置)
+- **用户名**：admin
+- **密码**：123456 (如果你忘记了密码，可以通过下面的 SQL 语句重置)
 
 如果忘记了密码，可以执行以下 SQL 语句重置为 `123456`：
 
@@ -118,6 +137,14 @@ API 文档可以通过 Swagger UI 访问：`http://localhost:8089/swagger-ui.htm
 
 ## 常见问题
 
-1. 如果启动时报端口被占用错误，可以修改 `application.properties` 中的 `server.port` 属性。
-2. 如果数据库连接失败，请检查数据库用户名、密码和数据库名称是否正确。
-3. 如果前端无法连接后端 API，请检查 `front/vue.config.js` 中的代理配置是否正确。 
+1. **端口被占用**：如果启动时报端口被占用错误，可以修改 `application.properties` 中的 `server.port` 属性。
+2. **数据库连接失败**：请检查数据库用户名、密码和数据库名称是否正确。
+3. **前端无法连接后端 API**：检查 `front/vue.config.js` 中的代理配置是否正确。
+
+## 贡献指南
+
+欢迎贡献代码！请阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 了解如何参与项目开发。
+
+## 许可证
+
+本项目采用 [MIT 许可证](LICENSE)。 
