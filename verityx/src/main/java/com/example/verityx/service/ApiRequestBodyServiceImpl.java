@@ -1,4 +1,4 @@
-package com.example.verityx.service.impl;
+package com.example.verityx.service;
 
 import com.example.verityx.entity.ApiRequestBody;
 import com.example.verityx.mapper.ApiRequestBodyMapper;

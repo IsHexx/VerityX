@@ -6,9 +6,93 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
     <title><%= htmlWebpackPlugin.options.title %></title>
+    <style>
+      /* 预加载遮罩样式 */
+      #preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #ffffff;
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.2s, visibility 0.2s;
+      }
+      .preloader-container {
+        text-align: center;
+      }
+      .preloader-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #409EFF;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      .preloader-text {
+        margin-top: 16px;
+        font-size: 16px;
+        color: #606266;
+        font-family: Arial, sans-serif;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
+    <!-- 预加载遮罩，Vue应用加载前显示 -->
+    <div id="preloader">
+      <div class="preloader-container">
+        <div class="preloader-spinner"></div>
+        <div class="preloader-text">页面加载中...</div>
+      </div>
+    </div>
+    
     <div id="app"></div>
     <!-- built files will be auto injected -->
+    
+    <script>
+      // 使用变量标记预加载器是否已经被处理
+      window.preloaderHandled = false;
+      
+      // 预加载器被处理的函数
+      function handlePreloader() {
+        if (window.preloaderHandled) return;
+        window.preloaderHandled = true;
+        
+        var preloader = document.getElementById('preloader');
+        if (preloader) {
+          preloader.style.opacity = '0';
+          preloader.style.visibility = 'hidden';
+          // 减少移除预加载器的延迟
+          setTimeout(function() {
+            if (preloader.parentNode) {
+              preloader.parentNode.removeChild(preloader);
+            }
+          }, 200);
+        }
+      }
+      
+      // 监听 DOM 内容加载完成事件，优先尝试尽早移除预加载器
+      document.addEventListener('DOMContentLoaded', function() {
+        // 如果应用已经挂载，尝试移除预加载器
+        if (window.appMounted) {
+          handlePreloader();
+        }
+      });
+      
+      // 当页面完全加载后，移除预加载遮罩（作为备用方案）
+      window.addEventListener('load', function() {
+        // 减少移除预加载遮罩的延迟
+        setTimeout(function() {
+          handlePreloader();
+        }, 100);
+      });
+    </script>
   </body>
 </html>

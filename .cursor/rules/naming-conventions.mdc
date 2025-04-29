@@ -3,3 +3,48 @@ description:
 globs:
 alwaysApply: false
 ---
+# VerityX 命名规范
+
+## 变量命名规则
+
+### Java后端命名规则
+- **类名**: 使用大驼峰命名法（PascalCase），如`UserLogin`、`TestCase`
+- **接口名**: 使用大驼峰命名法，通常以"I"开头或以"able"、"ible"结尾，如`UserLoginService`
+- **方法名**: 使用小驼峰命名法（camelCase），如`login`、`getUserById`
+- **变量名**: 使用小驼峰命名法，如`userName`、`passwordEncoder`
+- **常量名**: 使用全大写，单词间用下划线分隔，如`MAX_RETRY_COUNT`
+- **包名**: 全小写，使用域名反转，如`com.example.verityx`
+
+### 数据库命名规则
+- **表名**: 使用小写，单词间用下划线分隔，如`user_login`、`test_case`
+- **字段名**: 使用小写，单词间用下划线分隔，如`user_name`、`created_at`
+- **主键**: 通常命名为`id`或表名加`_id`
+
+### 前端命名规则
+- **组件名**: 使用大驼峰命名法，如`LoginForm`、`TestCaseList`
+- **变量名**: 使用小驼峰命名法，如`userName`、`isLoading`
+- **常量名**: 使用全大写，单词间用下划线分隔，如`API_URL`
+- **CSS类名**: 使用kebab-case（短横线命名法），如`login-container`、`test-case-item`
+- **事件方法**: 使用`handle`前缀，如`handleSubmit`、`handleClick`
+
+## 文件命名规则
+
+### Java后端文件命名规则
+- **控制器类**: 以`Controller`结尾，如`UserLoginController.java`
+- **服务接口**: 以`Service`结尾，如`UserLoginService.java`
+- **服务实现类**: 以`ServiceImpl`结尾，如`UserLoginServiceImpl.java`
+- **实体类**: 与数据库表对应，使用大驼峰，如`UserLogin.java`
+- **DAO/Mapper接口**: 以`Mapper`或`DAO`结尾，如`UserLoginMapper.java`
+- **配置类**: 以`Config`或`Configuration`结尾，如`SecurityConfig.java`
+
+### 前端文件命名规则
+- **组件文件**: 使用大驼峰或PascalCase，如`LoginForm.vue`、`TestCaseList.vue`
+- **工具/辅助文件**: 使用camelCase，如`authHelper.js`、`dateUtils.js`
+- **样式文件**: 使用kebab-case，如`login-styles.css`
+- **API文件**: 使用camelCase，通常以`api`结尾，如`userApi.js`、`testCaseApi.js`
+
+## 一般原则
+- 命名应当具有描述性，避免使用模糊简写
+- 避免使用单个字母的变量名（循环变量除外）
+- 布尔类型的变量通常以`is`、`has`、`can`等开头
+- 集合类通常使用复数形式命名

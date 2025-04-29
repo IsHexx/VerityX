@@ -46,13 +46,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch, nextTick } from 'vue';
 import { useMenuStore } from '@/store/menuStore';
 import image from '@/assets/image.png';  
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { authState } from '@/auth';
 
-const { activeMainMenu, activeSubMenu, currentSubMenus, setActiveMenu, initializeActiveMenu } = useMenuStore();
+const route = useRoute();
+const { activeMainMenu, activeSubMenu, currentSubMenus, setActiveMenu, initializeActiveMenu, shouldUpdateMenu } = useMenuStore();
 
 // 模拟用户名
 const username = ref('John Doe');
@@ -74,28 +75,50 @@ const logout = () => {
 
 // 修改菜单点击处理函数
 const handleMenuClick = (item) => {
+  // 设置为true，允许菜单点击跳转
+  shouldUpdateMenu.value = true;
   // 直接调用 setActiveMenu 并传入当前激活的主菜单和被点击的子菜单的 index
-  // console.log('handleMenuClick更新activeMainMenu', activeMainMenu.value, '和', item.index)
-  setActiveMenu(activeMainMenu.value, item.index)
-  
+  setActiveMenu(activeMainMenu.value, item.index);
 }
 
-onMounted(() => {
-// 确保组件挂载时菜单状态正确
-const currentItem = currentSubMenus.value.find(item => item.index === activeSubMenu.value)
-if (currentItem) {
-  handleMenuClick(currentItem)
+// 首次加载或刷新页面时，禁用自动跳转
+if (history.state && history.state.state && history.state.state.position === 0) {
+  // 这表示是刷新页面，不是导航
+  shouldUpdateMenu.value = false;
+  
+  // 延迟一点再启用，以防止初始化时的跳转
+  setTimeout(() => {
+    shouldUpdateMenu.value = true;
+  }, 500);
 }
-})
+
+// 监听路由变化，确保菜单状态同步更新
+// 但不自动跳转，避免刷新时干扰
+watch(() => route.path, () => {
+  nextTick(() => {
+    initializeActiveMenu();
+  });
+}, { immediate: true });
+
+onMounted(() => {
+  // 确保组件挂载时菜单状态正确
+  initializeActiveMenu();
+  
+  // 只在非刷新的普通导航中处理菜单点击
+  if (shouldUpdateMenu.value) {
+    const currentItem = currentSubMenus.value.find(item => item.index === activeSubMenu.value);
+    if (currentItem) {
+      // 不触发路由跳转，只更新激活状态
+      activeSubMenu.value = currentItem.index;
+    }
+  }
+});
 
 const data = () => {
   return {
     image: 'image'
   };
 };
-onMounted(() => {
-  initializeActiveMenu();
-});
 </script>
 
 <style scoped>

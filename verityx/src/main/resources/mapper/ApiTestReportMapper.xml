@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.ApiTestReportMapper">
+    
+    <insert id="insertReport" parameterType="com.example.verityx.entity.ApiTestReport" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO api_test_report(
+            api_name, url, method, status, response_time, 
+            execution_time, executor, headers, params, response, 
+            create_time, update_time
+        ) VALUES(
+            #{apiName}, #{url}, #{method}, #{status}, #{responseTime}, 
+            #{executionTime}, #{executor}, #{headers}, #{params}, #{response}, 
+            NOW(), NOW()
+        )
+    </insert>
+    
+    <select id="selectReportById" resultType="com.example.verityx.entity.ApiTestReport">
+        SELECT * FROM api_test_report WHERE id = #{id}
+    </select>
+    
+    <select id="selectReportsByPage" resultType="com.example.verityx.entity.ApiTestReport">
+        SELECT * FROM api_test_report 
+        <where>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">
+                AND (api_name LIKE CONCAT('%', #{keyword}, '%') OR url LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY execution_time DESC 
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <select id="countReports" resultType="int">
+        SELECT COUNT(*) FROM api_test_report 
+        <where>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">
+                AND (api_name LIKE CONCAT('%', #{keyword}, '%') OR url LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+    
+    <update id="updateReport" parameterType="com.example.verityx.entity.ApiTestReport">
+        UPDATE api_test_report SET 
+            api_name = #{apiName}, 
+            url = #{url}, 
+            method = #{method}, 
+            status = #{status}, 
+            response_time = #{responseTime}, 
+            execution_time = #{executionTime}, 
+            executor = #{executor}, 
+            headers = #{headers}, 
+            params = #{params}, 
+            response = #{response}, 
+            update_time = NOW() 
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteReport">
+        DELETE FROM api_test_report WHERE id = #{id}
+    </delete>
+    
+    <delete id="batchDeleteReports">
+        DELETE FROM api_test_report WHERE id IN 
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+</mapper> 

@@ -1,0 +1,88 @@
+### 测试 API 环境配置接口
+@baseUrl = http://localhost:8080
+@token = your_auth_token_here
+
+### 1. 获取所有环境配置 (分页)
+GET {{baseUrl}}/api/environments/list?page=1&pageSize=10
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 2. 获取所有环境配置 (用于下拉列表)
+GET {{baseUrl}}/api/environments
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 3. 获取默认环境
+GET {{baseUrl}}/api/environments/default
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 4. 获取单个环境配置
+GET {{baseUrl}}/api/environments/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 5. 创建环境配置
+POST {{baseUrl}}/api/environments
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "envName": "开发环境",
+  "baseUrl": "https://dev-api.example.com",
+  "description": "开发环境API服务器",
+  "isDefault": false,
+  "globalHeaders": [
+    {
+      "name": "X-API-Key",
+      "value": "dev-api-key-123"
+    },
+    {
+      "name": "Content-Type",
+      "value": "application/json"
+    }
+  ],
+  "globalParams": []
+}
+
+### 6. 更新环境配置
+PUT {{baseUrl}}/api/environments/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "envName": "开发环境-更新",
+  "baseUrl": "https://dev-api.example.com",
+  "description": "更新后的开发环境API服务器",
+  "isDefault": false,
+  "globalHeaders": [
+    {
+      "name": "X-API-Key",
+      "value": "updated-dev-api-key"
+    },
+    {
+      "name": "Content-Type",
+      "value": "application/json"
+    }
+  ],
+  "globalParams": []
+}
+
+### 7. 设置为默认环境
+PUT {{baseUrl}}/api/environments/1/default
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 8. 删除环境配置
+DELETE {{baseUrl}}/api/environments/2
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### 9. 批量删除环境配置
+POST {{baseUrl}}/api/environments/batch-delete
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [3, 4, 5]
+} 

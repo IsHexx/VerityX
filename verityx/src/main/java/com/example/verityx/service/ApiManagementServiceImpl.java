@@ -1,4 +1,4 @@
-package com.example.verityx.service.impl;
+package com.example.verityx.service;
 
 import com.example.verityx.entity.ApiManagement;
 import com.example.verityx.mapper.ApiManagementMapper;

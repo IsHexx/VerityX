@@ -2,7 +2,7 @@
   <div class="login-page">
     <div class="login-card">
       <div class="login-image">
-        <img src="https://via.placeholder.com/150" alt="Login Icon" />
+        <img src="@/assets/logo.png" alt="Login Icon" />
       </div>
       <div class="login-form">
         <h2>Member Login</h2>
@@ -87,21 +87,62 @@ export default {
         await loginForm.value.validate();
         isLoading.value = true;
 
-        const response = await axios.post("/api/user/login", {
-          username: form.username,
-          password: form.password,
-        });
+        // 调试日志：显示请求前的信息
+        // console.log('登录请求开始，请求数据:', {
+        //   username: form.username,
+        //   password: '******',  // 不显示真实密码
+        //   url: '/api/user/login',
+        //   baseURL: axios.defaults.baseURL
+        // });
 
-        const { token, userInfo } = response.data;
+        try {
+          const response = await axios.post("/api/user/login", {
+            username: form.username,
+            password: form.password,
+          });
 
-        if (response.data.status === "success") {
-          emit("login-success", { token, userInfo });
-          ElMessage.success("登录成功");
-        } else {
-          throw new Error(response.data.message || "登录失败");
+          // 调试日志：显示完整响应
+          console.log('登录请求成功，响应数据:', response);
+
+          const { token, userInfo } = response.data;
+
+          if (response.data.status === "success") {
+            emit("login-success", { token, userInfo });
+            ElMessage.success({
+              message: "登录成功",
+              duration: 700
+            });
+          } else {
+            ElMessage.error({
+              message: response.data.message || "登录失败",
+              duration: 700
+            });
+          }
+        } catch (error) {
+          // 调试日志：显示详细错误信息
+          console.error('登录请求失败，错误详情:', {
+            message: error.message,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            config: {
+              url: error.config?.url,
+              method: error.config?.method,
+              baseURL: error.config?.baseURL,
+              headers: error.config?.headers
+            }
+          });
+          
+          // 为用户显示友好的错误消息
+          if (error.response?.status === 404) {
+            ElMessage.error(`登录接口未找到(404): ${error.config?.url }`);
+          } else {
+            ElMessage.error(error.message || "登录失败，请检查用户名和密码");
+          }
         }
-      } catch (error) {
-        ElMessage.error(error.message || "登录失败，请检查用户名和密码");
+      } catch (formError) {
+        console.error('表单验证失败:', formError);
+        ElMessage.error("表单填写有误，请检查");
       } finally {
         isLoading.value = false;
       }

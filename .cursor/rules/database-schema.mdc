@@ -1,5 +1,51 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+# VerityX 数据库结构
+
+## 数据库概述
+VerityX使用MySQL数据库，数据库名为`verityx`。整个系统包含多个表，用于存储测试用例、API信息、缺陷管理等数据。
+
+## 数据库连接配置
+数据库连接配置在[verityx/src/main/resources/application.properties](mdc:verityx/src/main/resources/application.properties)文件中:
+```properties
+spring.datasource.url: jdbc:mysql://localhost:3306/verityx?useSSL=true&serverTimezone=UTC
+spring.datasource.username: root
+spring.datasource.password: 12345
+spring.datasource.driver-class-name: com.mysql.cj.jdbc.Driver
+```
+
+## 主要数据表
+
+### 用户表 (user_login)
+存储用户登录信息，包括用户名、密码等。
+
+### 测试用例表 (test_case)
+存储测试用例信息，包括用例标题、前置条件、重要级别等。
+
+### 测试步骤表 (test_step)
+存储测试用例的步骤信息，与test_case表形成一对多关系。
+
+### 缺陷管理表 (bug_management)
+存储缺陷信息，包括缺陷标题、严重程度、状态等。
+
+### 测试计划表 (test_plan)
+存储测试计划信息，包括计划名称、描述、状态等。
+
+### 接口管理表 (api_management)
+存储API接口信息，包括接口名称、路径、请求方法等。
+
+### 接口参数表 (api_query_params)
+存储API接口的查询参数信息。
+
+### 接口请求体表 (api_request_body)
+存储API接口的请求体参数信息。
+
+### 项目表 (project)
+存储项目基本信息，包括项目名称、描述、开始日期、结束日期等。
+
+## 表结构定义
+完整的表结构定义可在[verityxDatabase/CreateTable.sql](mdc:verityxDatabase/CreateTable.sql)文件中查看。
+

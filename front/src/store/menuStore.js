@@ -14,10 +14,10 @@ export const useMenuStore = () => {
       route: '/overview',
       subMenus: [
         { index: '1-1', title: '概览', route: '/overview' },
-        { index: '1-2', title: '测试计划', route: '/overview/testplan' },
-        { index: '1-3', title: '测试用例', route: '/overview/testcase' },
-        { index: '1-4', title: '缺陷管理', route: '/overview/bugmanage' },
-        { index: '1-5', title: '测试报告', route: '/overview/testreport' },
+        { index: '1-2', title: '测试计划', route: '/testplan' },
+        { index: '1-3', title: '测试用例', route: '/testcase' },
+        { index: '1-4', title: '缺陷管理', route: '/bugmanage' },
+        { index: '1-5', title: '测试报告', route: '/testreport' },
       ]
     },
     {
@@ -27,9 +27,9 @@ export const useMenuStore = () => {
       route: '/apimanage',
       subMenus: [
         { index: '2-1', title: '接口管理', route: '/apimanage' },
-        { index: '2-2', title: '接口自动化', route: '/apimanage/apiautotest' },
-        { index: '2-3', title: '测试报告', route: '/apimanage/22' },
-        { index: '2-4', title: '全局配置', route: '/apimanage/11' },
+        { index: '2-2', title: '接口自动化', route: '/apiautotest' },
+        { index: '2-3', title: '测试报告', route: '/apitestreport' },
+        { index: '2-4', title: '全局配置', route: '/apienvironment' },
       ]
     },
     {
@@ -53,7 +53,6 @@ export const useMenuStore = () => {
       subMenus: [
       ]
     },
-
   ]
 
   const activeMainMenu = ref(menuItems[0].index)
@@ -77,35 +76,33 @@ export const useMenuStore = () => {
   const setActiveMenu = (mainIndex, subIndex) => {
     // 如果是登录页面，不执行菜单激活逻辑
     if (isLoginPage(route.path)) return
-    // console.log('setActiveMenu被调用，参数是:', mainIndex, subIndex)
+    
     const mainMenu = menuItems.find(item => item.index === mainIndex)
-    // console.log('当前激活的菜单是:', mainMenu)
     if (!mainMenu) return
     
     activeMainMenu.value = mainIndex
-
     
-    // console.log('激活的主菜单:', activeMainMenu.value); // 确保这里的值已经更新
-
-    // 重新调用 currentSubMenus
-    // console.log('currentSubMenus:', currentSubMenus.value);
+    // 设置子菜单索引
     if (subIndex) {
       activeSubMenu.value = subIndex
-      // console.log('当前激活的子菜单是:', activeSubMenu.value)
     } else if (mainMenu.subMenus.length > 0) {
       activeSubMenu.value = mainMenu.subMenus[0].index
     } else {
       activeSubMenu.value = ''
     }
+    
+    // 找到对应的路由
     const targetSubMenu = mainMenu.subMenus.find(item => item.index === activeSubMenu.value)
     const targetRoute = targetSubMenu ? targetSubMenu.route : mainMenu.route
-    // console.log('跳转路由到:', targetRoute)
     
-    // console.log('activeSubMenu是:', activeSubMenu,)
-    // console.log('currentSubMenus是:', currentSubMenus)
-    // console.log('跳转路由到:', targetRoute)
+    // 如果目标路由与当前路由不同，则跳转
+    // 但不在页面刷新时强制跳转
     if (targetRoute !== route.path) {
-      router.push(targetRoute);
+      // 更新 localStorage 中的 lastPath
+      if (targetRoute !== '/' && targetRoute !== '/login') {
+        localStorage.setItem('lastPath', targetRoute)
+      }
+      router.push(targetRoute)
     }
   }
 
@@ -113,36 +110,61 @@ export const useMenuStore = () => {
     return route.meta.requiresMenu !== false
   })
   
-  // 监听路由变化, 加了这一句实现了左侧菜单和顶部菜单联动
+  // 监听路由变化是否不需要实时调用 initializeActiveMenu
   watch(() => route.path, (newPath) => {
-    if (!isLoginPage(newPath)) {
+    if (!isLoginPage(newPath) && shouldUpdateMenu.value) {
       initializeActiveMenu()
     }
   })
+  
+  // 控制是否应该响应路由变化来更新菜单
+  const shouldUpdateMenu = ref(true)
   
   const initializeActiveMenu = () => {
     // 如果是登录页面，不执行初始化菜单逻辑
     if (isLoginPage(route.path)) return
     
     const currentPath = route.path
+    
+    if (currentPath === '/') {
+      // 如果是根路径，不做菜单激活处理，避免干扰
+      return
+    }
+    
+    // 首先尝试直接匹配路径
+    let foundMainMenu = null
+    let foundSubMenu = null
+    
+    // 直接查找完全匹配的子菜单
     for (const mainMenu of menuItems) {
-      
-
-      // 修改menuItems中path路径在每个二级菜单前面加上一级菜单路径
-      if (currentPath === mainMenu.route || currentPath.startsWith(mainMenu.route + '/')) {
-      // if (currentPath) {
-        
-        activeMainMenu.value = mainMenu.index
-        // console.log('initializeActiveMenu中activeMainMenu的值是:', activeMainMenu.value)
-        const subMenu = mainMenu.subMenus.find(sub => sub.route === currentPath)
-        activeSubMenu.value = subMenu ? subMenu.index : (mainMenu.subMenus[0]?.index || '')
-        return
+      const subMenu = mainMenu.subMenus.find(sub => sub.route === currentPath)
+      if (subMenu) {
+        foundMainMenu = mainMenu
+        foundSubMenu = subMenu
+        break
       }
     }
-    // If no match found, default to the first menu item
-    activeMainMenu.value = menuItems[0].index
-    activeSubMenu.value = menuItems[0].subMenus[0]?.index || ''
     
+    // 如果没找到完全匹配的子菜单，尝试匹配主菜单
+    if (!foundMainMenu) {
+      foundMainMenu = menuItems.find(menu => menu.route === currentPath)
+    }
+    
+    // 如果找到匹配项，设置激活菜单
+    if (foundMainMenu) {
+      activeMainMenu.value = foundMainMenu.index
+      if (foundSubMenu) {
+        activeSubMenu.value = foundSubMenu.index
+      } else if (foundMainMenu.subMenus.length > 0) {
+        activeSubMenu.value = foundMainMenu.subMenus[0].index
+      } else {
+        activeSubMenu.value = ''
+      }
+    } else {
+      // 如果没有找到任何匹配，默认选中第一个菜单
+      activeMainMenu.value = menuItems[0].index
+      activeSubMenu.value = menuItems[0].subMenus[0]?.index || ''
+    }
   }
   // 初始化当前激活的菜单
   initializeActiveMenu()
@@ -153,6 +175,7 @@ export const useMenuStore = () => {
     activeSubMenu,
     currentSubMenus,
     setActiveMenu,
-    initializeActiveMenu
+    initializeActiveMenu,
+    shouldUpdateMenu
   }
 }

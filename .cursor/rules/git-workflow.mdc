@@ -3,3 +3,95 @@ description:
 globs:
 alwaysApply: false
 ---
+# VerityX Git工作流规范
+
+## 分支管理
+
+### 主要分支
+- **main/master**: 主分支，保存正式发布的版本
+- **develop**: 开发分支，最新的开发代码
+- **release**: 发布分支，准备发布的版本
+- **hotfix**: 热修复分支，用于修复生产环境中的问题
+
+### 功能分支命名规则
+- **feature/xxx**: 新功能开发分支，如`feature/test-case-management`
+- **bugfix/xxx**: 问题修复分支，如`bugfix/login-validation`
+- **hotfix/xxx**: 热修复分支，如`hotfix/security-vulnerability`
+- **release/x.x.x**: 发布分支，如`release/1.0.0`
+
+## 提交规范
+
+### 提交信息格式
+```
+<类型>(<范围>): <主题>
+
+<正文>
+
+<页脚>
+```
+
+### 提交类型
+- **feat**: 新功能
+- **fix**: 修复bug
+- **docs**: 文档更新
+- **style**: 代码风格调整，不影响代码功能
+- **refactor**: 代码重构，既不是新功能也不是修复bug
+- **perf**: 性能优化
+- **test**: 添加或修改测试代码
+- **chore**: 构建过程或辅助工具的变动
+- **ci**: 持续集成相关的改动
+
+### 示例
+```
+feat(login): 添加用户登录功能
+
+- 实现用户名和密码验证
+- 添加登录失败次数限制
+- 添加记住密码功能
+
+Closes #123
+```
+
+## 代码审查规则
+- 所有提交到`develop`和`main/master`分支的代码必须通过代码审查
+- 代码审查应关注以下方面:
+  - 代码质量和风格
+  - 功能正确性
+  - 安全问题
+  - 性能考虑
+  - 测试覆盖率
+
+## 常用Git命令
+
+### 分支操作
+```bash
+# 创建并切换到新分支
+git checkout -b feature/new-feature
+
+# 合并分支
+git merge feature/new-feature
+
+# 删除分支
+git branch -d feature/new-feature
+```
+
+### 提交操作
+```bash
+# 暂存文件
+git add .
+
+# 提交更改
+git commit -m "feat: 添加新功能"
+
+# 推送到远程仓库
+git push origin feature/new-feature
+```
+
+### 版本标签
+```bash
+# 创建标签
+git tag -a v1.0.0 -m "版本1.0.0发布"
+
+# 推送标签
+git push origin v1.0.0
+```

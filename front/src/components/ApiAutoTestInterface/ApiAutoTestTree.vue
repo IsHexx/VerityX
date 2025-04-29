@@ -1,10 +1,10 @@
-<!-- ApiTree.vue -->
+<!-- ApiAutoTestTree.vue -->
 <template>
     <div class="api-tree">
       <el-card style="min-height: 660px; height: 100%">
         <template #header>
           <div class="card-header">
-            <span>接口列表</span>
+            <span>场景列表</span>
           </div>
         </template>
         <el-input

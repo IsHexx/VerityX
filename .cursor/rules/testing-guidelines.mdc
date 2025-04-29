@@ -3,3 +3,116 @@ description:
 globs:
 alwaysApply: false
 ---
+# VerityX 测试规范
+
+## 测试类型
+
+### 单元测试
+- 每个类的公共方法应该有对应的单元测试
+- 使用JUnit 5和Mockito进行测试
+- 测试应该独立且可重复运行
+- 每个测试方法应该只测试一个功能点
+- 使用`@DisplayName`提供可读性好的测试描述
+
+### 集成测试
+- 使用Spring Boot Test进行集成测试
+- 关注组件间的交互，特别是controller-service-repository层的集成
+- 使用内存数据库或测试专用数据库
+- 测试数据应该在每次测试后清理
+
+### 前端测试
+- 使用Jest进行JavaScript单元测试
+- 使用Vue Test Utils进行组件测试
+- 验证组件渲染、事件处理和状态管理
+
+## 测试命名规范
+
+### 测试类命名
+- 使用被测试类名加上`Test`后缀，如`UserLoginServiceTest`
+- 集成测试可以使用`IT`后缀，如`UserLoginServiceIT`
+
+### 测试方法命名
+- 方法名应该描述测试的行为和预期结果
+- 推荐格式: `test<方法名>_<测试条件>_<预期结果>`
+- 例如: `testLogin_WithValidCredentials_ShouldReturnTrue`
+
+## 测试覆盖率要求
+- 代码行覆盖率至少达到80%
+- 分支覆盖率至少达到70%
+- 核心业务逻辑覆盖率应该达到90%以上
+- 使用Jacoco生成覆盖率报告
+
+## 后端测试示例
+
+```java
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+@DisplayName("用户登录服务测试")
+public class UserLoginServiceTest {
+
+    @Mock
+    private UserLoginMapper userLoginMapper;
+    
+    @InjectMocks
+    private UserLoginServiceImpl userLoginService;
+    
+    @Test
+    @DisplayName("使用有效凭证登录应成功")
+    public void testLogin_WithValidCredentials_ShouldReturnTrue() {
+        // 准备测试数据
+        String username = "admin";
+        String password = "123456";
+        UserLogin userLogin = new UserLogin();
+        userLogin.setUsername(username);
+        userLogin.setPassword("$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi"); // 加密后的"123456"
+        userLogin.setActive(true);
+        
+        // 模拟依赖
+        when(userLoginMapper.findByUsername(username)).thenReturn(userLogin);
+        
+        // 执行测试
+        boolean result = userLoginService.login(username, password);
+        
+        // 验证结果
+        assertTrue(result);
+        verify(userLoginMapper).findByUsername(username);
+    }
+}
+```
+
+## 前端测试示例
+
+```javascript
+import { shallowMount } from '@vue/test-utils';
+import LoginForm from '@/components/LoginForm.vue';
+
+describe('LoginForm.vue', () => {
+  it('当表单提交时应调用登录方法', async () => {
+    // 准备
+    const wrapper = shallowMount(LoginForm);
+    const loginSpy = jest.spyOn(wrapper.vm, 'handleLogin');
+    
+    // 模拟用户输入
+    await wrapper.find('input[type="text"]').setValue('admin');
+    await wrapper.find('input[type="password"]').setValue('123456');
+    
+    // 触发表单提交
+    await wrapper.find('form').trigger('submit.prevent');
+    
+    // 验证
+    expect(loginSpy).toHaveBeenCalled();
+  });
+});
+```
+
+## 测试最佳实践
+- 使用`given/when/then`或`arrange/act/assert`结构组织测试代码
+- 避免在测试中使用随机数据，使用固定的测试数据
+- 对边界条件和错误情况进行测试
+- 保持测试简单，每个测试专注于一个功能点
+- 定期运行测试，确保代码变更不会破坏现有功能

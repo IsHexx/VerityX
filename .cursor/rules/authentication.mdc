@@ -1,5 +1,48 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+# VerityX 用户认证系统
+
+## 认证概述
+VerityX系统使用基于Spring Security的用户认证系统，支持用户登录、权限验证等功能。用户信息存储在`user_login`表中，密码使用BCrypt加密存储。
+
+## 相关文件
+- 用户控制器: `UserLoginController.java` - 处理登录请求
+- 用户服务: `UserLoginService.java` - 定义用户服务接口
+- 用户服务实现: `UserLoginServiceImpl.java` - 实现登录逻辑
+- 用户实体: `UserLogin.java` - 用户实体类
+- 用户Mapper: `UserLoginMapper.java` - 数据库操作接口
+
+## 数据库表结构
+用户信息存储在`user_login`表中，包含以下主要字段:
+- `id`: 用户ID
+- `username`: 用户名
+- `password`: 加密后的密码
+- `email`: 电子邮件
+- `phone_number`: 电话号码
+- `is_active`: 是否激活
+
+完整表结构定义在[verityxDatabase/CreateTable.sql](mdc:verityxDatabase/CreateTable.sql)文件中。
+
+## 默认用户
+系统默认包含一个管理员用户:
+- 用户名: `admin`
+- 初始密码: `123456`
+
+## 密码重置
+忘记密码时，可以通过执行以下SQL语句重置密码为`123456`:
+```sql
+UPDATE user_login 
+SET password = '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi' 
+WHERE username = 'admin';
+```
+
+## 登录流程
+1. 用户输入用户名和密码
+2. 前端发送登录请求到`/login`接口
+3. 后端验证用户名和密码
+4. 验证成功后返回登录成功消息
+5. 前端保存登录状态并跳转到主页
+

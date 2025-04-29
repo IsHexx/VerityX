@@ -1,5 +1,176 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+# VerityX 安全规范
+
+## 密码处理安全
+
+### 密码存储
+- 使用BCrypt等强哈希算法存储密码，不允许明文存储
+- 每个密码应使用随机盐值
+- 密码哈希迭代次数应足够大，以抵抗暴力破解
+
+```java
+// 推荐的密码加密方式
+@Bean
+public BCryptPasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder(12); // 指定强度因子
+}
+
+// 密码验证
+public boolean verifyPassword(String rawPassword, String encodedPassword) {
+    return passwordEncoder.matches(rawPassword, encodedPassword);
+}
+```
+
+### 密码策略
+- 密码应至少包含8个字符
+- 应包含大小写字母、数字和特殊字符
+- 定期要求用户更改密码
+- 不允许重复使用最近使用过的密码
+
+```java
+// 密码复杂度验证
+public boolean isValidPassword(String password) {
+    String pattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$";
+    return password.matches(pattern);
+}
+```
+
+## 输入验证与防止注入攻击
+
+### XSS防护
+- 所有用户输入在显示之前必须进行HTML转义
+- 使用安全的模板引擎处理动态内容
+- 前端使用Vue的v-html指令时必须确保内容已清理
+
+```java
+// 后端内容清理示例
+public String sanitizeHtml(String html) {
+    return Jsoup.clean(html, Safelist.basic());
+}
+```
+
+### SQL注入防护
+- 使用参数化查询处理所有SQL
+- 避免字符串拼接构建SQL查询
+- 使用MyBatis等ORM框架的参数绑定功能
+
+```java
+// 推荐 - 使用MyBatis参数绑定
+@Select("SELECT * FROM user_login WHERE username = #{username}")
+UserLogin findByUsername(@Param("username") String username);
+
+// 不推荐 - 字符串拼接
+@Select("SELECT * FROM user_login WHERE username = '" + username + "'") // 危险!
+```
+
+### CSRF防护
+- 实现CSRF令牌验证
+- 关键操作使用POST而非GET
+- 检查Referer头以验证请求来源
+
+```java
+// Spring Security CSRF配置
+@Configuration
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+    }
+}
+```
+
+## 会话安全
+
+### 身份验证
+- 实现账户锁定机制，防止暴力破解
+- 使用HTTPS传输所有凭证
+- 登录后重新生成会话ID，防止会话固定攻击
+
+### 授权控制
+- 实现基于角色的访问控制(RBAC)
+- 服务端始终验证权限，不依赖前端控制
+- 使用最小权限原则，只授予必要的权限
+
+```java
+// Spring Security权限控制
+@GetMapping("/admin/users")
+@PreAuthorize("hasRole('ADMIN')")
+public List<UserDTO> getAllUsers() {
+    // 只有ADMIN角色才能访问
+}
+```
+
+### 敏感数据处理
+- 传输中的数据使用TLS/SSL加密
+- 存储的敏感数据应加密
+- 不在日志中记录敏感信息
+- 加密密钥妥善保管，考虑使用密钥管理系统
+
+## API安全
+
+### REST API安全
+- 实现API速率限制，防止DoS攻击
+- 所有API端点使用适当的授权检查
+- 考虑使用JWT等令牌进行API认证
+
+```java
+// 速率限制的简单实现
+@Component
+public class RateLimiter {
+    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    
+    public boolean allowRequest(String ipAddress) {
+        Bucket bucket = buckets.computeIfAbsent(ipAddress, 
+            k -> Bucket4j.builder().addLimit(Bandwidth.simple(100, Duration.ofMinutes(1))).build());
+        return bucket.tryConsume(1);
+    }
+}
+```
+
+### 错误处理
+- 避免返回详细的错误信息给用户
+- 在生产环境中禁用堆栈跟踪
+- 记录所有安全相关错误，但不泄露敏感信息
+
+```java
+// 安全的错误处理
+@ControllerAdvice
+public class GlobalExceptionHandler {
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        // 记录详细错误供内部使用
+        log.error("发生错误", ex);
+        // 返回通用错误消息给用户
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(new ErrorResponse("系统错误，请联系管理员"));
+    }
+}
+```
+
+## 安全审计与监控
+- 实现详细的安全日志记录
+- 记录所有用户登录、注销和权限变更
+- 监控异常活动并设置警报
+- 定期进行安全审查和渗透测试
+
+```java
+// 安全审计日志示例
+@Component
+public class SecurityAuditLogger {
+    @EventListener
+    public void auditAuthenticationSuccess(AuthenticationSuccessEvent event) {
+        log.info("用户 {} 登录成功，IP: {}", event.getAuthentication().getName(), getCurrentIp());
+    }
+    
+    @EventListener
+    public void auditAuthenticationFailure(AuthenticationFailureEvent event) {
+        log.warn("用户 {} 登录失败，原因: {}, IP: {}", 
+            event.getAuthentication().getName(), event.getException().getMessage(), getCurrentIp());
+    }
+}
+```
+

@@ -1,5 +1,282 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+# VerityX 架构与设计模式规范
+
+## 系统架构
+
+### 分层架构
+VerityX采用传统的多层架构设计:
+- **表示层**: 前端Vue.js应用和RESTful API接口
+- **业务逻辑层**: Spring Boot服务，包含业务规则和流程
+- **数据访问层**: MyBatis映射器，处理数据库交互
+- **数据存储层**: MySQL数据库
+
+### 后端架构
+后端采用Spring Boot框架，遵循以下架构模式:
+- **控制器(Controller)**: 处理HTTP请求，返回响应
+- **服务(Service)**: 实现业务逻辑
+- **数据访问对象(DAO/Mapper)**: 处理数据库操作
+- **实体(Entity)**: 对应数据库表的Java对象
+- **数据传输对象(DTO)**: 在不同层之间传输数据
+
+### 前端架构
+前端采用Vue.js框架，遵循以下架构模式:
+- **视图(View)**: Vue组件，负责UI渲染
+- **模型(Model)**: Vuex存储，管理应用状态
+- **API服务**: 处理与后端的通信
+- **路由**: Vue Router，管理页面导航
+
+## 设计模式应用
+
+### 后端设计模式
+
+#### 单例模式(Singleton)
+- Spring容器管理的Bean默认是单例的
+- 确保全局只有一个实例，避免重复创建对象
+
+```java
+@Service
+public class UserLoginServiceImpl implements UserLoginService {
+    // Spring容器会确保这是单例
+}
+```
+
+#### 工厂模式(Factory)
+- 用于创建对象而不暴露创建逻辑
+- Spring的Bean工厂是典型应用
+
+```java
+@Configuration
+public class AppConfig {
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+```
+
+#### 策略模式(Strategy)
+- 用于实现算法的动态选择
+- 例如不同类型的通知可以有不同的发送策略
+
+```java
+public interface NotificationStrategy {
+    void send(String message, String recipient);
+}
+
+@Service
+public class EmailNotificationStrategy implements NotificationStrategy {
+    @Override
+    public void send(String message, String recipient) {
+        // 发送邮件
+    }
+}
+
+@Service
+public class SMSNotificationStrategy implements NotificationStrategy {
+    @Override
+    public void send(String message, String recipient) {
+        // 发送短信
+    }
+}
+```
+
+#### 观察者模式(Observer)
+- 用于事件通知，当对象状态改变时通知依赖对象
+- Spring的事件机制是典型应用
+
+```java
+@Component
+public class UserEventPublisher {
+    private final ApplicationEventPublisher publisher;
+
+    public UserEventPublisher(ApplicationEventPublisher publisher) {
+        this.publisher = publisher;
+    }
+
+    public void publishUserCreatedEvent(UserLogin user) {
+        publisher.publishEvent(new UserCreatedEvent(this, user));
+    }
+}
+
+@Component
+public class UserEventListener {
+    @EventListener
+    public void handleUserCreatedEvent(UserCreatedEvent event) {
+        // 处理用户创建事件
+    }
+}
+```
+
+### 前端设计模式
+
+#### 组件模式(Component)
+- Vue.js本身基于组件化设计
+- 每个UI元素封装为可复用组件
+
+```javascript
+// 按钮组件
+Vue.component('custom-button', {
+  props: ['text', 'type'],
+  template: '<button :class="type">{{ text }}</button>'
+});
+```
+
+#### 状态管理模式(State Management)
+- 使用Vuex集中管理应用状态
+- 遵循单向数据流
+
+```javascript
+// Vuex store
+export default new Vuex.Store({
+  state: {
+    user: null,
+    isAuthenticated: false
+  },
+  mutations: {
+    setUser(state, user) {
+      state.user = user;
+      state.isAuthenticated = !!user;
+    }
+  },
+  actions: {
+    login({ commit }, credentials) {
+      // 调用登录API
+      return api.login(credentials)
+        .then(user => {
+          commit('setUser', user);
+          return user;
+        });
+    }
+  }
+});
+```
+
+## 架构最佳实践
+
+### 关注点分离(Separation of Concerns)
+- 每个组件/类应该只负责单一功能
+- 业务逻辑与数据访问逻辑分离
+- 表示逻辑与业务逻辑分离
+
+### 依赖注入(Dependency Injection)
+- 使用Spring的依赖注入机制
+- 避免直接创建依赖对象
+- 利于单元测试和解耦
+
+```java
+@Service
+public class UserService {
+    private final UserRepository userRepository;
+    
+    // 通过构造函数注入依赖
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+}
+```
+
+### 接口隔离(Interface Segregation)
+- 服务应该通过接口定义
+- 接口应该小而专注，避免过大的"万能"接口
+
+### 单一职责(Single Responsibility)
+- 每个类应该有一个单一的责任
+- 当需要修改时，只有一个原因导致修改
+
+## MyBatis SQL映射规范
+
+### XML映射文件规范
+- SQL语句必须写在resources目录下的mapper文件夹中的XML文件中，而不是在Java接口文件中使用注解
+- 每个XML文件应该对应一个Mapper接口
+- XML文件的namespace必须与对应的Mapper接口全限定名一致
+- 查询使用select标签，插入使用insert标签，更新使用update标签，删除使用delete标签
+- 生成的主键应通过useGeneratedKeys和keyProperty属性返回
+- 对于复杂查询，应使用动态SQL功能（如if, choose, when, otherwise, trim, where, set等）
+- 参数命名清晰，避免使用通用名称如"param1","param2"
+
+### Mapper接口规范
+- Mapper接口应放在mapper包下
+- 接口应使用@Mapper注解标记
+- 方法名应与XML中对应的SQL ID一致
+- 使用@Param注解标注参数，确保与XML中的参数名匹配
+- 不在接口中使用@Select, @Insert, @Update, @Delete等注解
+
+### 示例
+正确的Mapper接口:
+```java
+@Mapper
+public interface ApiTestReportMapper {
+    int insertReport(ApiTestReport report);
+    ApiTestReport selectReportById(int id);
+    List<ApiTestReport> selectReportsByPage(@Param("keyword") String keyword, 
+                                           @Param("status") String status,
+                                           @Param("offset") int offset, 
+                                           @Param("pageSize") int pageSize);
+}
+```
+
+对应的XML文件 (resources/mapper/ApiTestReportMapper.xml):
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.ApiTestReportMapper">
+    <insert id="insertReport" parameterType="com.example.verityx.entity.ApiTestReport" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO api_test_report(api_name, url, method, status) 
+        VALUES(#{apiName}, #{url}, #{method}, #{status})
+    </insert>
+    
+    <select id="selectReportById" resultType="com.example.verityx.entity.ApiTestReport">
+        SELECT * FROM api_test_report WHERE id = #{id}
+    </select>
+</mapper>
+```
+
+## Swagger API文档规范
+
+### Controller类规范
+- 所有Controller类必须使用@Tag注解标注，提供name和description
+- 所有公开API方法必须使用@Operation注解，提供summary和description
+- API参数应使用@Parameter注解进行说明
+- 返回值应使用@ApiResponse注解说明可能的响应状态和内容
+
+### 示例
+```java
+@RestController
+@RequestMapping("/api/apitestreports")
+@Tag(name = "API测试报告管理", description = "API测试报告的增删改查接口")
+public class ApiTestReportController {
+
+    @GetMapping("/list")
+    @Operation(summary = "分页查询API测试报告", description = "根据关键字、状态和分页参数查询API测试报告")
+    public JsonResult getReportsList(@RequestParam(value = "page") Integer page,
+                                     @RequestParam(value = "pageSize") Integer pageSize) {
+        // 实现代码
+    }
+    
+    @PostMapping
+    @Operation(summary = "创建API测试报告", description = "创建新的API测试报告")
+    public JsonResult createReport(@RequestBody ApiTestReportDTO reportDTO) {
+        // 实现代码
+    }
+}
+```
+
+## 前后端交互规范
+
+### 接口URL规范
+- RESTful风格，使用名词复数形式
+- 资源分层，例如`/api/projects/{projectId}/testcases`
+- 使用小写字母，单词之间用连字符（-）分隔
+- 使用HTTP方法表达操作类型（GET查询，POST创建，PUT更新，DELETE删除）
+
+### 请求参数规范
+- GET请求使用URL参数，例如`?page=1&pageSize=10`
+- POST/PUT请求使用JSON格式的请求体
+- 日期格式使用ISO 8601标准：`yyyy-MM-dd'T'HH:mm:ss.SSSXXX`
+  例如：`2023-05-15T10:30:00.000+08:00`
+- 布尔值使用true/false而非0/1
+

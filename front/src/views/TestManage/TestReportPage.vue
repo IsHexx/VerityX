@@ -17,6 +17,7 @@
             @blur="handleBlur"
           />
           <el-button type="primary" @click="handleGenerateReport">生成报告</el-button>
+          <el-button type="success" @click="handleCreateWorkflow">使用向导</el-button>
         </el-col>
       </el-row>
       
@@ -263,6 +264,11 @@ const handlePaginationChange = ({ page, pageSize }) => {
   pagination.page = page;
   pagination.pageSize = pageSize;
   fetchTestReportList();
+};
+
+// 跳转到报告创建向导
+const handleCreateWorkflow = () => {
+  router.push("/testreport/workflow");
 };
 
 // 组件挂载时获取数据

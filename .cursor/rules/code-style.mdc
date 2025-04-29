@@ -3,3 +3,136 @@ description:
 globs:
 alwaysApply: false
 ---
+# VerityX 代码风格规范
+
+## Java代码风格
+
+### 格式化规则
+- 使用4个空格进行缩进，不使用制表符
+- 每行最大长度为120个字符
+- 花括号使用K&R风格（左花括号不换行，右花括号独占一行）
+- 方法之间使用一个空行分隔
+- 类的成员变量应该放在类的顶部
+- 相关的变量声明应该尽量放在一起
+
+### 注释规范
+- 所有公共方法和类应该有JavaDoc注释
+- 复杂的逻辑应该有相应的注释说明
+- TODO注释应该包含创建人信息和期望完成日期
+- 注释应该解释"为什么"而不是"是什么"
+
+```java
+/**
+ * 用户登录服务实现类
+ * 
+ * @author 开发者姓名
+ * @since 1.0.0
+ */
+@Service
+public class UserLoginServiceImpl implements UserLoginService {
+    
+    // 使用BCrypt加密算法对密码进行加密和验证
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    
+    /**
+     * 验证用户登录信息
+     * 
+     * @param username 用户名
+     * @param password 密码
+     * @return 登录成功返回true，否则返回false
+     */
+    @Override
+    public boolean login(String username, String password) {
+        // 实现逻辑
+    }
+}
+```
+
+## 前端代码风格
+
+### JavaScript/TypeScript
+- 使用2个空格进行缩进
+- 使用分号结束语句
+- 字符串优先使用单引号
+- 优先使用箭头函数表达式
+- 使用`const`和`let`，避免使用`var`
+- 使用模板字符串代替字符串拼接
+
+```javascript
+// 推荐
+const fullName = `${firstName} ${lastName}`;
+
+// 不推荐
+const fullName = firstName + ' ' + lastName;
+```
+
+### Vue组件规范
+- 组件名使用多个单词，避免与HTML元素冲突
+- 组件属性使用小驼峰命名法
+- 模板中的属性使用kebab-case命名法
+- 组件结构遵循template -> script -> style顺序
+- 使用scoped CSS或CSS模块避免样式污染
+
+```vue
+<template>
+  <div class="login-form">
+    <input v-model="username" type="text" placeholder="用户名" />
+    <input v-model="password" type="password" placeholder="密码" />
+    <button @click="handleLogin">登录</button>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'LoginForm',
+  data() {
+    return {
+      username: '',
+      password: ''
+    };
+  },
+  methods: {
+    handleLogin() {
+      // 登录逻辑
+    }
+  }
+};
+</script>
+
+<style scoped>
+.login-form {
+  margin: 20px;
+  padding: 15px;
+}
+</style>
+```
+
+## SQL风格规范
+- SQL关键字大写，表名和字段名小写
+- 复杂查询使用清晰的缩进和换行
+- 每个字段占一行，逗号位于行尾
+- 使用有意义的别名
+
+```sql
+SELECT 
+    u.username,
+    u.email,
+    p.project_name
+FROM 
+    user_login u
+JOIN 
+    project p ON u.id = p.user_id
+WHERE 
+    u.is_active = true
+    AND p.status = 'active'
+ORDER BY 
+    p.created_at DESC
+LIMIT 10;
+```
+
+## 通用规范
+- 避免大段代码块，保持方法的简短和聚焦
+- 优先使用组合而非继承
+- 保持代码的DRY(Don't Repeat Yourself)原则
+- 使用有意义的常量代替魔法数字和字符串
+- 异常处理应该明确且有针对性

@@ -7,12 +7,12 @@
       <el-card style="width: 76%">
         <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
           <!-- 测试步骤 -->
-          <test-step ></test-step>
+          <api-auto-test-step></api-auto-test-step>
 
           <!-- 测试步骤 end-->
   
           <!-- 测试报告 -->
-          <api-test-report> </api-test-report>
+          <api-auto-test-report></api-auto-test-report>
           <!-- 测试报告 end-->
   
         </el-tabs>
@@ -24,8 +24,8 @@
   import { reactive, ref, watch } from "vue";
   import { Folder, Link, Plus, More } from "@element-plus/icons-vue";
   import { ElMessage, ElMessageBox } from "element-plus";
-  import TestStep from "../../components/ApiAutoTestInterface/TestStep.vue";
-  import ApiTestReport from "../../components/ApiAutoTestInterface/ApiTestReport.vue";
+  import ApiAutoTestStep from "../../components/ApiAutoTestInterface/ApiAutoTestStep.vue";
+  import ApiAutoTestReport from "../../components/ApiAutoTestInterface/ApiAutoTestReport.vue";
   import ApiAutoTestTree from "../../components/ApiAutoTestInterface/ApiAutoTestTree.vue";
 
   
