@@ -36,8 +36,15 @@ export const useMenuStore = () => {
       index: '3',
       icon: 'Edit',
       title: 'UI测试',
-      route: '/ui-testing',
-      subMenus: []
+      route: '/uitestcase',
+      subMenus: [
+        { index: '3-1', title: '测试用例管理', route: '/uitestcase' },
+        { index: '3-2', title: '测试套件管理', route: '/uitestsuite' },
+        { index: '3-3', title: '元素定位器管理', route: '/uielementlocator' },
+        { index: '3-4', title: '测试执行', route: '/uitestexecution' },
+        { index: '3-5', title: '测试报告', route: '/uitestreport' },
+        { index: '3-6', title: '测试配置', route: '/uitestconfig' }
+      ]
     },
     {
       index: '4',

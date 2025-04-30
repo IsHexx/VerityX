@@ -11,6 +11,12 @@ import TestReportAuditPage from '@/components/TestReportAuditPage.vue';
 import TestReportWorkflow from '@/components/TestReportWorkflow.vue';
 import ProjectManagePage from '@/views/ProjectManagePage.vue';
 import ApiEnvironmentPage from '@/views/ApiTest/ApiEnvironmentPage.vue';
+import UiTestCasePage from '@/views/UiTest/UiTestCasePage.vue';
+import UiTestSuitePage from '@/views/UiTest/UiTestSuitePage.vue';
+import UiElementLocatorPage from '@/views/UiTest/UiElementLocatorPage.vue';
+import UiTestExecutionPage from '@/views/UiTest/UiTestExecutionPage.vue';
+import UiTestReportPage from '@/views/UiTest/UiTestReportPage.vue';
+import UiTestConfigPage from '@/views/UiTest/UiTestConfigPage.vue';
 
 // 预加载关键组件，提高性能
 const UserLogin = () => import(/* webpackChunkName: "user" */ '@/components/UserLogin.vue')
@@ -89,6 +95,42 @@ const routes = [
     path: '/apienvironment',
     name: 'ApiEnvironment',
     component: ApiEnvironmentPage,
+    meta: { requiresMenu: true }
+  },
+  {
+    path: '/uitestcase',
+    name: 'UiTestCase',
+    component: UiTestCasePage,
+    meta: { requiresMenu: true }
+  },
+  {
+    path: '/uitestsuite',
+    name: 'UiTestSuite',
+    component: UiTestSuitePage,
+    meta: { requiresMenu: true }
+  },
+  {
+    path: '/uielementlocator',
+    name: 'UiElementLocator',
+    component: UiElementLocatorPage,
+    meta: { requiresMenu: true }
+  },
+  {
+    path: '/uitestexecution',
+    name: 'UiTestExecution',
+    component: UiTestExecutionPage,
+    meta: { requiresMenu: true }
+  },
+  {
+    path: '/uitestreport',
+    name: 'UiTestReport',
+    component: UiTestReportPage,
+    meta: { requiresMenu: true }
+  },
+  {
+    path: '/uitestconfig',
+    name: 'UiTestConfig',
+    component: UiTestConfigPage,
     meta: { requiresMenu: true }
   },
 ];

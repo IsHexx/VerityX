@@ -1,0 +1,37 @@
+# SpecStory explanation file
+.specstory/.what-is-this.md
+
+# 忽略编辑器相关
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# 忽略依赖目录
+node_modules/
+target/
+dist/
+/temp/
+
+# 忽略日志
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+# 忽略编译后的文件
+*.class
+*.jar
+*.war
+
+# 忽略本地配置文件
+application-local.properties
+application-local.yml
+
+# 忽略Cursor和SpecStory目录
+.specstory/
+.cursor/temp/
+
+# 忽略测试报告
+test-output/
