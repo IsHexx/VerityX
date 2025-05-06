@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiTestExecutionDetailMapper">
+    
+    <!-- 执行详情结果映射 -->
+    <resultMap id="UiTestExecutionDetailMap" type="com.example.verityx.entity.UiTestExecutionDetail">
+        <id property="id" column="id"/>
+        <result property="executionId" column="execution_id"/>
+        <result property="caseId" column="case_id"/>
+        <result property="caseName" column="case_name"/>
+        <result property="status" column="status"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="duration" column="duration"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="screenshotPath" column="screenshot_path"/>
+        <result property="retryCount" column="retry_count"/>
+        <result property="stepCount" column="step_count"/>
+        <result property="stepPassed" column="step_passed"/>
+        <result property="stepFailed" column="step_failed"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <!-- 公共列 -->
+    <sql id="Base_Column_List">
+        id, execution_id, case_id, case_name, status, start_time, end_time, duration,
+        error_message, screenshot_path, retry_count, step_count, step_passed, step_failed,
+        created_at, updated_at
+    </sql>
+    
+    <!-- 插入一条执行详情记录 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.UiTestExecutionDetail" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_execution_detail(
+            execution_id, case_id, case_name, status, start_time, end_time, duration,
+            error_message, screenshot_path, retry_count, step_count, step_passed, step_failed
+        ) VALUES (
+            #{executionId}, #{caseId}, #{caseName}, #{status}, #{startTime}, #{endTime}, #{duration},
+            #{errorMessage}, #{screenshotPath}, #{retryCount}, #{stepCount}, #{stepPassed}, #{stepFailed}
+        )
+    </insert>
+    
+    <!-- 批量插入执行详情记录 -->
+    <insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_execution_detail(
+            execution_id, case_id, case_name, status, retry_count
+        ) VALUES 
+        <foreach collection="list" item="item" index="index" separator=",">
+        (
+            #{item.executionId}, #{item.caseId}, #{item.caseName}, #{item.status}, #{item.retryCount}
+        )
+        </foreach>
+    </insert>
+    
+    <!-- 根据ID查询执行详情记录 -->
+    <select id="selectById" resultMap="UiTestExecutionDetailMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_detail
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 更新执行详情记录 -->
+    <update id="update" parameterType="com.example.verityx.entity.UiTestExecutionDetail">
+        UPDATE ui_test_execution_detail
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            <if test="screenshotPath != null">screenshot_path = #{screenshotPath},</if>
+            <if test="retryCount != null">retry_count = #{retryCount},</if>
+            <if test="stepCount != null">step_count = #{stepCount},</if>
+            <if test="stepPassed != null">step_passed = #{stepPassed},</if>
+            <if test="stepFailed != null">step_failed = #{stepFailed},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 更新执行详情状态 -->
+    <update id="updateStatus">
+        UPDATE ui_test_execution_detail
+        SET status = #{status},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 更新步骤统计信息 -->
+    <update id="updateStepCounts">
+        UPDATE ui_test_execution_detail
+        SET step_count = #{stepCount},
+            step_passed = #{stepPassed},
+            step_failed = #{stepFailed},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据执行ID查询详情列表 -->
+    <select id="selectByExecutionId" resultMap="UiTestExecutionDetailMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_detail
+        WHERE execution_id = #{executionId}
+        ORDER BY id ASC
+    </select>
+    
+    <!-- 根据执行ID和状态查询详情列表 -->
+    <select id="selectByExecutionIdAndStatus" resultMap="UiTestExecutionDetailMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_detail
+        WHERE execution_id = #{executionId}
+        AND status = #{status}
+        ORDER BY id ASC
+    </select>
+    
+    <!-- 根据用例ID查询最近的执行详情记录 -->
+    <select id="selectRecentByCaseId" resultMap="UiTestExecutionDetailMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_detail
+        WHERE case_id = #{caseId}
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
+    
+    <!-- 根据执行ID删除详情记录 -->
+    <delete id="deleteByExecutionId">
+        DELETE FROM ui_test_execution_detail
+        WHERE execution_id = #{executionId}
+    </delete>
+    
+</mapper> 

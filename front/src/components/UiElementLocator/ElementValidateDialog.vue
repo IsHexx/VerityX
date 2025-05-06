@@ -223,19 +223,24 @@ const validateLocator = async () => {
     const data = {
       locatorType: validateForm.locatorType,
       locatorValue: validateForm.locatorValue,
-      pageUrl: validateForm.pageUrl
+      url: validateForm.pageUrl
     };
     
-    // 这里实际上需要调用后端API进行验证
-    // 由于现在只实现前端，我们使用模拟数据
-    
-    /*
+    // 调用后端API进行验证
     const res = await UiElementLocatorApi.validateLocator(data);
     if (res.code === 200) {
-      validationSuccess.value = res.data.found;
+      validationSuccess.value = res.data.valid;
       if (validationSuccess.value) {
-        elementInfo.value = res.data.elementInfo;
-        validationResult.value = "元素验证成功";
+        // 构造元素信息对象
+        elementInfo.value = {
+          tagName: 'div', // 实际应从响应中获取
+          attributes: {
+            // 实际属性应从响应中获取
+            'data-locator': validateForm.locatorValue
+          },
+          text: '' // 实际文本应从响应中获取
+        };
+        validationResult.value = res.data.message || "元素验证成功";
       } else {
         validationResult.value = res.data.message || "未找到匹配的元素";
       }
@@ -243,79 +248,21 @@ const validateLocator = async () => {
       validationSuccess.value = false;
       validationResult.value = res.message || '验证失败';
     }
-    */
     
-    // 模拟验证结果
-    setTimeout(() => {
-      const success = Math.random() > 0.3; // 70%的概率验证成功
-      
-      validationSuccess.value = success;
-      
-      if (success) {
-        // 模拟返回的元素信息
-        let tagName = 'div';
-        let attributes = {};
-        let text = '';
-        
-        if (validateForm.locatorType === 'ID') {
-          tagName = 'button';
-          attributes = {
-            id: validateForm.locatorValue,
-            class: 'el-button el-button--primary',
-            type: 'button'
-          };
-          text = '提交';
-        } else if (validateForm.locatorType === 'CSS') {
-          if (validateForm.locatorValue.includes('input')) {
-            tagName = 'input';
-            attributes = {
-              type: 'text',
-              class: 'el-input__inner',
-              placeholder: '请输入用户名'
-            };
-          } else {
-            tagName = 'div';
-            attributes = {
-              class: 'el-form-item__content'
-            };
-          }
-        } else if (validateForm.locatorType === 'XPath') {
-          tagName = 'a';
-          attributes = {
-            href: '#',
-            class: 'nav-link active'
-          };
-          text = '首页';
-        }
-        
-        elementInfo.value = {
-          tagName,
-          attributes,
-          text
-        };
-        
-        validationResult.value = "元素验证成功";
-      } else {
-        validationResult.value = "未找到匹配的元素，请检查定位器或页面URL";
-      }
-      
-      validating.value = false;
-      
-      if (success) {
-        emit('validation-success', {
-          locatorType: validateForm.locatorType,
-          locatorValue: validateForm.locatorValue,
-          elementInfo: elementInfo.value
-        });
-      }
-      
-    }, 1000);
+    validating.value = false;
     
+    if (validationSuccess.value) {
+      emit('validation-success', {
+        locatorType: validateForm.locatorType,
+        locatorValue: validateForm.locatorValue,
+        elementInfo: elementInfo.value
+      });
+    }
   } catch (error) {
     validationSuccess.value = false;
-    validationResult.value = '验证过程发生错误: ' + error.message;
+    validationResult.value = "验证过程发生错误: " + error.message;
     validating.value = false;
-    console.error('验证定位器出错:', error);
+    console.error("验证定位器出错:", error);
   }
 };
 

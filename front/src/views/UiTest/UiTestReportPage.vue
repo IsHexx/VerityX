@@ -312,21 +312,40 @@ const loadReportData = async (tabName, page = 1, pageSize = 10, keyword = '', st
     
     console.log("请求参数:", params);
     
-    // 这里使用模拟数据进行开发，实际项目中应该使用实际API
-    // const res = await UiTestReportApi.getUiTestReports(params);
+    // 调用真实API
+    const res = await UiTestReportApi.getUiTestReports(params);
     
-    // 模拟API响应
-    const mockResponse = {
-      code: 200,
-      message: 'success',
-      data: {
-        data: generateMockData(10, status),
-        total: 100
+    console.log("API响应:", res);
+    
+    if (res.code === 200) {
+      console.log("API返回数据:", res.data);
+      // 修正数据结构，将list数据映射到需要的字段结构
+      if (res.data.list && Array.isArray(res.data.list)) {
+        tableData.value = res.data.list.map(item => ({
+          id: item.id,
+          testName: item.reportName,
+          testType: item.reportType === '用例执行' ? 'case' : 'suite',
+          browser: item.browser?.split(' ')[0] || 'Chrome',
+          environment: item.environment,
+          result: item.passedCases === item.totalCases ? 'passed' : 'failed',
+          statistics: {
+            passed: item.passedCases || 0,
+            failed: item.failedCases || 0,
+            skipped: item.skippedCases || 0
+          },
+          duration: Math.round(item.duration / 1000) || 0,
+          startTime: new Date(item.startTime).toLocaleString(),
+          executor: item.executor
+        }));
+        total.value = res.data.total || 0;
+      } else {
+        tableData.value = [];
+        total.value = 0;
+        console.warn("API返回的数据结构不符合预期:", res.data);
       }
-    };
-    
-    tableData.value = mockResponse.data.data;
-    total.value = mockResponse.data.total;
+    } else {
+      ElMessage.error(res.message || "获取UI测试报告列表失败");
+    }
   } catch (error) {
     ElMessage.error("获取UI测试报告列表失败");
     console.error("获取UI测试报告列表失败:", error);
@@ -369,19 +388,54 @@ const handleSelectionChange = (selection) => {
 // 查看测试报告
 const handleViewReport = async (row) => {
   try {
-    // 实际项目中应该调用API
-    // const res = await UiTestReportApi.getUiTestReportDetail(row.id);
+    // 调用真实API获取报告详情
+    const res = await UiTestReportApi.getUiTestReportDetail(row.id);
     
-    // 模拟请求详情API响应
-    const mockDetailResponse = {
-      code: 200,
-      message: 'success',
-      data: generateMockReportDetail(row)
-    };
-    
-    currentReport.value = mockDetailResponse.data;
-    reportDialogVisible.value = true;
-    reportActiveTab.value = 'overview';
+    if (res.code === 200) {
+      console.log("报告详情数据:", res.data);
+      
+      // 处理API返回的报告详情数据
+      const reportData = res.data;
+      
+      // 构造前端需要的详情数据结构
+      const detailData = {
+        id: reportData.id,
+        executionId: reportData.executionId,
+        testName: reportData.reportName,
+        environment: reportData.environment,
+        browser: reportData.browser,
+        browserVersion: reportData.browser?.split(' ')[1] || '',
+        resolution: reportData.resolution || '1920x1080',
+        executor: reportData.executor,
+        executionType: reportData.reportType,
+        startTime: new Date(reportData.startTime).toLocaleString(),
+        endTime: new Date(reportData.endTime).toLocaleString(),
+        duration: Math.round(reportData.duration / 1000) || 0,
+        statistics: {
+          passed: reportData.passedCases || 0,
+          failed: reportData.failedCases || 0,
+          skipped: reportData.skippedCases || 0
+        },
+        // 如果API返回了步骤数据，使用API数据；否则初始化为空数组
+        steps: reportData.details?.steps || [],
+        // 如果API返回了失败分析数据，使用API数据；否则初始化为空对象
+        failureAnalysis: reportData.details?.failureAnalysis || {
+          totalFailures: reportData.failedCases || 0,
+          failureRate: reportData.totalCases ? (reportData.failedCases / reportData.totalCases * 100) : 0,
+          criticalFailures: 0,
+          errorTypes: [],
+          failures: []
+        },
+        // 如果API返回了截图对比数据，使用API数据；否则初始化为空数组
+        screenshotPairs: reportData.details?.screenshotPairs || []
+      };
+      
+      currentReport.value = detailData;
+      reportDialogVisible.value = true;
+      reportActiveTab.value = 'overview';
+    } else {
+      ElMessage.error(res.message || "获取报告详情失败");
+    }
   } catch (error) {
     ElMessage.error("获取报告详情失败");
     console.error("获取报告详情失败:", error);
@@ -393,8 +447,6 @@ const handleExport = async (command, row) => {
   try {
     ElMessage.info(`正在导出${command === 'html' ? 'HTML' : 'PDF'}报告...`);
     
-    // 实际项目中应该调用API
-    /*
     let response;
     if (command === 'html') {
       response = await UiTestReportApi.exportUiTestReportHtml(row.id);
@@ -409,12 +461,8 @@ const handleExport = async (command, row) => {
     link.download = `UI测试报告_${row.id}.${command}`;
     link.click();
     URL.revokeObjectURL(link.href);
-    */
     
-    // 模拟导出功能
-    setTimeout(() => {
-      ElMessage.success(`${command === 'html' ? 'HTML' : 'PDF'}报告导出成功`);
-    }, 1500);
+    ElMessage.success(`${command === 'html' ? 'HTML' : 'PDF'}报告导出成功`);
   } catch (error) {
     ElMessage.error("报告导出失败");
     console.error("报告导出失败:", error);
@@ -424,12 +472,15 @@ const handleExport = async (command, row) => {
 // 删除测试报告
 const handleDeleteReport = async (row) => {
   try {
-    // 实际项目中应该调用API
-    // await UiTestReportApi.deleteUiTestReport(row.id);
+    // 调用真实API删除报告
+    const res = await UiTestReportApi.deleteUiTestReport(row.id);
     
-    // 模拟删除操作
-    ElMessage.success("删除成功");
-    await fetchUiTestReports();
+    if (res.code === 200) {
+      ElMessage.success("删除成功");
+      await fetchUiTestReports();
+    } else {
+      ElMessage.error(res.message || "删除失败");
+    }
   } catch (error) {
     ElMessage.error(error.message || "删除失败");
   }
@@ -455,12 +506,15 @@ const handleBatchDelete = async () => {
     
     const ids = selectedReports.value.map(item => item.id);
     
-    // 实际项目中应该调用API
-    // await UiTestReportApi.batchDeleteUiTestReports(ids);
+    // 调用真实API批量删除
+    const res = await UiTestReportApi.batchDeleteUiTestReports(ids);
     
-    // 模拟批量删除操作
-    ElMessage.success("批量删除成功");
-    await fetchUiTestReports();
+    if (res.code === 200) {
+      ElMessage.success("批量删除成功");
+      await fetchUiTestReports();
+    } else {
+      ElMessage.error(res.message || "批量删除失败");
+    }
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error("批量删除失败");
@@ -495,13 +549,16 @@ const handleLocateStep = (stepNumber) => {
 const handleTabClick = (tab) => {
   console.log("Tab切换, 新的tab值:", tab.props.name);
   
+  // 更新当前激活的tab值
+  activeTab.value = tab.props.name;
+  
   // 重置分页和搜索条件
   pagination.page = 1;
   pagination.pageSize = 10;
   searchKeyword.value = '';
   dateRange.value = null;
   
-  // 使用传入的tab.props.name而不是activeTab.value
+  // 使用正确的tab名称加载数据
   loadReportData(tab.props.name);
 };
 
@@ -510,188 +567,6 @@ const handlePaginationChange = ({ page, pageSize }) => {
   pagination.page = page;
   pagination.pageSize = pageSize;
   fetchUiTestReports();
-};
-
-// 生成模拟数据
-const generateMockData = (count, status) => {
-  const browsers = ['Chrome', 'Firefox', 'Edge', 'Safari'];
-  const environments = ['开发环境', '测试环境', '预生产环境', '生产环境'];
-  const results = status ? [status] : ['passed', 'failed', 'cancelled'];
-  const testTypes = ['case', 'suite'];
-  const executors = ['张三', '李四', '王五', '赵六'];
-  
-  return Array.from({ length: count }, (_, i) => {
-    const result = results[Math.floor(Math.random() * results.length)];
-    const passed = Math.floor(Math.random() * 100);
-    const failed = result === 'passed' ? 0 : Math.floor(Math.random() * 20);
-    const skipped = Math.floor(Math.random() * 10);
-    
-    return {
-      id: 1000 + i,
-      testName: `UI自动化测试${1000 + i}`,
-      testType: testTypes[Math.floor(Math.random() * testTypes.length)],
-      browser: browsers[Math.floor(Math.random() * browsers.length)],
-      environment: environments[Math.floor(Math.random() * environments.length)],
-      result: result,
-      statistics: {
-        passed: passed,
-        failed: failed,
-        skipped: skipped
-      },
-      duration: Math.floor(Math.random() * 300) + 10,
-      startTime: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toLocaleString(),
-      executor: executors[Math.floor(Math.random() * executors.length)]
-    };
-  });
-};
-
-// 生成模拟报告详情数据
-const generateMockReportDetail = (row) => {
-  const steps = [];
-  const stepCount = Math.floor(Math.random() * 20) + 5;
-  const failedSteps = [];
-  const screenshotPairs = [];
-  
-  for (let i = 1; i <= stepCount; i++) {
-    let status = 'passed';
-    let errorMessage = null;
-    let errorType = null;
-    
-    // 如果报告结果是失败，随机生成一些失败步骤
-    if (row.result === 'failed' && Math.random() > 0.7) {
-      status = 'failed';
-      errorType = ['元素未找到', '断言失败', '超时', '脚本错误', '网络错误'][Math.floor(Math.random() * 5)];
-      errorMessage = `执行失败: ${errorType}`;
-      
-      failedSteps.push({
-        stepNumber: i,
-        description: `第${i}步操作`,
-        errorMessage: errorMessage,
-        location: `页面: login.html, 元素: #username`,
-        suggestion: '检查元素定位器是否正确，或增加等待时间',
-        screenshot: `https://placekitten.com/800/600?image=${i}`
-      });
-    }
-    
-    const step = {
-      id: i,
-      stepNumber: i,
-      description: `第${i}步操作`,
-      action: ['点击', '输入', '选择', '校验', '等待'][Math.floor(Math.random() * 5)],
-      target: `#element-${i}`,
-      value: status === 'failed' ? '预期值' : '',
-      duration: Math.floor(Math.random() * 1000) + 100,
-      status: status,
-      errorType: errorType,
-      errorMessage: errorMessage,
-      screenshot: `https://placekitten.com/800/600?image=${i}`
-    };
-    
-    if (status === 'failed') {
-      step.expectedValue = '预期值';
-      step.actualValue = '实际值';
-      step.logs = [
-        {
-          level: 'INFO',
-          message: `开始执行步骤 ${i}`,
-          timestamp: '10:30:15'
-        },
-        {
-          level: 'WARNING',
-          message: '元素加载时间过长',
-          timestamp: '10:30:18'
-        },
-        {
-          level: 'ERROR',
-          message: errorMessage,
-          timestamp: '10:30:20'
-        }
-      ];
-    } else {
-      step.logs = [
-        {
-          level: 'INFO',
-          message: `开始执行步骤 ${i}`,
-          timestamp: '10:30:15'
-        },
-        {
-          level: 'INFO',
-          message: '步骤执行成功',
-          timestamp: '10:30:17'
-        }
-      ];
-    }
-    
-    steps.push(step);
-    
-    // 随机生成一些截图对比
-    if (Math.random() > 0.7) {
-      screenshotPairs.push({
-        title: `步骤 ${i}: ${step.description}`,
-        expectedImage: `https://placekitten.com/800/600?image=${i*2}`,
-        actualImage: status === 'failed' ? `https://placekitten.com/800/600?image=${i*2+1}` : `https://placekitten.com/800/600?image=${i*2}`,
-        diffPercentage: status === 'failed' ? Math.random() * 20 + 5 : Math.random() * 5,
-        description: status === 'failed' ? '实际结果与预期不符' : '截图对比通过'
-      });
-    }
-  }
-  
-  // 生成错误类型统计
-  const errorTypeCounts = {};
-  failedSteps.forEach(step => {
-    const type = step.errorMessage.split(': ')[1];
-    errorTypeCounts[type] = (errorTypeCounts[type] || 0) + 1;
-  });
-  
-  const errorTypes = Object.keys(errorTypeCounts).map(type => {
-    const count = errorTypeCounts[type];
-    const percentage = (count / failedSteps.length) * 100;
-    let severity = 'medium';
-    
-    if (type === '元素未找到' || type === '断言失败') {
-      severity = 'high';
-    } else if (type === '脚本错误') {
-      severity = 'critical';
-    }
-    
-    return {
-      type,
-      count,
-      percentage,
-      severity,
-      description: `${type}类型的错误`,
-      suggestion: `针对${type}的解决建议`
-    };
-  });
-  
-  // 生成失败分析数据
-  const failureAnalysis = {
-    totalFailures: failedSteps.length,
-    failureRate: (failedSteps.length / stepCount) * 100,
-    mostCommonError: errorTypes.length > 0 ? errorTypes.sort((a, b) => b.count - a.count)[0].type : '',
-    criticalFailures: errorTypes.filter(t => t.severity === 'critical').reduce((sum, t) => sum + t.count, 0),
-    errorTypes,
-    failures: failedSteps
-  };
-  
-  return {
-    ...row,
-    executionId: `EXEC-${row.id}`,
-    testName: row.testName,
-    environment: row.environment,
-    browser: row.browser,
-    browserVersion: '100.0.4896.127',
-    resolution: '1920x1080',
-    executor: row.executor,
-    executionType: row.testType === 'case' ? '单用例执行' : '套件执行',
-    startTime: row.startTime,
-    endTime: new Date(new Date(row.startTime).getTime() + row.duration * 1000).toLocaleString(),
-    duration: row.duration,
-    statistics: row.statistics,
-    steps,
-    failureAnalysis,
-    screenshotPairs
-  };
 };
 
 // 组件挂载时获取数据

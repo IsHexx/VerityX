@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiElementGroupMapper">
+    
+    <!-- 插入UI元素分组 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.UiElementGroup" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_element_group(
+            group_name, 
+            description, 
+            element_count, 
+            created_by, 
+            created_at
+        ) VALUES (
+            #{groupName}, 
+            #{description}, 
+            #{elementCount}, 
+            #{createdBy}, 
+            #{createdAt}
+        )
+    </insert>
+    
+    <!-- 根据ID更新UI元素分组 -->
+    <update id="updateById" parameterType="com.example.verityx.entity.UiElementGroup">
+        UPDATE ui_element_group
+        SET group_name = #{groupName},
+            description = #{description},
+            element_count = #{elementCount},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 更新元素数量 -->
+    <update id="updateElementCount">
+        UPDATE ui_element_group
+        SET element_count = #{count},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID删除UI元素分组 -->
+    <delete id="deleteById">
+        DELETE FROM ui_element_group WHERE id = #{id}
+    </delete>
+    
+    <!-- 根据ID查询UI元素分组 -->
+    <select id="selectById" resultType="com.example.verityx.entity.UiElementGroup">
+        SELECT 
+            id,
+            group_name AS groupName,
+            description,
+            element_count AS elementCount,
+            created_by AS createdBy,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM ui_element_group
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 查询所有UI元素分组 -->
+    <select id="selectAll" resultType="com.example.verityx.entity.UiElementGroup">
+        SELECT 
+            id,
+            group_name AS groupName,
+            description,
+            element_count AS elementCount,
+            created_by AS createdBy,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM ui_element_group
+        ORDER BY created_at DESC
+    </select>
+</mapper> 

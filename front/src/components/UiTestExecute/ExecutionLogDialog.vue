@@ -137,21 +137,12 @@ const fetchLogs = async () => {
   
   loading.value = true;
   try {
-    // 模拟获取日志
-    setTimeout(() => {
-      logs.value = generateMockLogs();
-      loading.value = false;
-    }, 500);
-    
-    // 实际实现时使用API调用
-    /*
     const res = await UiTestExecutionApi.getExecutionLogs(props.execution.id);
     if (res.code === 200) {
       logs.value = res.data;
     } else {
       ElMessage.error(res.message || '获取执行日志失败');
     }
-    */
   } catch (error) {
     ElMessage.error("获取执行日志失败");
     console.error("获取执行日志失败:", error);
@@ -204,47 +195,6 @@ const setupAutoRefresh = () => {
       fetchLogs();
     }, refreshInterval.value * 1000);
   }
-};
-
-// 生成模拟日志数据
-const generateMockLogs = () => {
-  const levels = ['INFO', 'DEBUG', 'WARN', 'ERROR', 'INFO', 'INFO'];
-  const messages = [
-    '启动浏览器实例',
-    '导航到页面: https://example.com/login',
-    '等待页面加载完成',
-    '查找元素: ID=username',
-    '输入文本: admin',
-    '查找元素: ID=password',
-    '输入文本: ******',
-    '点击元素: CSS=button[type="submit"]',
-    '等待页面跳转',
-    '验证URL包含: dashboard',
-    '查找元素: XPath=//div[@id="welcome-message"]',
-    '验证文本包含: 欢迎',
-    '截图保存: screenshot_001.png',
-    '执行操作: 鼠标悬停',
-    '等待元素可见: CSS=.dropdown-menu',
-    '点击元素: LinkText=退出',
-    '关闭浏览器实例'
-  ];
-  
-  const baseTime = new Date();
-  const logs = [];
-  
-  for (let i = 0; i < 20; i++) {
-    const level = levels[Math.floor(Math.random() * levels.length)];
-    const message = messages[Math.floor(Math.random() * messages.length)];
-    const time = new Date(baseTime.getTime() - (20 - i) * 1000);
-    
-    logs.push({
-      level,
-      message,
-      time: time.toLocaleTimeString('zh-CN', { hour12: false })
-    });
-  }
-  
-  return logs;
 };
 
 // 组件销毁时清除定时器

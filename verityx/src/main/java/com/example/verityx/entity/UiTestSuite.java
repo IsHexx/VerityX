@@ -8,7 +8,6 @@ import java.util.Date;
 public class UiTestSuite {
     private Long id;
     private String suiteName;
-    private String suiteStatus;
     private Integer caseCount;
     private String lastResult;
     private String createdBy;
@@ -23,6 +22,8 @@ public class UiTestSuite {
     private Integer retryCount;
     private String screenshotPolicy;
     private String description;
+    private Boolean executeInParallel;
+    private Integer maxParallelCount;
 
     public Long getId() {
         return id;
@@ -38,14 +39,6 @@ public class UiTestSuite {
 
     public void setSuiteName(String suiteName) {
         this.suiteName = suiteName;
-    }
-
-    public String getSuiteStatus() {
-        return suiteStatus;
-    }
-
-    public void setSuiteStatus(String suiteStatus) {
-        this.suiteStatus = suiteStatus;
     }
 
     public Integer getCaseCount() {
@@ -158,5 +151,21 @@ public class UiTestSuite {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+    
+    public Boolean getExecuteInParallel() {
+        return executeInParallel;
+    }
+
+    public void setExecuteInParallel(Boolean executeInParallel) {
+        this.executeInParallel = executeInParallel;
+    }
+
+    public Integer getMaxParallelCount() {
+        return maxParallelCount;
+    }
+
+    public void setMaxParallelCount(Integer maxParallelCount) {
+        this.maxParallelCount = maxParallelCount;
     }
 } 

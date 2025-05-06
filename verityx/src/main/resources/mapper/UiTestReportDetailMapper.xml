@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiTestReportDetailMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="UiTestReportDetailMap" type="com.example.verityx.entity.UiTestReportDetail">
+        <id property="id" column="id"/>
+        <result property="reportId" column="report_id"/>
+        <result property="executionDetailId" column="execution_detail_id"/>
+        <result property="caseName" column="case_name"/>
+        <result property="caseType" column="case_type"/>
+        <result property="caseResult" column="case_result"/>
+        <result property="duration" column="duration"/>
+        <result property="totalSteps" column="total_steps"/>
+        <result property="passedSteps" column="passed_steps"/>
+        <result property="failedSteps" column="failed_steps"/>
+        <result property="skippedSteps" column="skipped_steps"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="screenshotUrls" column="screenshot_urls"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <!-- 所有字段 -->
+    <sql id="Base_Column_List">
+        id, report_id, execution_detail_id, case_name, case_type, case_result, 
+        duration, total_steps, passed_steps, failed_steps, skipped_steps, 
+        error_message, screenshot_urls, start_time, end_time, 
+        created_at, updated_at
+    </sql>
+    
+    <!-- 插入报告详情 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.UiTestReportDetail" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_report_detail(
+            report_id, execution_detail_id, case_name, case_type, case_result, 
+            duration, total_steps, passed_steps, failed_steps, skipped_steps, 
+            error_message, screenshot_urls, start_time, end_time, 
+            created_at, updated_at
+        ) VALUES (
+            #{reportId}, #{executionDetailId}, #{caseName}, #{caseType}, #{caseResult}, 
+            #{duration}, #{totalSteps}, #{passedSteps}, #{failedSteps}, #{skippedSteps}, 
+            #{errorMessage}, #{screenshotUrls}, #{startTime}, #{endTime}, 
+            #{createdAt}, #{updatedAt}
+        )
+    </insert>
+    
+    <!-- 批量插入报告详情 -->
+    <insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_report_detail(
+            report_id, execution_detail_id, case_name, case_type, case_result, 
+            duration, total_steps, passed_steps, failed_steps, skipped_steps, 
+            error_message, screenshot_urls, start_time, end_time, 
+            created_at, updated_at
+        ) VALUES 
+        <foreach collection="details" item="detail" separator=",">
+            (
+            #{detail.reportId}, #{detail.executionDetailId}, #{detail.caseName}, #{detail.caseType}, #{detail.caseResult}, 
+            #{detail.duration}, #{detail.totalSteps}, #{detail.passedSteps}, #{detail.failedSteps}, #{detail.skippedSteps}, 
+            #{detail.errorMessage}, #{detail.screenshotUrls}, #{detail.startTime}, #{detail.endTime}, 
+            #{detail.createdAt}, #{detail.updatedAt}
+            )
+        </foreach>
+    </insert>
+    
+    <!-- 根据ID查询报告详情 -->
+    <select id="selectById" resultMap="UiTestReportDetailMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_report_detail
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据报告ID查询报告详情列表 -->
+    <select id="selectByReportId" resultMap="UiTestReportDetailMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_report_detail
+        WHERE report_id = #{reportId}
+        ORDER BY id ASC
+    </select>
+    
+    <!-- 根据执行详情ID查询报告详情 -->
+    <select id="selectByExecutionDetailId" resultMap="UiTestReportDetailMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_report_detail
+        WHERE execution_detail_id = #{executionDetailId}
+    </select>
+    
+    <!-- 更新报告详情 -->
+    <update id="update" parameterType="com.example.verityx.entity.UiTestReportDetail">
+        UPDATE ui_test_report_detail
+        <set>
+            <if test="caseName != null">case_name = #{caseName},</if>
+            <if test="caseType != null">case_type = #{caseType},</if>
+            <if test="caseResult != null">case_result = #{caseResult},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="totalSteps != null">total_steps = #{totalSteps},</if>
+            <if test="passedSteps != null">passed_steps = #{passedSteps},</if>
+            <if test="failedSteps != null">failed_steps = #{failedSteps},</if>
+            <if test="skippedSteps != null">skipped_steps = #{skippedSteps},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            <if test="screenshotUrls != null">screenshot_urls = #{screenshotUrls},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            updated_at = #{updatedAt}
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除报告详情 -->
+    <delete id="deleteById">
+        DELETE FROM ui_test_report_detail WHERE id = #{id}
+    </delete>
+    
+    <!-- 根据报告ID删除报告详情 -->
+    <delete id="deleteByReportId">
+        DELETE FROM ui_test_report_detail WHERE report_id = #{reportId}
+    </delete>
+    
+    <!-- 分页查询报告详情 -->
+    <select id="selectByPage" resultMap="UiTestReportDetailMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_report_detail
+        <where>
+            <if test="reportId != null">
+                report_id = #{reportId}
+            </if>
+            <if test="caseResult != null and caseResult != ''">
+                AND case_result = #{caseResult}
+            </if>
+        </where>
+        ORDER BY id ASC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 统计报告详情总数 -->
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM ui_test_report_detail
+        <where>
+            <if test="reportId != null">
+                report_id = #{reportId}
+            </if>
+            <if test="caseResult != null and caseResult != ''">
+                AND case_result = #{caseResult}
+            </if>
+        </where>
+    </select>
+</mapper> 

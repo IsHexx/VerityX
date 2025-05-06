@@ -71,4 +71,35 @@ public interface UiTestSuiteService {
      * @param caseIds 测试用例ID列表
      */
     void updateSuiteCases(Long suiteId, List<Long> caseIds);
+    
+    /**
+     * 更新测试套件的并发执行配置
+     *
+     * @param suiteId 测试套件ID
+     * @param concurrencyConfig 并发配置信息
+     */
+    void updateConcurrencyConfig(Long suiteId, UiTestSuiteDTO.ConcurrencyConfig concurrencyConfig);
+    
+    /**
+     * 获取测试套件的定时任务配置
+     *
+     * @param suiteId 测试套件ID
+     * @return 定时任务配置信息
+     */
+    UiTestSuiteDTO.ScheduleConfig getScheduleConfig(Long suiteId);
+    
+    /**
+     * 保存测试套件的定时任务配置
+     *
+     * @param suiteId 测试套件ID
+     * @param scheduleConfig 定时任务配置信息
+     */
+    void saveScheduleConfig(Long suiteId, UiTestSuiteDTO.ScheduleConfig scheduleConfig);
+    
+    /**
+     * 删除测试套件的定时任务配置
+     *
+     * @param suiteId 测试套件ID
+     */
+    void deleteScheduleConfig(Long suiteId);
 } 

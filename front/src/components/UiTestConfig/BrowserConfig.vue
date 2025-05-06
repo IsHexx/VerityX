@@ -11,21 +11,36 @@
       border
       style="width: 100%"
     >
-      <el-table-column prop="name" label="浏览器名称" width="150" />
-      <el-table-column prop="version" label="版本" width="150" />
-      <el-table-column prop="description" label="描述" />
-      <el-table-column label="启用状态" width="120">
+      <el-table-column prop="configName" label="配置名称" width="150" />
+      <el-table-column prop="browserType" label="浏览器类型" width="120" />
+      <el-table-column prop="browserVersion" label="版本" width="100" />
+      <el-table-column prop="deviceType" label="设备类型" width="120" />
+      <el-table-column prop="platformName" label="平台" width="120" />
+      <el-table-column label="默认" width="80">
+        <template #default="scope">
+          <el-tag v-if="scope.row.isDefault" type="success">默认</el-tag>
+          <el-button 
+            v-else 
+            type="text" 
+            size="small" 
+            @click="handleSetDefault(scope.row)"
+          >
+            设为默认
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column label="启用状态" width="80">
         <template #default="scope">
           <el-switch
-            v-model="scope.row.isEnabled"
+            v-model="scope.row.isActive"
             @change="handleStatusChange(scope.row)"
           />
         </template>
       </el-table-column>
-      <el-table-column label="无头模式" width="120">
+      <el-table-column label="无头模式" width="80">
         <template #default="scope">
           <el-switch
-            v-model="scope.row.isHeadless"
+            v-model="scope.row.headless"
             @change="handleHeadlessChange(scope.row)"
           />
         </template>
@@ -36,7 +51,7 @@
             type="primary" 
             size="small" 
             @click="handleEdit(scope.row)"
-            :disabled="!scope.row.isEnabled"
+            :disabled="!scope.row.isActive"
           >
             编辑
           </el-button>
@@ -54,28 +69,51 @@
     <!-- 添加/编辑浏览器对话框 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="isEdit ? '编辑浏览器' : '添加浏览器'"
+      :title="isEdit ? '编辑浏览器配置' : '添加浏览器配置'"
       width="500px"
     >
       <el-form :model="browserForm" :rules="rules" ref="browserFormRef" label-width="120px">
-        <el-form-item label="浏览器名称" prop="name">
-          <el-input v-model="browserForm.name" placeholder="请输入浏览器名称" />
+        <el-form-item label="配置名称" prop="configName">
+          <el-input v-model="browserForm.configName" placeholder="请输入配置名称" />
         </el-form-item>
-        <el-form-item label="版本" prop="version">
-          <el-input v-model="browserForm.version" placeholder="请输入版本号" />
+        <el-form-item label="浏览器类型" prop="browserType">
+          <el-select v-model="browserForm.browserType" placeholder="请选择浏览器类型">
+            <el-option label="Chrome" value="CHROME" />
+            <el-option label="Firefox" value="FIREFOX" />
+            <el-option label="Edge" value="EDGE" />
+            <el-option label="Safari" value="SAFARI" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="是否启用" prop="isEnabled">
-          <el-switch v-model="browserForm.isEnabled" />
+        <el-form-item label="浏览器版本" prop="browserVersion">
+          <el-input v-model="browserForm.browserVersion" placeholder="请输入版本号" />
         </el-form-item>
-        <el-form-item label="无头模式" prop="isHeadless">
-          <el-switch v-model="browserForm.isHeadless" />
+        <el-form-item label="设备类型" prop="deviceType">
+          <el-select v-model="browserForm.deviceType" placeholder="请选择设备类型">
+            <el-option label="桌面" value="DESKTOP" />
+            <el-option label="移动设备" value="MOBILE" />
+            <el-option label="平板" value="TABLET" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input
-            v-model="browserForm.description"
-            type="textarea"
-            placeholder="请输入浏览器描述"
-          />
+        <el-form-item label="平台" prop="platformName">
+          <el-select v-model="browserForm.platformName" placeholder="请选择平台">
+            <el-option label="Windows" value="WINDOWS" />
+            <el-option label="MacOS" value="MAC" />
+            <el-option label="Linux" value="LINUX" />
+            <el-option label="Android" value="ANDROID" />
+            <el-option label="iOS" value="IOS" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="平台版本" prop="platformVersion">
+          <el-input v-model="browserForm.platformVersion" placeholder="请输入平台版本" />
+        </el-form-item>
+        <el-form-item label="是否启用" prop="isActive">
+          <el-switch v-model="browserForm.isActive" />
+        </el-form-item>
+        <el-form-item label="无头模式" prop="headless">
+          <el-switch v-model="browserForm.headless" />
+        </el-form-item>
+        <el-form-item label="设为默认" prop="isDefault">
+          <el-switch v-model="browserForm.isDefault" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -89,19 +127,17 @@
 </template>
 
 <script setup>
-import { ref, reactive, defineProps, defineEmits } from 'vue';
+import { ref, reactive, defineProps, defineEmits, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { UiTestConfigApi } from '@/api/uiTestConfigService';
 
 // 定义接收的属性
 const props = defineProps({
-  browserConfigs: {
-    type: Array,
-    required: true
-  }
+  // 移除 browserConfigs 属性，我们将直接从API获取数据
 });
 
 // 定义向父组件发送的事件
-const emit = defineEmits(['add-browser', 'delete-browser', 'update-browser']);
+const emit = defineEmits(['refresh']);
 
 // 状态管理
 const loading = ref(false);
@@ -109,25 +145,53 @@ const dialogVisible = ref(false);
 const isEdit = ref(false);
 const currentId = ref(null);
 const browserFormRef = ref(null);
+const browserConfigs = ref([]);
 
 // 表单数据
 const browserForm = reactive({
-  name: '',
-  version: '',
-  isEnabled: true,
-  isHeadless: false,
+  configName: '',
+  configType: 'BROWSER',
+  browserType: '',
+  browserVersion: '',
+  deviceType: 'DESKTOP',
+  platformName: 'WINDOWS',
+  platformVersion: '',
+  headless: false,
+  isDefault: false,
+  isActive: true,
   description: ''
 });
 
 // 表单验证规则
 const rules = {
-  name: [
-    { required: true, message: '请输入浏览器名称', trigger: 'blur' },
+  configName: [
+    { required: true, message: '请输入配置名称', trigger: 'blur' },
     { min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur' }
   ],
-  version: [
-    { required: true, message: '请输入版本号', trigger: 'blur' }
+  browserType: [
+    { required: true, message: '请选择浏览器类型', trigger: 'change' }
+  ],
+  browserVersion: [
+    { required: true, message: '请输入浏览器版本', trigger: 'blur' }
   ]
+};
+
+// 加载数据
+const loadData = async () => {
+  loading.value = true;
+  try {
+    const res = await UiTestConfigApi.getBrowserConfigs();
+    if (res.success) {
+      browserConfigs.value = res.data || [];
+    } else {
+      ElMessage.error(res.message || '获取浏览器配置失败');
+    }
+  } catch (error) {
+    console.error('获取浏览器配置失败:', error);
+    ElMessage.error('获取浏览器配置失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 表单验证方法
@@ -154,10 +218,16 @@ const resetForm = () => {
     browserFormRef.value.resetFields();
   }
   
-  browserForm.name = '';
-  browserForm.version = '';
-  browserForm.isEnabled = true;
-  browserForm.isHeadless = false;
+  browserForm.configName = '';
+  browserForm.configType = 'BROWSER';
+  browserForm.browserType = '';
+  browserForm.browserVersion = '';
+  browserForm.deviceType = 'DESKTOP';
+  browserForm.platformName = 'WINDOWS';
+  browserForm.platformVersion = '';
+  browserForm.headless = false;
+  browserForm.isDefault = false;
+  browserForm.isActive = true;
   browserForm.description = '';
   currentId.value = null;
 };
@@ -168,17 +238,38 @@ const handleSubmit = async () => {
   
   await browserFormRef.value.validate(async (valid) => {
     if (valid) {
-      const browser = { ...browserForm };
-      
-      if (isEdit.value && currentId.value !== null) {
-        browser.id = currentId.value;
-        emit('update-browser', browser);
-      } else {
-        emit('add-browser', browser);
+      try {
+        loading.value = true;
+        
+        if (isEdit.value && currentId.value !== null) {
+          // 更新配置
+          const res = await UiTestConfigApi.updateConfig(currentId.value, browserForm);
+          if (res.success) {
+            ElMessage.success('更新浏览器配置成功');
+            loadData(); // 重新加载数据
+          } else {
+            ElMessage.error(res.message || '更新浏览器配置失败');
+          }
+        } else {
+          // 创建配置
+          const res = await UiTestConfigApi.createConfig(browserForm);
+          if (res.success) {
+            ElMessage.success('添加浏览器配置成功');
+            loadData(); // 重新加载数据
+          } else {
+            ElMessage.error(res.message || '添加浏览器配置失败');
+          }
+        }
+        
+        dialogVisible.value = false;
+        resetForm();
+        emit('refresh');
+      } catch (error) {
+        console.error('保存浏览器配置失败:', error);
+        ElMessage.error('保存浏览器配置失败');
+      } finally {
+        loading.value = false;
       }
-      
-      dialogVisible.value = false;
-      resetForm();
     } else {
       ElMessage.error('表单验证失败，请检查输入');
     }
@@ -190,11 +281,17 @@ const handleEdit = (row) => {
   isEdit.value = true;
   currentId.value = row.id;
   
-  browserForm.name = row.name;
-  browserForm.version = row.version;
-  browserForm.isEnabled = row.isEnabled;
-  browserForm.isHeadless = row.isHeadless;
-  browserForm.description = row.description;
+  browserForm.configName = row.configName;
+  browserForm.configType = 'BROWSER';
+  browserForm.browserType = row.browserType;
+  browserForm.browserVersion = row.browserVersion;
+  browserForm.deviceType = row.deviceType || 'DESKTOP';
+  browserForm.platformName = row.platformName || 'WINDOWS';
+  browserForm.platformVersion = row.platformVersion || '';
+  browserForm.headless = row.headless;
+  browserForm.isDefault = row.isDefault;
+  browserForm.isActive = row.isActive;
+  // 添加其他需要编辑的字段
   
   dialogVisible.value = true;
 };
@@ -212,26 +309,97 @@ const handleDelete = async (row) => {
       }
     );
     
-    emit('delete-browser', row.id);
+    loading.value = true;
+    const res = await UiTestConfigApi.deleteConfig(row.id);
+    if (res.success) {
+      ElMessage.success('删除浏览器配置成功');
+      loadData(); // 重新加载数据
+      emit('refresh');
+    } else {
+      ElMessage.error(res.message || '删除浏览器配置失败');
+    }
   } catch (error) {
-    // 用户取消删除操作
-    console.log('取消删除操作');
+    // 用户取消删除操作或出现错误
+    if (error !== 'cancel' && error !== 'close') {
+      console.error('删除浏览器配置失败:', error);
+      ElMessage.error('删除浏览器配置失败');
+    }
+  } finally {
+    loading.value = false;
   }
 };
 
 // 处理启用状态变更
-const handleStatusChange = (row) => {
-  emit('update-browser', { ...row });
+const handleStatusChange = async (row) => {
+  try {
+    loading.value = true;
+    const res = await UiTestConfigApi.toggleConfigStatus(row.id, row.isActive);
+    if (res.success) {
+      ElMessage.success(row.isActive ? '浏览器配置已启用' : '浏览器配置已禁用');
+      emit('refresh');
+    } else {
+      ElMessage.error(res.message || '更新状态失败');
+      // 恢复原状态
+      row.isActive = !row.isActive;
+    }
+  } catch (error) {
+    console.error('更新状态失败:', error);
+    ElMessage.error('更新状态失败');
+    // 恢复原状态
+    row.isActive = !row.isActive;
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 处理无头模式变更
-const handleHeadlessChange = (row) => {
-  emit('update-browser', { ...row });
+const handleHeadlessChange = async (row) => {
+  try {
+    loading.value = true;
+    const updateData = { ...row, headless: row.isHeadless };
+    const res = await UiTestConfigApi.updateConfig(row.id, updateData);
+    if (res.success) {
+      ElMessage.success('无头模式设置已更新');
+      emit('refresh');
+    } else {
+      ElMessage.error(res.message || '更新无头模式失败');
+      // 恢复原状态
+      row.isHeadless = !row.isHeadless;
+    }
+  } catch (error) {
+    console.error('更新无头模式失败:', error);
+    ElMessage.error('更新无头模式失败');
+    // 恢复原状态
+    row.isHeadless = !row.isHeadless;
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 设置为默认配置
+const handleSetDefault = async (row) => {
+  try {
+    loading.value = true;
+    const res = await UiTestConfigApi.setDefaultConfig(row.id);
+    if (res.success) {
+      ElMessage.success('已设置为默认配置');
+      loadData(); // 重新加载数据
+      emit('refresh');
+    } else {
+      ElMessage.error(res.message || '设置默认配置失败');
+    }
+  } catch (error) {
+    console.error('设置默认配置失败:', error);
+    ElMessage.error('设置默认配置失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 对外暴露验证方法
 defineExpose({
-  validate
+  validate,
+  loadData
 });
 </script>
 

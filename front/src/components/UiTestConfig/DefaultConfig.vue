@@ -2,159 +2,214 @@
   <div class="default-config-container">
     <div class="header">
       <h3>默认配置</h3>
-      <el-button type="primary" @click="handleSave">保存配置</el-button>
+      <el-button type="primary" @click="handleSave" :loading="loading">保存配置</el-button>
     </div>
     
-    <el-form :model="formData" :rules="rules" ref="formRef" label-width="180px">
-      <el-form-item label="默认浏览器" prop="defaultBrowserId">
-        <el-select v-model="formData.defaultBrowserId" placeholder="选择默认浏览器">
+    <el-form :model="formData" ref="formRef" label-width="180px" v-loading="loading">
+      <el-form-item label="默认浏览器配置" prop="browserConfig">
+        <el-select v-model="formData.browserConfig" placeholder="选择默认浏览器配置">
           <el-option
             v-for="browser in browserOptions"
             :key="browser.id"
-            :label="browser.name + ' ' + browser.version"
+            :label="browser.configName"
             :value="browser.id"
-            :disabled="!browser.isEnabled"
+            :disabled="!browser.isActive"
           />
         </el-select>
       </el-form-item>
       
-      <el-form-item label="默认分辨率" prop="defaultResolution">
-        <el-select v-model="formData.defaultResolution" placeholder="选择默认分辨率">
-          <el-option label="1920x1080" value="1920x1080" />
-          <el-option label="1366x768" value="1366x768" />
-          <el-option label="1280x720" value="1280x720" />
-          <el-option label="1440x900" value="1440x900" />
-          <el-option label="2560x1440" value="2560x1440" />
-          <el-option label="3840x2160" value="3840x2160" />
-          <el-option label="自动" value="auto" />
+      <el-form-item label="默认等待时间配置" prop="waitTimeConfig">
+        <el-select v-model="formData.waitTimeConfig" placeholder="选择默认等待时间配置">
+          <el-option
+            v-for="config in waitTimeOptions"
+            :key="config.id"
+            :label="config.configName"
+            :value="config.id"
+            :disabled="!config.isActive"
+          />
         </el-select>
       </el-form-item>
       
-      <el-form-item label="默认超时时间(秒)" prop="defaultTimeout">
-        <el-input-number
-          v-model="formData.defaultTimeout"
-          :min="1"
-          :max="300"
-          controls-position="right"
-        />
+      <el-form-item label="默认截图策略配置" prop="screenshotConfig">
+        <el-select v-model="formData.screenshotConfig" placeholder="选择默认截图策略配置">
+          <el-option
+            v-for="config in screenshotOptions"
+            :key="config.id"
+            :label="config.configName"
+            :value="config.id"
+            :disabled="!config.isActive"
+          />
+        </el-select>
       </el-form-item>
       
-      <el-form-item label="默认隐式等待(秒)" prop="defaultImplicitWait">
-        <el-input-number
-          v-model="formData.defaultImplicitWait"
-          :min="0"
-          :max="60"
-          controls-position="right"
-        />
+      <el-form-item label="默认重试配置" prop="retryConfig">
+        <el-select v-model="formData.retryConfig" placeholder="选择默认重试配置">
+          <el-option
+            v-for="config in retryOptions"
+            :key="config.id"
+            :label="config.configName"
+            :value="config.id"
+            :disabled="!config.isActive"
+          />
+        </el-select>
       </el-form-item>
       
-      <el-divider content-position="left">默认功能设置</el-divider>
-      
-      <el-form-item label="默认启用截图" prop="defaultScreenshotEnabled">
-        <el-switch v-model="formData.defaultScreenshotEnabled" />
-      </el-form-item>
-      
-      <el-form-item label="默认启用重试" prop="defaultRetryEnabled">
-        <el-switch v-model="formData.defaultRetryEnabled" />
-      </el-form-item>
-      
-      <el-form-item label="默认高亮元素" prop="defaultElementHighlight">
-        <el-switch v-model="formData.defaultElementHighlight" />
-      </el-form-item>
-      
-      <el-form-item label="默认启用视频录制" prop="defaultVideoCaptureEnabled">
-        <el-switch v-model="formData.defaultVideoCaptureEnabled" />
-      </el-form-item>
+      <el-alert
+        title="设置说明"
+        type="info"
+        description="选择并设置各类配置的默认选项，这些配置将作为新建测试用例和测试套件时的默认配置。"
+        show-icon
+        :closable="false"
+      />
     </el-form>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, defineProps, defineEmits, watch } from 'vue';
+import { ref, reactive, onMounted, defineEmits } from 'vue';
 import { ElMessage } from 'element-plus';
+import { UiTestConfigApi } from '@/api/uiTestConfigService';
 
-// 定义接收的属性
-const props = defineProps({
-  defaultConfig: {
-    type: Object,
-    required: true
-  },
-  browserOptions: {
-    type: Array,
-    required: true
-  }
-});
+// 定义事件
+const emit = defineEmits(['refresh']);
 
-// 定义向父组件发送的事件
-const emit = defineEmits(['update-default']);
-
-// 表单引用
+// 表单引用和加载状态
 const formRef = ref(null);
+const loading = ref(false);
+const browserOptions = ref([]);
 
 // 表单数据
 const formData = reactive({
-  defaultBrowserId: 1,
-  defaultResolution: '1920x1080',
-  defaultScreenshotEnabled: true,
-  defaultRetryEnabled: true,
-  defaultTimeout: 30,
-  defaultImplicitWait: 10,
-  defaultElementHighlight: true,
-  defaultVideoCaptureEnabled: false
+  browserConfig: null,    // 默认浏览器配置ID
+  waitTimeConfig: null,   // 默认等待时间配置ID
+  screenshotConfig: null, // 默认截图策略配置ID
+  retryConfig: null,      // 默认重试配置ID
 });
 
-// 表单验证规则
-const rules = {
-  defaultBrowserId: [
-    { required: true, message: '请选择默认浏览器', trigger: 'change' }
-  ],
-  defaultResolution: [
-    { required: true, message: '请选择默认分辨率', trigger: 'change' }
-  ],
-  defaultTimeout: [
-    { required: true, message: '请设置默认超时时间', trigger: 'blur' },
-    { type: 'number', min: 1, max: 300, message: '超时时间必须在1-300秒之间', trigger: 'blur' }
-  ],
-  defaultImplicitWait: [
-    { required: true, message: '请设置默认隐式等待时间', trigger: 'blur' },
-    { type: 'number', min: 0, max: 60, message: '等待时间必须在0-60秒之间', trigger: 'blur' }
-  ]
+// 加载浏览器配置选项
+const loadBrowserOptions = async () => {
+  try {
+    loading.value = true;
+    const res = await UiTestConfigApi.getBrowserConfigs();
+    if (res.success) {
+      browserOptions.value = res.data || [];
+    } else {
+      ElMessage.error(res.message || '获取浏览器配置失败');
+    }
+  } catch (error) {
+    console.error('获取浏览器配置失败:', error);
+    ElMessage.error('获取浏览器配置失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
-// 监听属性变化
-watch(() => props.defaultConfig, (newConfig) => {
-  if (newConfig) {
-    Object.assign(formData, newConfig);
-  }
-}, { deep: true, immediate: true });
-
-// 监听浏览器选项变化，确保选择的浏览器有效
-watch(() => props.browserOptions, (newOptions) => {
-  if (newOptions && newOptions.length > 0) {
-    const selectedBrowser = newOptions.find(browser => browser.id === formData.defaultBrowserId);
-    
-    // 如果当前选中的浏览器不存在或被禁用，选择第一个启用的浏览器
-    if (!selectedBrowser || !selectedBrowser.isEnabled) {
-      const firstEnabledBrowser = newOptions.find(browser => browser.isEnabled);
-      if (firstEnabledBrowser) {
-        formData.defaultBrowserId = firstEnabledBrowser.id;
-      }
+// 加载所有默认配置
+const loadDefaultConfigs = async () => {
+  loading.value = true;
+  try {
+    // 加载默认浏览器配置
+    const browserRes = await UiTestConfigApi.getDefaultConfig('BROWSER');
+    if (browserRes.success && browserRes.data) {
+      formData.browserConfig = browserRes.data.id;
     }
+    
+    // 加载默认等待时间配置
+    const waitTimeRes = await UiTestConfigApi.getDefaultConfig('WAIT_TIME');
+    if (waitTimeRes.success && waitTimeRes.data) {
+      formData.waitTimeConfig = waitTimeRes.data.id;
+    }
+    
+    // 加载默认截图策略配置
+    const screenshotRes = await UiTestConfigApi.getDefaultConfig('SCREENSHOT');
+    if (screenshotRes.success && screenshotRes.data) {
+      formData.screenshotConfig = screenshotRes.data.id;
+    }
+    
+    // 加载默认重试配置
+    const retryRes = await UiTestConfigApi.getDefaultConfig('RETRY');
+    if (retryRes.success && retryRes.data) {
+      formData.retryConfig = retryRes.data.id;
+    }
+  } catch (error) {
+    console.error('获取默认配置失败:', error);
+    ElMessage.error('获取默认配置失败');
+  } finally {
+    loading.value = false;
   }
-}, { deep: true, immediate: true });
+};
 
-// 保存配置
+// 保存默认配置
 const handleSave = async () => {
   if (!formRef.value) return;
   
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
-      emit('update-default', { ...formData });
-      ElMessage.success('默认配置已保存');
+      loading.value = true;
+      try {
+        // 设置默认浏览器配置
+        if (formData.browserConfig) {
+          await UiTestConfigApi.setDefaultConfig(formData.browserConfig);
+        }
+        
+        // 设置默认等待时间配置
+        if (formData.waitTimeConfig) {
+          await UiTestConfigApi.setDefaultConfig(formData.waitTimeConfig);
+        }
+        
+        // 设置默认截图策略配置
+        if (formData.screenshotConfig) {
+          await UiTestConfigApi.setDefaultConfig(formData.screenshotConfig);
+        }
+        
+        // 设置默认重试配置
+        if (formData.retryConfig) {
+          await UiTestConfigApi.setDefaultConfig(formData.retryConfig);
+        }
+        
+        ElMessage.success('默认配置已保存');
+        emit('refresh');
+      } catch (error) {
+        console.error('保存默认配置失败:', error);
+        ElMessage.error('保存默认配置失败');
+      } finally {
+        loading.value = false;
+      }
     } else {
       ElMessage.error('表单验证失败，请检查输入');
     }
   });
+};
+
+// 加载配置选项
+const loadWaitTimeOptions = async () => {
+  try {
+    const res = await UiTestConfigApi.getWaitTimeConfigs();
+    return res.success ? res.data || [] : [];
+  } catch (error) {
+    console.error('获取等待时间配置失败:', error);
+    return [];
+  }
+};
+
+const loadScreenshotOptions = async () => {
+  try {
+    const res = await UiTestConfigApi.getScreenshotConfigs();
+    return res.success ? res.data || [] : [];
+  } catch (error) {
+    console.error('获取截图配置失败:', error);
+    return [];
+  }
+};
+
+const loadRetryOptions = async () => {
+  try {
+    const res = await UiTestConfigApi.getRetryConfigs();
+    return res.success ? res.data || [] : [];
+  } catch (error) {
+    console.error('获取重试配置失败:', error);
+    return [];
+  }
 };
 
 // 表单验证方法
@@ -168,16 +223,18 @@ const validate = () => {
   return isValid;
 };
 
+// 初始化数据
+const initData = async () => {
+  await Promise.all([
+    loadBrowserOptions(),
+    loadDefaultConfigs()
+  ]);
+};
+
 // 对外暴露方法
 defineExpose({
-  validate
-});
-
-// 组件挂载时处理
-onMounted(() => {
-  if (props.defaultConfig) {
-    Object.assign(formData, props.defaultConfig);
-  }
+  validate,
+  initData
 });
 </script>
 

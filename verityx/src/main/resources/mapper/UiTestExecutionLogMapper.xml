@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiTestExecutionLogMapper">
+    
+    <!-- 执行日志结果映射 -->
+    <resultMap id="UiTestExecutionLogMap" type="com.example.verityx.entity.UiTestExecutionLog">
+        <id property="id" column="id"/>
+        <result property="executionId" column="execution_id"/>
+        <result property="detailId" column="detail_id"/>
+        <result property="logLevel" column="log_level"/>
+        <result property="logContent" column="log_content"/>
+        <result property="stepIndex" column="step_index"/>
+        <result property="stepName" column="step_name"/>
+        <result property="timestamp" column="timestamp"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+    
+    <!-- 公共列 -->
+    <sql id="Base_Column_List">
+        id, execution_id, detail_id, log_level, log_content, step_index, step_name, timestamp, created_at
+    </sql>
+    
+    <!-- 插入一条执行日志记录 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.UiTestExecutionLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_execution_log(
+            execution_id, detail_id, log_level, log_content, step_index, step_name, timestamp
+        ) VALUES (
+            #{executionId}, #{detailId}, #{logLevel}, #{logContent}, #{stepIndex}, #{stepName}, #{timestamp}
+        )
+    </insert>
+    
+    <!-- 批量插入执行日志记录 -->
+    <insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_execution_log(
+            execution_id, detail_id, log_level, log_content, step_index, step_name, timestamp
+        ) VALUES 
+        <foreach collection="list" item="item" index="index" separator=",">
+        (
+            #{item.executionId}, #{item.detailId}, #{item.logLevel}, #{item.logContent}, 
+            #{item.stepIndex}, #{item.stepName}, #{item.timestamp}
+        )
+        </foreach>
+    </insert>
+    
+    <!-- 根据执行ID查询日志记录 -->
+    <select id="selectByExecutionId" resultMap="UiTestExecutionLogMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_log
+        WHERE execution_id = #{executionId}
+        ORDER BY timestamp ASC, id ASC
+    </select>
+    
+    <!-- 根据详情ID查询日志记录 -->
+    <select id="selectByDetailId" resultMap="UiTestExecutionLogMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_log
+        WHERE detail_id = #{detailId}
+        ORDER BY timestamp ASC, id ASC
+    </select>
+    
+    <!-- 根据日志级别查询日志记录 -->
+    <select id="selectByExecutionIdAndLogLevel" resultMap="UiTestExecutionLogMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_log
+        WHERE execution_id = #{executionId}
+        AND log_level = #{logLevel}
+        ORDER BY timestamp ASC, id ASC
+    </select>
+    
+    <!-- 根据执行ID分页查询日志记录 -->
+    <select id="selectByExecutionIdWithPage" resultMap="UiTestExecutionLogMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_log
+        WHERE execution_id = #{executionId}
+        <if test="logLevel != null and logLevel != ''">
+            AND log_level = #{logLevel}
+        </if>
+        ORDER BY timestamp ASC, id ASC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 查询日志记录总数 -->
+    <select id="countByExecutionId" resultType="int">
+        SELECT COUNT(*)
+        FROM ui_test_execution_log
+        WHERE execution_id = #{executionId}
+        <if test="logLevel != null and logLevel != ''">
+            AND log_level = #{logLevel}
+        </if>
+    </select>
+    
+    <!-- 根据执行ID删除日志记录 -->
+    <delete id="deleteByExecutionId">
+        DELETE FROM ui_test_execution_log
+        WHERE execution_id = #{executionId}
+    </delete>
+    
+    <!-- 根据详情ID删除日志记录 -->
+    <delete id="deleteByDetailId">
+        DELETE FROM ui_test_execution_log
+        WHERE detail_id = #{detailId}
+    </delete>
+    
+</mapper> 

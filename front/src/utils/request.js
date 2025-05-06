@@ -38,8 +38,10 @@ service.interceptors.response.use(
     
     const res = response.data
     console.log('Response data:', res)
-    // 这里可以根据后端的响应结构来判断请求是否成功
-    if (res.code !== 200) {
+    
+    // 支持两种API响应格式：{code:200}和{success:true}
+    if (res.code !== undefined && res.code !== 200) {
+      // 处理旧格式响应
       ElMessage({
         message: res.message || '请求失败',
         type: 'error',
@@ -62,7 +64,17 @@ service.interceptors.response.use(
         })
       }
       return Promise.reject(new Error(res.message || '请求失败'))
+    } else if (res.success === false) {
+      // 处理新格式响应
+      ElMessage({
+        message: res.message || '请求失败',
+        type: 'error',
+        duration: 5 * 1000
+      })
+      
+      return Promise.reject(new Error(res.message || '请求失败'))
     }
+    
     return res
   },
   error => {

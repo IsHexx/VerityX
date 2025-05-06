@@ -1,215 +1,176 @@
 <template>
   <div class="wait-time-config-container">
     <div class="header">
-      <h3>全局等待时间配置</h3>
-      <el-button type="primary" @click="handleSave">保存配置</el-button>
+      <h3>等待时间配置</h3>
+      <el-button type="primary" @click="showAddDialog">添加配置</el-button>
     </div>
     
-    <el-form :model="formData" :rules="rules" ref="formRef" label-width="150px">
-      <el-form-item label="页面加载超时(秒)" prop="pageLoadTimeout">
-        <el-input-number 
-          v-model="formData.pageLoadTimeout"
-          :min="1"
-          :max="300"
-          controls-position="right"
-        />
-      </el-form-item>
-      
-      <el-form-item label="隐式等待时间(秒)" prop="implicitWait">
-        <el-input-number 
-          v-model="formData.implicitWait"
-          :min="0"
-          :max="60"
-          controls-position="right"
-        />
-      </el-form-item>
-      
-      <el-form-item label="显式等待时间(秒)" prop="explicitWait">
-        <el-input-number 
-          v-model="formData.explicitWait"
-          :min="1"
-          :max="120"
-          controls-position="right"
-        />
-      </el-form-item>
-      
-      <el-form-item label="脚本超时时间(秒)" prop="scriptTimeout">
-        <el-input-number 
-          v-model="formData.scriptTimeout"
-          :min="1"
-          :max="120"
-          controls-position="right"
-        />
-      </el-form-item>
-      
-      <el-form-item label="Ajax请求超时(秒)" prop="ajaxTimeout">
-        <el-input-number 
-          v-model="formData.ajaxTimeout"
-          :min="1"
-          :max="120"
-          controls-position="right"
-        />
-      </el-form-item>
-      
-      <el-form-item label="轮询间隔(毫秒)" prop="pollingInterval">
-        <el-input-number 
-          v-model="formData.pollingInterval"
-          :min="100"
-          :max="10000"
-          :step="100"
-          controls-position="right"
-        />
-      </el-form-item>
-      
-      <el-divider content-position="left">自定义等待</el-divider>
-      
-      <div class="custom-waits-header">
-        <span>自定义等待配置</span>
-        <el-button type="primary" size="small" @click="addCustomWait">添加自定义等待</el-button>
-      </div>
-      
-      <el-table
-        :data="formData.customWaits"
-        border
-        style="width: 100%"
-        class="custom-waits-table"
-      >
-        <el-table-column prop="name" label="名称">
-          <template #default="scope">
-            <el-input v-model="scope.row.name" placeholder="等待名称" />
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="selector" label="元素选择器">
-          <template #default="scope">
-            <el-input v-model="scope.row.selector" placeholder="CSS选择器" />
-          </template>
-        </el-table-column>
-        
-        <el-table-column prop="timeout" label="超时时间(秒)" width="150">
-          <template #default="scope">
-            <el-input-number 
-              v-model="scope.row.timeout"
-              :min="1"
-              :max="60"
-              controls-position="right"
-            />
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="操作" width="120">
-          <template #default="scope">
-            <el-button 
-              type="danger" 
-              size="small" 
-              circle
-              @click="removeCustomWait(scope.$index)"
-            >
-              <el-icon><Delete /></el-icon>
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-form>
+    <el-table
+      v-loading="loading"
+      :data="waitTimeConfigs"
+      border
+      style="width: 100%"
+    >
+      <el-table-column prop="configName" label="配置名称" width="150" />
+      <el-table-column prop="defaultWaitTimeout" label="默认等待时间(秒)" width="150" />
+      <el-table-column prop="pageLoadTimeout" label="页面加载超时(秒)" width="150" />
+      <el-table-column prop="scriptTimeout" label="脚本超时(秒)" width="150" />
+      <el-table-column label="默认" width="80">
+        <template #default="scope">
+          <el-tag v-if="scope.row.isDefault" type="success">默认</el-tag>
+          <el-button 
+            v-else 
+            type="text" 
+            size="small" 
+            @click="handleSetDefault(scope.row)"
+          >
+            设为默认
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column label="启用状态" width="80">
+        <template #default="scope">
+          <el-switch
+            v-model="scope.row.isActive"
+            @change="handleStatusChange(scope.row)"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="180">
+        <template #default="scope">
+          <el-button 
+            type="primary" 
+            size="small" 
+            @click="handleEdit(scope.row)"
+            :disabled="!scope.row.isActive"
+          >
+            编辑
+          </el-button>
+          <el-button 
+            type="danger" 
+            size="small" 
+            @click="handleDelete(scope.row)"
+          >
+            删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    
+    <!-- 添加/编辑对话框 -->
+    <el-dialog
+      v-model="dialogVisible"
+      :title="isEdit ? '编辑等待时间配置' : '添加等待时间配置'"
+      width="500px"
+    >
+      <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px">
+        <el-form-item label="配置名称" prop="configName">
+          <el-input v-model="formData.configName" placeholder="请输入配置名称" />
+        </el-form-item>
+        <el-form-item label="默认等待时间" prop="defaultWaitTimeout">
+          <el-input-number
+            v-model="formData.defaultWaitTimeout"
+            :min="1"
+            :max="60"
+            controls-position="right"
+          />
+          <span class="unit">秒</span>
+        </el-form-item>
+        <el-form-item label="页面加载超时" prop="pageLoadTimeout">
+          <el-input-number
+            v-model="formData.pageLoadTimeout"
+            :min="5"
+            :max="300"
+            controls-position="right"
+          />
+          <span class="unit">秒</span>
+        </el-form-item>
+        <el-form-item label="脚本执行超时" prop="scriptTimeout">
+          <el-input-number
+            v-model="formData.scriptTimeout"
+            :min="5"
+            :max="300"
+            controls-position="right"
+          />
+          <span class="unit">秒</span>
+        </el-form-item>
+        <el-form-item label="是否启用" prop="isActive">
+          <el-switch v-model="formData.isActive" />
+        </el-form-item>
+        <el-form-item label="设为默认" prop="isDefault">
+          <el-switch v-model="formData.isDefault" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleSubmit">确认</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, defineProps, defineEmits, watch } from 'vue';
-import { ElMessage } from 'element-plus';
-import { Delete } from '@element-plus/icons-vue';
+import { ref, reactive, onMounted, defineEmits } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { UiTestConfigApi } from '@/api/uiTestConfigService';
 
-// 定义接收的属性
-const props = defineProps({
-  waitTimeConfig: {
-    type: Object,
-    required: true
-  }
-});
+// 定义事件
+const emit = defineEmits(['refresh']);
 
-// 定义向父组件发送的事件
-const emit = defineEmits(['update-wait-time']);
-
-// 表单引用
+// 状态管理
+const loading = ref(false);
+const dialogVisible = ref(false);
+const isEdit = ref(false);
+const currentId = ref(null);
 const formRef = ref(null);
+const waitTimeConfigs = ref([]);
 
 // 表单数据
 const formData = reactive({
+  configName: '',
+  configType: 'WAIT_TIME',
+  defaultWaitTimeout: 10,
   pageLoadTimeout: 30,
-  implicitWait: 10,
-  explicitWait: 20,
-  scriptTimeout: 15,
-  ajaxTimeout: 25,
-  pollingInterval: 500,
-  customWaits: []
+  scriptTimeout: 30,
+  isDefault: false,
+  isActive: true
 });
 
 // 表单验证规则
 const rules = {
+  configName: [
+    { required: true, message: '请输入配置名称', trigger: 'blur' },
+    { min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur' }
+  ],
+  defaultWaitTimeout: [
+    { required: true, message: '请设置默认等待超时时间', trigger: 'blur' }
+  ],
   pageLoadTimeout: [
-    { required: true, message: '请输入页面加载超时时间', trigger: 'blur' },
-    { type: 'number', min: 1, max: 300, message: '超时时间必须在1-300秒之间', trigger: 'blur' }
-  ],
-  implicitWait: [
-    { required: true, message: '请输入隐式等待时间', trigger: 'blur' },
-    { type: 'number', min: 0, max: 60, message: '等待时间必须在0-60秒之间', trigger: 'blur' }
-  ],
-  explicitWait: [
-    { required: true, message: '请输入显式等待时间', trigger: 'blur' },
-    { type: 'number', min: 1, max: 120, message: '等待时间必须在1-120秒之间', trigger: 'blur' }
+    { required: true, message: '请设置页面加载超时时间', trigger: 'blur' }
   ],
   scriptTimeout: [
-    { required: true, message: '请输入脚本超时时间', trigger: 'blur' },
-    { type: 'number', min: 1, max: 120, message: '超时时间必须在1-120秒之间', trigger: 'blur' }
-  ],
-  ajaxTimeout: [
-    { required: true, message: '请输入Ajax请求超时时间', trigger: 'blur' },
-    { type: 'number', min: 1, max: 120, message: '超时时间必须在1-120秒之间', trigger: 'blur' }
-  ],
-  pollingInterval: [
-    { required: true, message: '请输入轮询间隔', trigger: 'blur' },
-    { type: 'number', min: 100, max: 10000, message: '轮询间隔必须在100-10000毫秒之间', trigger: 'blur' }
+    { required: true, message: '请设置脚本超时时间', trigger: 'blur' }
   ]
 };
 
-// 监听属性变化
-watch(() => props.waitTimeConfig, (newConfig) => {
-  if (newConfig) {
-    Object.assign(formData, newConfig);
-    
-    // 确保customWaits是数组
-    if (!Array.isArray(formData.customWaits)) {
-      formData.customWaits = [];
-    }
-  }
-}, { deep: true, immediate: true });
-
-// 添加自定义等待
-const addCustomWait = () => {
-  formData.customWaits.push({
-    name: '',
-    selector: '',
-    timeout: 10
-  });
-};
-
-// 移除自定义等待
-const removeCustomWait = (index) => {
-  formData.customWaits.splice(index, 1);
-};
-
-// 保存配置
-const handleSave = async () => {
-  if (!formRef.value) return;
-  
-  await formRef.value.validate((valid) => {
-    if (valid) {
-      emit('update-wait-time', { ...formData });
-      ElMessage.success('等待时间配置已保存');
+// 加载数据
+const loadData = async () => {
+  loading.value = true;
+  try {
+    const res = await UiTestConfigApi.getWaitTimeConfigs();
+    if (res.success) {
+      waitTimeConfigs.value = res.data || [];
     } else {
-      ElMessage.error('表单验证失败，请检查输入');
+      ElMessage.error(res.message || '获取等待时间配置失败');
     }
-  });
+  } catch (error) {
+    console.error('获取等待时间配置失败:', error);
+    ElMessage.error('获取等待时间配置失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 表单验证方法
@@ -223,16 +184,169 @@ const validate = () => {
   return isValid;
 };
 
-// 对外暴露方法
-defineExpose({
-  validate
-});
+// 显示添加对话框
+const showAddDialog = () => {
+  isEdit.value = false;
+  resetForm();
+  dialogVisible.value = true;
+};
 
-// 组件挂载时处理
-onMounted(() => {
-  if (props.waitTimeConfig) {
-    Object.assign(formData, props.waitTimeConfig);
+// 重置表单
+const resetForm = () => {
+  if (formRef.value) {
+    formRef.value.resetFields();
   }
+  
+  formData.configName = '';
+  formData.configType = 'WAIT_TIME';
+  formData.defaultWaitTimeout = 10;
+  formData.pageLoadTimeout = 30;
+  formData.scriptTimeout = 30;
+  formData.isDefault = false;
+  formData.isActive = true;
+  currentId.value = null;
+};
+
+// 处理表单提交
+const handleSubmit = async () => {
+  if (!formRef.value) return;
+  
+  await formRef.value.validate(async (valid) => {
+    if (valid) {
+      try {
+        loading.value = true;
+        
+        if (isEdit.value && currentId.value !== null) {
+          // 更新配置
+          const res = await UiTestConfigApi.updateConfig(currentId.value, formData);
+          if (res.success) {
+            ElMessage.success('更新等待时间配置成功');
+            loadData(); // 重新加载数据
+          } else {
+            ElMessage.error(res.message || '更新等待时间配置失败');
+          }
+        } else {
+          // 创建配置
+          const res = await UiTestConfigApi.createConfig(formData);
+          if (res.success) {
+            ElMessage.success('添加等待时间配置成功');
+            loadData(); // 重新加载数据
+          } else {
+            ElMessage.error(res.message || '添加等待时间配置失败');
+          }
+        }
+        
+        dialogVisible.value = false;
+        resetForm();
+        emit('refresh');
+      } catch (error) {
+        console.error('保存等待时间配置失败:', error);
+        ElMessage.error('保存等待时间配置失败');
+      } finally {
+        loading.value = false;
+      }
+    } else {
+      ElMessage.error('表单验证失败，请检查输入');
+    }
+  });
+};
+
+// 处理编辑操作
+const handleEdit = (row) => {
+  isEdit.value = true;
+  currentId.value = row.id;
+  
+  formData.configName = row.configName;
+  formData.configType = 'WAIT_TIME';
+  formData.defaultWaitTimeout = row.defaultWaitTimeout;
+  formData.pageLoadTimeout = row.pageLoadTimeout;
+  formData.scriptTimeout = row.scriptTimeout;
+  formData.isDefault = row.isDefault;
+  formData.isActive = row.isActive;
+  
+  dialogVisible.value = true;
+};
+
+// 处理删除操作
+const handleDelete = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除该等待时间配置吗？',
+      '删除确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+    
+    loading.value = true;
+    const res = await UiTestConfigApi.deleteConfig(row.id);
+    if (res.success) {
+      ElMessage.success('删除等待时间配置成功');
+      loadData(); // 重新加载数据
+      emit('refresh');
+    } else {
+      ElMessage.error(res.message || '删除等待时间配置失败');
+    }
+  } catch (error) {
+    // 用户取消删除操作或出现错误
+    if (error !== 'cancel' && error !== 'close') {
+      console.error('删除等待时间配置失败:', error);
+      ElMessage.error('删除等待时间配置失败');
+    }
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 处理启用状态变更
+const handleStatusChange = async (row) => {
+  try {
+    loading.value = true;
+    const res = await UiTestConfigApi.toggleConfigStatus(row.id, row.isActive);
+    if (res.success) {
+      ElMessage.success(row.isActive ? '等待时间配置已启用' : '等待时间配置已禁用');
+      emit('refresh');
+    } else {
+      ElMessage.error(res.message || '更新状态失败');
+      // 恢复原状态
+      row.isActive = !row.isActive;
+    }
+  } catch (error) {
+    console.error('更新状态失败:', error);
+    ElMessage.error('更新状态失败');
+    // 恢复原状态
+    row.isActive = !row.isActive;
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 设置为默认配置
+const handleSetDefault = async (row) => {
+  try {
+    loading.value = true;
+    const res = await UiTestConfigApi.setDefaultConfig(row.id);
+    if (res.success) {
+      ElMessage.success('已设置为默认配置');
+      loadData(); // 重新加载数据
+      emit('refresh');
+    } else {
+      ElMessage.error(res.message || '设置默认配置失败');
+    }
+  } catch (error) {
+    console.error('设置默认配置失败:', error);
+    ElMessage.error('设置默认配置失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 对外暴露验证方法
+defineExpose({
+  validate,
+  loadData
 });
 </script>
 
@@ -252,14 +366,7 @@ onMounted(() => {
   margin: 0;
 }
 
-.custom-waits-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.custom-waits-table {
-  margin-bottom: 20px;
+.unit {
+  margin-left: 8px;
 }
 </style> 

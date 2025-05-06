@@ -379,3 +379,554 @@ Content-Type: application/json
     }
   ]
 }
+
+### UI测试套件管理接口测试
+
+### 1. 创建UI测试套件
+POST http://localhost:8089/api/uitestsuites/create
+Content-Type: application/json
+
+{
+  "suiteName": "登录功能测试套件",
+  "projectId": 1,
+  "description": "测试系统登录相关功能的测试套件",
+  "executeInParallel": false,
+  "maxParallelCount": 1
+}
+
+### 2. 获取UI测试套件列表（分页）
+GET http://localhost:8089/api/uitestsuites/list?page=1&pageSize=10&keyword=登录
+Accept: application/json
+
+### 3. 获取UI测试套件详情
+GET http://localhost:8089/api/uitestsuites/1
+Accept: application/json
+
+### 4. 更新UI测试套件
+PUT http://localhost:8089/api/uitestsuites/1
+Content-Type: application/json
+
+{
+  "suiteName": "用户登录功能测试套件-更新版",
+  "projectId": 1,
+  "description": "对系统登录和注册功能进行全面测试的套件",
+  "executeInParallel": true,
+  "maxParallelCount": 2
+}
+
+### 5. 删除UI测试套件
+DELETE http://localhost:8089/api/uitestsuites/1
+Accept: application/json
+
+### 6. 获取测试套件关联的用例列表
+GET http://localhost:8089/api/uitestsuites/1/cases
+Accept: application/json
+
+### 7. 更新测试套件关联的用例
+PUT http://localhost:8089/api/uitestsuites/1/cases
+Content-Type: application/json
+
+{
+  "caseIds": [1, 2, 3, 4]
+}
+
+### 8. 执行UI测试套件
+POST http://localhost:8089/api/uitestsuites/1/execute
+Accept: application/json
+
+### 9. 创建另一个UI测试套件（商品功能测试）
+POST http://localhost:8089/api/uitestsuites
+Content-Type: application/json
+
+{
+  "suiteName": "商品模块测试套件",
+  "projectId": 2,
+  "description": "测试商品搜索、浏览、加入购物车等功能",
+  "executeInParallel": true,
+  "maxParallelCount": 3
+}
+
+### UI元素定位器管理接口测试
+
+### 1. 获取UI元素列表（分页）- 原始路径
+GET http://localhost:8089/api/ui-elements/list?page=1&pageSize=10
+Accept: application/json
+
+### 1a. 获取UI元素列表（分页）- 尝试去掉末尾斜杠
+GET http://localhost:8089/api/ui-elements/list?page=1&pageSize=10
+Accept: application/json
+
+### 1b. 获取UI元素列表（分页）- 尝试加末尾斜杠
+GET http://localhost:8089/api/ui-elements/list/?page=1&pageSize=10
+Accept: application/json
+
+### 1c. 获取UI元素列表（分页）- 尝试不同根路径
+GET http://localhost:8089/api/ui-elements?page=1&pageSize=10
+Accept: application/json
+
+### 1d. 获取UI元素列表（分页）- 尝试不使用/api前缀
+GET http://localhost:8089/ui-elements/list?page=1&pageSize=10
+Accept: application/json
+
+### 2. 获取UI元素列表（带关键词过滤）
+GET http://localhost:8089/api/ui-elements/list?page=1&pageSize=10&keyword=登录
+Accept: application/json
+
+### 3. 获取UI元素列表（按分组筛选）
+GET http://localhost:8089/api/ui-elements/list?page=1&pageSize=10&groupId=1
+Accept: application/json
+
+### 4. 获取UI元素列表（按定位器类型筛选）
+GET http://localhost:8089/api/ui-elements/list?page=1&pageSize=10&locatorType=CSS
+Accept: application/json
+
+### 5. 获取UI元素详情
+GET http://localhost:8089/api/ui-elements/1
+Accept: application/json
+
+### 6. 创建UI元素
+POST http://localhost:8089/api/ui-elements/create
+Content-Type: application/json
+
+{
+  "elementName": "登录按钮",
+  "groupId": 1,
+  "locatorType": "CSS",
+  "locatorValue": "#login-btn",
+  "description": "登录页面的登录按钮",
+  "pageUrl": "http://localhost:8080/login"
+}
+
+### 7. 更新UI元素
+PUT http://localhost:8089/api/ui-elements/update/1
+Content-Type: application/json
+
+{
+  "elementName": "登录按钮-更新",
+  "groupId": 1,
+  "locatorType": "ID",
+  "locatorValue": "login-button",
+  "description": "更新后的登录按钮描述",
+  "pageUrl": "http://localhost:8080/login"
+}
+
+### 8. 删除UI元素
+DELETE http://localhost:8089/api/ui-elements/delete/1
+Accept: application/json
+
+### 9. 验证元素定位器
+POST http://localhost:8089/api/ui-elements/validate
+Content-Type: application/json
+
+{
+  "locatorType": "CSS",
+  "locatorValue": "#login-btn",
+  "url": "http://localhost:8080/login"
+}
+
+### 10. 上传元素截图（使用multipart表单，不能直接在HTTP文件中测试，需要使用Postman等工具）
+# POST http://localhost:8089/api/ui-elements/1/screenshot
+# Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+# 
+# ------WebKitFormBoundary7MA4YWxkTrZu0gW
+# Content-Disposition: form-data; name="file"; filename="screenshot.png"
+# Content-Type: image/png
+# 
+# < ./screenshot.png
+# ------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 11. 获取元素分组列表
+GET http://localhost:8089/api/ui-elements/groups
+Accept: application/json
+
+### 12. 创建元素分组
+POST http://localhost:8089/api/ui-elements/groups/create
+Content-Type: application/json
+
+{
+  "groupName": "登录页面元素",
+  "description": "登录页面的所有UI元素",
+  "parentId": null
+}
+
+### 13. 创建子元素分组
+POST http://localhost:8089/api/ui-elements/groups/create
+Content-Type: application/json
+
+{
+  "groupName": "登录表单元素",
+  "description": "登录表单中的所有UI元素",
+  "parentId": 1
+}
+
+### 14. 更新元素分组
+PUT http://localhost:8089/api/ui-elements/groups/update/1
+Content-Type: application/json
+
+{
+  "groupName": "登录页面元素-更新",
+  "description": "更新后的登录页面元素分组描述",
+  "parentId": null
+}
+
+### 15. 删除元素分组
+DELETE http://localhost:8089/api/ui-elements/groups/delete/2
+Accept: application/json
+
+### UI测试执行接口测试
+
+### 1. 创建执行记录 - 单个用例
+POST http://localhost:8089/api/ui-test-executions/create
+Content-Type: application/json
+
+{
+  "executionName": "测试执行01",
+  "executionType": "case",
+  "executionSourceId": 1,
+  "environment": "chrome",
+  "caseIds": [1],
+  "priority": 0,
+  "executionConfig": "{\"screenshotOnFailure\": true, \"retryCount\": 1}"
+}
+
+### 2. 创建执行记录 - 测试套件
+POST http://localhost:8089/api/ui-test-executions/create
+Content-Type: application/json
+
+{
+  "executionName": "套件执行01",
+  "executionType": "suite",
+  "executionSourceId": 1,
+  "environment": "chrome",
+  "priority": 1,
+  "executionConfig": "{\"screenshotOnFailure\": true, \"retryCount\": 1}"
+}
+
+### 3. 获取执行详情
+GET http://localhost:8089/api/ui-test-executions/1
+Accept: application/json
+
+
+### 4. 分页查询执行记录
+GET http://10.65.81.71:8089/api/ui-test-executions/list?page=1&pageSize=10
+Accept: application/json
+
+### 5. 分页查询执行记录 - 带筛选条件
+GET http://localhost:8089/api/ui-test-executions/list?page=1&pageSize=10&keyword=测试&status=completed&executionType=case
+Accept: application/json
+
+### 6. 获取执行队列
+GET http://localhost:8089/api/ui-test-executions/queue?page=1&pageSize=10
+Accept: application/json
+
+### 7. 获取执行队列 - 筛选等待状态
+GET http://localhost:8089/api/ui-test-executions/queue?page=1&pageSize=10&status=waiting
+Accept: application/json
+
+### 8. 获取执行用例详情列表
+GET http://localhost:8089/api/ui-test-executions/1/details
+Accept: application/json
+
+### 9. 获取执行用例详情
+GET http://localhost:8089/api/ui-test-executions/details/1
+Accept: application/json
+
+### 10. 获取执行步骤列表
+GET http://localhost:8089/api/ui-test-executions/details/1/steps
+Accept: application/json
+
+### 11. 获取执行日志
+GET http://localhost:8089/api/ui-test-executions/1/logs?page=1&pageSize=50
+Accept: application/json
+
+### 12. 获取执行日志 - 筛选错误日志
+GET http://localhost:8089/api/ui-test-executions/1/logs?page=1&pageSize=50&logLevel=error
+Accept: application/json
+
+### 13. 获取用例执行日志
+GET http://localhost:8089/api/ui-test-executions/details/1/logs
+Accept: application/json
+
+### 14. 开始执行
+POST http://localhost:8089/api/ui-test-executions/1/start
+Accept: application/json
+
+### 15. 中止执行
+POST http://localhost:8089/api/ui-test-executions/1/abort?reason=手动终止
+Accept: application/json
+
+### 16. 记录执行步骤结果
+POST http://localhost:8089/api/ui-test-executions/steps/record
+Content-Type: application/json
+
+{
+  "detailId": 1,
+  "stepIndex": 1,
+  "stepName": "打开登录页面",
+  "actionType": "navigate",
+  "target": "http://localhost:8080/login",
+  "inputValue": "",
+  "expectedResult": "页面成功打开",
+  "actualResult": "页面成功打开",
+  "status": "passed",
+  "duration": 1500
+}
+
+### 17. 记录日志
+POST http://localhost:8089/api/ui-test-executions/logs/record
+Content-Type: application/json
+
+{
+  "executionId": 1,
+  "detailId": 1,
+  "logLevel": "info",
+  "logContent": "执行开始",
+  "stepIndex": 0,
+  "timestamp": "2023-08-15T10:00:00.000Z"
+}
+
+### 18. 更新执行状态
+PUT http://localhost:8089/api/ui-test-executions/1/status?status=completed
+Accept: application/json
+
+### 19. 删除执行记录
+DELETE http://localhost:8089/api/ui-test-executions/1
+Accept: application/json
+
+### UI测试报告接口测试
+
+### 1. 创建测试报告
+POST http://localhost:8089/api/ui-test-reports
+Content-Type: application/json
+
+{
+  "executionId": 101,
+  "reportName": "登录功能自动化测试报告333",
+  "reportType": "用例执行",
+  "environment": "Chrome",
+  "browser": "Chrome 95.0",
+  "startTime": "2023-05-15T10:30:00.000+08:00",
+  "endTime": "2023-05-15T10:35:10.000+08:00",
+  "duration": 310000,
+  "totalCases": 5,
+  "passedCases": 5,
+  "failedCases": 0,
+  "skippedCases": 0,
+  "executor": "测试人员1",
+  "reportContent": "{\"summary\":\"登录功能自动化测试报告\",\"details\":\"详细内容...\"}"
+}
+
+### 2. 从执行ID生成测试报告
+POST http://localhost:8089/api/ui-test-reports/generate/102
+Content-Type: application/json
+
+### 3. 获取测试报告列表（分页）
+GET http://localhost:8089/api/ui-test-reports/list?page=1&pageSize=10&keyword=登录&reportType=用例执行
+Accept: application/json
+
+### 4. 获取测试报告详情
+GET http://localhost:8089/api/ui-test-reports/1
+Accept: application/json
+
+### 5. 根据执行ID获取测试报告
+GET http://localhost:8089/api/ui-test-reports/execution/101
+Accept: application/json
+
+### 6. 更新测试报告
+PUT http://localhost:8089/api/ui-test-reports/1
+Content-Type: application/json
+
+{
+  "reportName": "登录功能自动化测试报告-更新版",
+  "reportType": "套件执行",
+  "environment": "Chrome",
+  "browser": "Chrome 95.0",
+  "startTime": "2023-05-15T10:30:00.000+08:00",
+  "endTime": "2023-05-15T10:38:20.000+08:00",
+  "duration": 500000,
+  "totalCases": 8,
+  "passedCases": 6,
+  "failedCases": 1,
+  "skippedCases": 1,
+  "executor": "测试人员2"
+}
+
+### 7. 删除测试报告
+DELETE http://localhost:8089/api/ui-test-reports/2
+Accept: application/json
+
+### 8. 批量删除测试报告
+POST http://localhost:8089/api/ui-test-reports/batch-delete
+Content-Type: application/json
+
+{
+  "ids": [3, 4, 5]
+}
+
+### 9. 获取测试报告详情列表（分页）
+GET http://localhost:8089/api/ui-test-reports/1/details?page=1&pageSize=10&result=failed
+Accept: application/json
+
+### 10. 获取测试报告详情
+GET http://localhost:8089/api/ui-test-reports/details/1
+Accept: application/json
+
+### 11. 获取测试步骤列表
+GET http://localhost:8089/api/ui-test-reports/details/1/steps
+Accept: application/json
+
+### 12. 导出测试报告
+GET http://localhost:8089/api/ui-test-reports/1/export?format=html
+Accept: application/json
+
+### UI测试配置接口测试
+
+### 1. 创建UI测试配置（浏览器配置）
+POST http://localhost:8089/api/ui-test-config
+Content-Type: application/json
+
+{
+  "configName": "Firefox浏览器配置",
+  "configType": "BROWSER",
+  "browserType": "FIREFOX",
+  "browserVersion": "latest",
+  "deviceType": "DESKTOP",
+  "platformName": "WINDOWS",
+  "defaultWaitTimeout": 15,
+  "pageLoadTimeout": 30,
+  "scriptTimeout": 30,
+  "headless": false,
+  "isDefault": false,
+  "isActive": true
+}
+
+### 2. 创建UI测试配置（等待时间配置）
+POST http://localhost:8089/api/ui-test-config
+Content-Type: application/json
+
+{
+  "configName": "调试等待时间配置",
+  "configType": "WAIT_TIME",
+  "defaultWaitTimeout": 20,
+  "pageLoadTimeout": 45,
+  "scriptTimeout": 45,
+  "isDefault": false,
+  "isActive": true
+}
+
+### 3. 创建UI测试配置（截图策略配置）
+POST http://localhost:8089/api/ui-test-config
+Content-Type: application/json
+
+{
+  "configName": "每步截图策略",
+  "configType": "SCREENSHOT",
+  "screenshotPolicy": "ALWAYS",
+  "isDefault": false,
+  "isActive": true
+}
+
+### 4. 创建UI测试配置（重试配置）
+POST http://localhost:8089/api/ui-test-config
+Content-Type: application/json
+
+{
+  "configName": "高可靠性重试配置",
+  "configType": "RETRY",
+  "retryCount": 3,
+  "retryInterval": 10,
+  "isDefault": false,
+  "isActive": true
+}
+
+### 5. 获取UI测试配置列表（所有配置）
+GET http://localhost:8089/api/ui-test-config
+Accept: application/json
+
+### 6. 获取UI测试配置列表（按配置类型筛选）
+GET http://localhost:8089/api/ui-test-config?configType=BROWSER
+Accept: application/json
+
+### 7. 获取UI测试配置列表（按名称筛选）
+GET http://localhost:8089/api/ui-test-config?configName=Chrome
+Accept: application/json
+
+### 8. 获取UI测试配置详情
+GET http://localhost:8089/api/ui-test-config/1
+Accept: application/json
+
+### 9. 更新UI测试配置
+PUT http://localhost:8089/api/ui-test-config/1
+Content-Type: application/json
+
+{
+  "configName": "Chrome浏览器配置-更新版",
+  "browserVersion": "95.0",
+  "defaultWaitTimeout": 12,
+  "pageLoadTimeout": 35,
+  "scriptTimeout": 35,
+  "headless": true,
+  "isActive": true
+}
+
+### 10. 设置默认配置
+PUT http://localhost:8089/api/ui-test-config/2/set-default
+Accept: application/json
+
+### 11. 获取默认配置
+GET http://localhost:8089/api/ui-test-config/default?configType=BROWSER
+Accept: application/json
+
+### 12. 启用/禁用配置
+PUT http://localhost:8089/api/ui-test-config/3/toggle-status?active=false
+Accept: application/json
+
+### 13. 获取配置类型统计
+GET http://localhost:8089/api/ui-test-config/stats
+Accept: application/json
+
+### 14. 删除UI测试配置
+DELETE http://localhost:8089/api/ui-test-config/4
+Accept: application/json
+
+### 15. 移动设备配置示例
+POST http://localhost:8089/api/ui-test-config
+Content-Type: application/json
+
+{
+  "configName": "Android移动设备配置",
+  "configType": "BROWSER",
+  "browserType": "CHROME",
+  "browserVersion": "latest",
+  "deviceType": "MOBILE",
+  "deviceName": "Pixel 5",
+  "platformName": "ANDROID",
+  "platformVersion": "12.0",
+  "defaultWaitTimeout": 15,
+  "pageLoadTimeout": 30,
+  "scriptTimeout": 30,
+  "headless": false,
+  "isDefault": false,
+  "isActive": true
+}
+
+### 16. 高级浏览器配置（带代理和自定义功能）
+POST http://localhost:8089/api/ui-test-config
+Content-Type: application/json
+
+{
+  "configName": "高级Edge配置",
+  "configType": "BROWSER",
+  "browserType": "EDGE",
+  "browserVersion": "latest",
+  "deviceType": "DESKTOP",
+  "platformName": "WINDOWS",
+  "defaultWaitTimeout": 15,
+  "pageLoadTimeout": 30,
+  "scriptTimeout": 30,
+  "headless": false,
+  "proxySettings": "{\"server\": \"proxy.example.com\", \"port\": 8080, \"username\": \"user\", \"password\": \"pwd\"}",
+  "capabilities": "{\"ms:edgeOptions\": {\"args\": [\"--start-maximized\", \"--disable-extensions\"]}}",
+  "isDefault": false,
+  "isActive": true
+}

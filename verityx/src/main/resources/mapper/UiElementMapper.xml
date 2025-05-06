@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiElementMapper">
+    
+    <!-- 插入UI元素 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.UiElement" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_element(
+            element_name, 
+            group_id, 
+            locator_type, 
+            locator_value, 
+            description, 
+            screenshot_path, 
+            created_by, 
+            created_at
+        ) VALUES (
+            #{elementName}, 
+            #{groupId}, 
+            #{locatorType}, 
+            #{locatorValue}, 
+            #{description}, 
+            #{screenshotPath}, 
+            #{createdBy}, 
+            #{createdAt}
+        )
+    </insert>
+    
+    <!-- 根据ID更新UI元素 -->
+    <update id="updateById" parameterType="com.example.verityx.entity.UiElement">
+        UPDATE ui_element
+        SET element_name = #{elementName},
+            group_id = #{groupId},
+            locator_type = #{locatorType},
+            locator_value = #{locatorValue},
+            description = #{description},
+            screenshot_path = #{screenshotPath},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 更新元素截图路径 -->
+    <update id="updateScreenshotPath">
+        UPDATE ui_element
+        SET screenshot_path = #{screenshotPath},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID删除UI元素 -->
+    <delete id="deleteById">
+        DELETE FROM ui_element WHERE id = #{id}
+    </delete>
+    
+    <!-- 根据ID查询UI元素 -->
+    <select id="selectById" resultType="com.example.verityx.entity.UiElement">
+        SELECT 
+            id,
+            element_name AS elementName,
+            group_id AS groupId,
+            locator_type AS locatorType,
+            locator_value AS locatorValue,
+            description,
+            screenshot_path AS screenshotPath,
+            created_by AS createdBy,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM ui_element
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 查询UI元素总数 -->
+    <select id="countElements" resultType="int">
+        SELECT COUNT(*)
+        FROM ui_element
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    element_name LIKE CONCAT('%', #{keyword}, '%') 
+                    OR locator_value LIKE CONCAT('%', #{keyword}, '%')
+                    OR description LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="groupId != null">
+                AND group_id = #{groupId}
+            </if>
+            <if test="locatorType != null and locatorType != ''">
+                AND locator_type = #{locatorType}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 分页查询UI元素 -->
+    <select id="selectByPage" resultType="com.example.verityx.entity.UiElement">
+        SELECT 
+            id,
+            element_name AS elementName,
+            group_id AS groupId,
+            locator_type AS locatorType,
+            locator_value AS locatorValue,
+            description,
+            screenshot_path AS screenshotPath,
+            created_by AS createdBy,
+            created_at AS createdAt,
+            updated_at AS updatedAt
+        FROM ui_element
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    element_name LIKE CONCAT('%', #{keyword}, '%') 
+                    OR locator_value LIKE CONCAT('%', #{keyword}, '%')
+                    OR description LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="groupId != null">
+                AND group_id = #{groupId}
+            </if>
+            <if test="locatorType != null and locatorType != ''">
+                AND locator_type = #{locatorType}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 根据分组ID查询元素数量 -->
+    <select id="countByGroupId" resultType="int">
+        SELECT COUNT(*) FROM ui_element WHERE group_id = #{groupId}
+    </select>
+</mapper> 

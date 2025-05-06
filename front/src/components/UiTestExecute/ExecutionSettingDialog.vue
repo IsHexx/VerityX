@@ -240,19 +240,11 @@ const remoteSearch = async (query) => {
   if (query) {
     searchLoading.value = true;
     
-    // 模拟搜索结果
-    setTimeout(() => {
-      options.value = generateMockOptions(query, executionForm.executionType);
-      searchLoading.value = false;
-    }, 500);
-    
-    // 实际实现时使用API调用
-    /*
     try {
       const type = executionForm.executionType;
-      const url = type === 'case' ? '/api/ui-test-cases/search' : '/api/ui-test-suites/search';
+      const url = type === 'case' ? '/api/ui-test-case/search' : '/api/ui-test-suite/search';
       
-      const res = await fetch(url + `?keyword=${query}`);
+      const res = await fetch(`${url}?keyword=${query}`);
       const data = await res.json();
       
       if (data.code === 200) {
@@ -266,7 +258,6 @@ const remoteSearch = async (query) => {
     } finally {
       searchLoading.value = false;
     }
-    */
   } else {
     options.value = [];
   }
@@ -295,26 +286,25 @@ const submitForm = async () => {
       
       // 构造请求数据
       const requestData = {
-        ...executionForm,
+        executionName: executionForm.executionName,
         executionType: executionForm.executionType === 'case' ? 'CASE' : 'SUITE',
+        executionSourceId: executionForm.targetId,
+        executionSourceName: options.value.find(o => o.id === executionForm.targetId)?.name || '',
+        environment: executionForm.environment,
+        browser: executionForm.browser,
+        browserSize: executionForm.browserSize,
+        timeout: executionForm.timeout,
+        retryCount: executionForm.retryCount,
+        screenshotPolicy: executionForm.screenshotPolicy,
         // 只保留有效的参数
-        params: executionForm.params.filter(p => p.name && p.value)
+        executionConfig: JSON.stringify({
+          params: executionForm.params.filter(p => p.name && p.value),
+          screenshotOnFailure: executionForm.screenshotPolicy === 'ONLY_FAILURE',
+          screenshotOnEachStep: executionForm.screenshotPolicy === 'EACH_STEP',
+        })
       };
       
       try {
-        // 模拟API请求
-        setTimeout(() => {
-          ElMessage.success('执行任务已成功提交');
-          emit('execution-started', { 
-            id: 'E' + Math.floor(Math.random() * 10000),
-            name: executionForm.executionName,
-            type: executionForm.executionType === 'case' ? '用例' : '测试套件'
-          });
-          dialogVisible.value = false;
-        }, 1000);
-        
-        // 实际实现时使用API调用
-        /*
         const res = await UiTestExecutionApi.startExecution(requestData);
         if (res.code === 200) {
           ElMessage.success('执行任务已成功提交');
@@ -323,7 +313,6 @@ const submitForm = async () => {
         } else {
           ElMessage.error(res.message || '提交执行任务失败');
         }
-        */
       } catch (error) {
         ElMessage.error('提交执行任务失败');
         console.error('提交执行任务失败:', error);
@@ -339,16 +328,6 @@ const handleScheduled = (command) => {
   } else if (command === 'parallel') {
     ElMessage.info('并行执行功能尚未实现');
   }
-};
-
-// 生成模拟选项数据
-const generateMockOptions = (query, type) => {
-  const prefix = type === 'case' ? '测试用例' : '测试套件';
-  return Array.from({ length: 5 }, (_, i) => ({
-    id: `${type.charAt(0).toUpperCase()}${1000 + i}`,
-    name: `${prefix}_${query}_${i + 1}`,
-    description: `这是一个包含"${query}"的${prefix}示例描述`
-  }));
 };
 </script>
 

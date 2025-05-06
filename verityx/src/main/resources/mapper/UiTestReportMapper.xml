@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiTestReportMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="UiTestReportMap" type="com.example.verityx.entity.UiTestReport">
+        <id property="id" column="id"/>
+        <result property="executionId" column="execution_id"/>
+        <result property="reportName" column="report_name"/>
+        <result property="reportType" column="report_type"/>
+        <result property="environment" column="environment"/>
+        <result property="browser" column="browser"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="duration" column="duration"/>
+        <result property="totalCases" column="total_cases"/>
+        <result property="passedCases" column="passed_cases"/>
+        <result property="failedCases" column="failed_cases"/>
+        <result property="skippedCases" column="skipped_cases"/>
+        <result property="passRate" column="pass_rate"/>
+        <result property="executor" column="executor"/>
+        <result property="reportContent" column="report_content"/>
+        <result property="reportUrl" column="report_url"/>
+        <result property="reportStatus" column="report_status"/>
+        <result property="generatedTime" column="generated_time"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <!-- 所有字段 -->
+    <sql id="Base_Column_List">
+        id, execution_id, report_name, report_type, environment, browser, start_time, end_time, 
+        duration, total_cases, passed_cases, failed_cases, skipped_cases, pass_rate, executor, 
+        report_content, report_url, report_status, generated_time, created_at, updated_at
+    </sql>
+    
+    <!-- 插入报告 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.UiTestReport" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_report(
+            execution_id, report_name, report_type, environment, browser, start_time, end_time, 
+            duration, total_cases, passed_cases, failed_cases, skipped_cases, pass_rate, executor, 
+            report_content, report_status, generated_time, created_at, updated_at
+        ) VALUES (
+            #{executionId}, #{reportName}, #{reportType}, #{environment}, #{browser}, #{startTime}, #{endTime}, 
+            #{duration}, #{totalCases}, #{passedCases}, #{failedCases}, #{skippedCases}, #{passRate}, #{executor}, 
+            #{reportContent}, #{reportStatus}, #{generatedTime}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+    
+    <!-- 根据ID查询报告 -->
+    <select id="selectById" resultMap="UiTestReportMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_report
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据执行ID查询报告 -->
+    <select id="selectByExecutionId" resultMap="UiTestReportMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_report
+        WHERE execution_id = #{executionId}
+    </select>
+    
+    <!-- 更新报告 -->
+    <update id="update" parameterType="com.example.verityx.entity.UiTestReport">
+        UPDATE ui_test_report
+        <set>
+            <if test="reportName != null">report_name = #{reportName},</if>
+            <if test="reportType != null">report_type = #{reportType},</if>
+            <if test="environment != null">environment = #{environment},</if>
+            <if test="browser != null">browser = #{browser},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="totalCases != null">total_cases = #{totalCases},</if>
+            <if test="passedCases != null">passed_cases = #{passedCases},</if>
+            <if test="failedCases != null">failed_cases = #{failedCases},</if>
+            <if test="skippedCases != null">skipped_cases = #{skippedCases},</if>
+            <if test="passRate != null">pass_rate = #{passRate},</if>
+            <if test="executor != null">executor = #{executor},</if>
+            <if test="reportContent != null">report_content = #{reportContent},</if>
+            <if test="reportUrl != null">report_url = #{reportUrl},</if>
+            <if test="reportStatus != null">report_status = #{reportStatus},</if>
+            <if test="generatedTime != null">generated_time = #{generatedTime},</if>
+            updated_at = #{updatedAt}
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除报告 -->
+    <delete id="deleteById">
+        DELETE FROM ui_test_report WHERE id = #{id}
+    </delete>
+    
+    <!-- 根据执行ID删除报告 -->
+    <delete id="deleteByExecutionId">
+        DELETE FROM ui_test_report WHERE execution_id = #{executionId}
+    </delete>
+    
+    <!-- 批量删除报告 -->
+    <delete id="batchDelete">
+        DELETE FROM ui_test_report 
+        WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+    <!-- 分页查询报告 -->
+    <select id="selectByPage" resultMap="UiTestReportMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_report
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (report_name LIKE CONCAT('%', #{keyword}, '%') 
+                    OR report_type LIKE CONCAT('%', #{keyword}, '%') 
+                    OR environment LIKE CONCAT('%', #{keyword}, '%')
+                    OR executor LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="reportType != null and reportType != ''">
+                AND report_type = #{reportType}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND generated_time >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND generated_time &lt;= #{endDate}
+            </if>
+            <if test="passRateCondition != null and passRateCondition != ''">
+                AND ${passRateCondition}
+            </if>
+        </where>
+        ORDER BY generated_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 统计报告总数 -->
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM ui_test_report
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (report_name LIKE CONCAT('%', #{keyword}, '%') 
+                    OR report_type LIKE CONCAT('%', #{keyword}, '%') 
+                    OR environment LIKE CONCAT('%', #{keyword}, '%')
+                    OR executor LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="reportType != null and reportType != ''">
+                AND report_type = #{reportType}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND generated_time >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND generated_time &lt;= #{endDate}
+            </if>
+            <if test="passRateCondition != null and passRateCondition != ''">
+                AND ${passRateCondition}
+            </if>
+        </where>
+    </select>
+</mapper> 

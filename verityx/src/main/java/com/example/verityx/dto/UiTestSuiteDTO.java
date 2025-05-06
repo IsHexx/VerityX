@@ -6,20 +6,13 @@ import java.util.List;
 public class UiTestSuiteDTO {
     private Long id;
     private String suiteName;
-    private String suiteStatus;
-    private Integer caseCount;
-    private String lastResult;
+    private Long projectId;
+    private String description;
+    private Boolean executeInParallel;
+    private Integer maxParallelCount;
     private String createdBy;
     private Date createdAt;
-    private Date lastRunAt;
-    private String triggerMode;
-    private String projectId;
-    private String concurrencyLevel;
-    private String environment;
-    private Integer timeout;
-    private Integer retryCount;
-    private String screenshotPolicy;
-    private String description;
+    private Date updatedAt;
 
     // 用于用例管理的内部类
     public static class CaseInfo {
@@ -74,6 +67,68 @@ public class UiTestSuiteDTO {
         }
     }
 
+    // 并发配置类
+    public static class ConcurrencyConfig {
+        private Boolean executeInParallel;
+        private Integer maxParallelCount;
+        
+        public Boolean getExecuteInParallel() {
+            return executeInParallel;
+        }
+        
+        public void setExecuteInParallel(Boolean executeInParallel) {
+            this.executeInParallel = executeInParallel;
+        }
+        
+        public Integer getMaxParallelCount() {
+            return maxParallelCount;
+        }
+        
+        public void setMaxParallelCount(Integer maxParallelCount) {
+            this.maxParallelCount = maxParallelCount;
+        }
+    }
+
+    // 定时任务配置类
+    public static class ScheduleConfig {
+        private Boolean enabled;         // 是否启用定时任务
+        private String cronExpression;   // cron表达式
+        private String timezone;         // 时区
+        private String description;      // 任务描述
+        
+        public Boolean getEnabled() {
+            return enabled;
+        }
+        
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
+        }
+        
+        public String getCronExpression() {
+            return cronExpression;
+        }
+        
+        public void setCronExpression(String cronExpression) {
+            this.cronExpression = cronExpression;
+        }
+        
+        public String getTimezone() {
+            return timezone;
+        }
+        
+        public void setTimezone(String timezone) {
+            this.timezone = timezone;
+        }
+        
+        public String getDescription() {
+            return description;
+        }
+        
+        public void setDescription(String description) {
+            this.description = description;
+        }
+    }
+
     public Long getId() {
         return id;
     }
@@ -90,28 +145,36 @@ public class UiTestSuiteDTO {
         this.suiteName = suiteName;
     }
 
-    public String getSuiteStatus() {
-        return suiteStatus;
+    public Long getProjectId() {
+        return projectId;
     }
 
-    public void setSuiteStatus(String suiteStatus) {
-        this.suiteStatus = suiteStatus;
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 
-    public Integer getCaseCount() {
-        return caseCount;
+    public String getDescription() {
+        return description;
     }
 
-    public void setCaseCount(Integer caseCount) {
-        this.caseCount = caseCount;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
-    public String getLastResult() {
-        return lastResult;
+    public Boolean getExecuteInParallel() {
+        return executeInParallel;
     }
 
-    public void setLastResult(String lastResult) {
-        this.lastResult = lastResult;
+    public void setExecuteInParallel(Boolean executeInParallel) {
+        this.executeInParallel = executeInParallel;
+    }
+
+    public Integer getMaxParallelCount() {
+        return maxParallelCount;
+    }
+
+    public void setMaxParallelCount(Integer maxParallelCount) {
+        this.maxParallelCount = maxParallelCount;
     }
 
     public String getCreatedBy() {
@@ -130,75 +193,11 @@ public class UiTestSuiteDTO {
         this.createdAt = createdAt;
     }
 
-    public Date getLastRunAt() {
-        return lastRunAt;
+    public Date getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setLastRunAt(Date lastRunAt) {
-        this.lastRunAt = lastRunAt;
-    }
-
-    public String getTriggerMode() {
-        return triggerMode;
-    }
-
-    public void setTriggerMode(String triggerMode) {
-        this.triggerMode = triggerMode;
-    }
-
-    public String getProjectId() {
-        return projectId;
-    }
-
-    public void setProjectId(String projectId) {
-        this.projectId = projectId;
-    }
-
-    public String getConcurrencyLevel() {
-        return concurrencyLevel;
-    }
-
-    public void setConcurrencyLevel(String concurrencyLevel) {
-        this.concurrencyLevel = concurrencyLevel;
-    }
-
-    public String getEnvironment() {
-        return environment;
-    }
-
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
-
-    public Integer getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(Integer timeout) {
-        this.timeout = timeout;
-    }
-
-    public Integer getRetryCount() {
-        return retryCount;
-    }
-
-    public void setRetryCount(Integer retryCount) {
-        this.retryCount = retryCount;
-    }
-
-    public String getScreenshotPolicy() {
-        return screenshotPolicy;
-    }
-
-    public void setScreenshotPolicy(String screenshotPolicy) {
-        this.screenshotPolicy = screenshotPolicy;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 } 

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiTestExecutionMapper">
+    
+    <!-- 执行记录结果映射 -->
+    <resultMap id="UiTestExecutionMap" type="com.example.verityx.entity.UiTestExecution">
+        <id property="id" column="id"/>
+        <result property="executionName" column="execution_name"/>
+        <result property="executionType" column="execution_type"/>
+        <result property="executionSourceId" column="execution_source_id"/>
+        <result property="executionSourceName" column="execution_source_name"/>
+        <result property="status" column="status"/>
+        <result property="executor" column="executor"/>
+        <result property="environment" column="environment"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="duration" column="duration"/>
+        <result property="successCount" column="success_count"/>
+        <result property="failCount" column="fail_count"/>
+        <result property="totalCount" column="total_count"/>
+        <result property="executionConfig" column="execution_config"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <!-- 公共列 -->
+    <sql id="Base_Column_List">
+        id, execution_name, execution_type, execution_source_id, execution_source_name,
+        status, executor, environment, start_time, end_time, duration, success_count,
+        fail_count, total_count, execution_config, created_at, updated_at
+    </sql>
+    
+    <!-- 插入一条执行记录 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.UiTestExecution" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_execution(
+            execution_name, execution_type, execution_source_id, execution_source_name, 
+            status, executor, environment, start_time, end_time, duration, 
+            success_count, fail_count, total_count, execution_config
+        ) VALUES (
+            #{executionName}, #{executionType}, #{executionSourceId}, #{executionSourceName}, 
+            #{status}, #{executor}, #{environment}, #{startTime}, #{endTime}, #{duration}, 
+            #{successCount}, #{failCount}, #{totalCount}, #{executionConfig}
+        )
+    </insert>
+    
+    <!-- 根据ID查询执行记录 -->
+    <select id="selectById" resultMap="UiTestExecutionMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 更新执行记录 -->
+    <update id="update" parameterType="com.example.verityx.entity.UiTestExecution">
+        UPDATE ui_test_execution
+        <set>
+            <if test="executionName != null">execution_name = #{executionName},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="successCount != null">success_count = #{successCount},</if>
+            <if test="failCount != null">fail_count = #{failCount},</if>
+            <if test="totalCount != null">total_count = #{totalCount},</if>
+            <if test="executionConfig != null">execution_config = #{executionConfig},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 更新执行状态 -->
+    <update id="updateStatus">
+        UPDATE ui_test_execution
+        SET status = #{status},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 更新执行结果统计 -->
+    <update id="updateCounts">
+        UPDATE ui_test_execution
+        SET success_count = #{successCount},
+            fail_count = #{failCount},
+            total_count = #{totalCount},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 分页查询执行记录列表 -->
+    <select id="selectByPage" resultMap="UiTestExecutionMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (execution_name LIKE CONCAT('%', #{keyword}, '%') 
+                    OR execution_source_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="executionType != null and executionType != ''">
+                AND execution_type = #{executionType}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 查询记录总数 -->
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM ui_test_execution
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (execution_name LIKE CONCAT('%', #{keyword}, '%') 
+                    OR execution_source_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="executionType != null and executionType != ''">
+                AND execution_type = #{executionType}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 根据执行类型和来源ID查询最近的执行记录 -->
+    <select id="selectRecentBySource" resultMap="UiTestExecutionMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution
+        WHERE execution_type = #{executionType}
+        AND execution_source_id = #{executionSourceId}
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
+    
+    <!-- 删除执行记录 -->
+    <delete id="deleteById">
+        DELETE FROM ui_test_execution
+        WHERE id = #{id}
+    </delete>
+    
+</mapper> 

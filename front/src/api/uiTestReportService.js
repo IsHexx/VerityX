@@ -15,36 +15,36 @@ export const UiTestReportApi = {
     if (params.endDate) cleanParams.endDate = params.endDate;
     
     console.log("UI测试报告API调用参数:", cleanParams);
-    return http.get('/api/uitestreports/list', cleanParams);
+    return http.get('/api/ui-test-reports/list', cleanParams);
   },
 
   // 获取单个UI测试报告详情
   getUiTestReportDetail(id) {
-    return http.get(`/api/uitestreports/${id}`)
+    return http.get(`/api/ui-test-reports/${id}`)
   },
 
   // 删除UI测试报告
   deleteUiTestReport(id) {
-    return http.delete(`/api/uitestreports/${id}`)
+    return http.delete(`/api/ui-test-reports/${id}`)
   },
 
   // 导出UI测试报告为HTML
   exportUiTestReportHtml(id) {
-    return http.get(`/api/uitestreports/${id}/export/html`, { 
+    return http.get(`/api/ui-test-reports/${id}/export/html`, { 
       responseType: 'blob' 
     })
   },
   
   // 导出UI测试报告为PDF
   exportUiTestReportPdf(id) {
-    return http.get(`/api/uitestreports/${id}/export/pdf`, { 
+    return http.get(`/api/ui-test-reports/${id}/export/pdf`, { 
       responseType: 'blob' 
     })
   },
 
   // 批量删除UI测试报告
   batchDeleteUiTestReports(ids) {
-    return http.post('/api/uitestreports/batch-delete', { ids })
+    return http.post('/api/ui-test-reports/batch-delete', { ids })
   }
 }
 

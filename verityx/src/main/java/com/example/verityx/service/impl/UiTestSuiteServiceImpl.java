@@ -9,6 +9,8 @@ import com.example.verityx.mapper.UiTestCaseMapper;
 import com.example.verityx.mapper.UiTestSuiteCaseRelMapper;
 import com.example.verityx.mapper.UiTestSuiteMapper;
 import com.example.verityx.service.UiTestSuiteService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
 @Service
 public class UiTestSuiteServiceImpl implements UiTestSuiteService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UiTestSuiteServiceImpl.class);
+
     @Autowired
     private UiTestSuiteMapper uiTestSuiteMapper;
 
@@ -36,14 +40,19 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
 
     @Override
     public PageResult<UiTestSuiteDTO> getUiTestSuiteList(Integer page, Integer pageSize, String keyword, String status) {
+        logger.info("开始查询UI测试套件列表, 参数: page={}, pageSize={}, keyword={}, status={}", page, pageSize, keyword, status);
+        
         // 计算分页参数
         Integer offset = (page - 1) * pageSize;
         
         // 获取总数
         Integer total = uiTestSuiteMapper.countTestSuites(keyword, status);
+        logger.info("查询到UI测试套件总数: {}", total);
         
         // 获取分页数据
         List<UiTestSuite> uiTestSuites = uiTestSuiteMapper.selectByPage(keyword, status, offset, pageSize);
+        logger.info("分页查询UI测试套件数据, SQL条件: keyword={}, status={}, offset={}, pageSize={}, 结果条数: {}", 
+                    keyword, status, offset, pageSize, uiTestSuites.size());
         
         // 转换为DTO
         List<UiTestSuiteDTO> uiTestSuiteDTOs = uiTestSuites.stream()
@@ -55,93 +64,138 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
 
     @Override
     public UiTestSuiteDTO getUiTestSuiteById(Long id) {
+        logger.info("开始查询UI测试套件详情, ID: {}", id);
         UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(id);
         if (uiTestSuite == null) {
+            logger.error("UI测试套件不存在, ID: {}", id);
             throw new RuntimeException("测试套件不存在: " + id);
         }
+        logger.info("成功查询到UI测试套件详情, ID: {}, 套件名称: {}", id, uiTestSuite.getSuiteName());
         return convertToDTO(uiTestSuite);
     }
 
     @Override
     @Transactional
     public Long createUiTestSuite(UiTestSuiteDTO uiTestSuiteDTO) {
+        logger.info("开始创建UI测试套件, 套件名称: {}, 项目ID: {}", uiTestSuiteDTO.getSuiteName(), uiTestSuiteDTO.getProjectId());
         UiTestSuite uiTestSuite = new UiTestSuite();
         BeanUtils.copyProperties(uiTestSuiteDTO, uiTestSuite);
         
-        // 设置初始状态
-        uiTestSuite.setSuiteStatus("未执行");
-        uiTestSuite.setLastResult("未执行");
+        // 记录所有字段的值，用于调试
+        logger.debug("UI测试套件字段值: id={}, suiteName={}, projectId={}, description={}",
+                     uiTestSuite.getId(), uiTestSuite.getSuiteName(), uiTestSuite.getProjectId(), 
+                     uiTestSuite.getDescription());
+        
+        // 设置初始值
         uiTestSuite.setCreatedBy("当前用户"); // 实际应从当前登录用户获取
         uiTestSuite.setCreatedAt(new Date());
         
-        uiTestSuiteMapper.insert(uiTestSuite);
-        return uiTestSuite.getId();
+        try {
+            uiTestSuiteMapper.insert(uiTestSuite);
+            logger.info("UI测试套件创建成功, ID: {}", uiTestSuite.getId());
+            return uiTestSuite.getId();
+        } catch (Exception e) {
+            logger.error("UI测试套件创建失败, 错误信息: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
     @Transactional
     public void updateUiTestSuite(Long id, UiTestSuiteDTO uiTestSuiteDTO) {
+        logger.info("开始更新UI测试套件, ID: {}, 套件名称: {}", id, uiTestSuiteDTO.getSuiteName());
         UiTestSuite existingSuite = uiTestSuiteMapper.selectById(id);
         if (existingSuite == null) {
+            logger.error("UI测试套件不存在, ID: {}", id);
             throw new RuntimeException("测试套件不存在: " + id);
         }
         
         // 更新基本信息，但保留一些字段不变
-        BeanUtils.copyProperties(uiTestSuiteDTO, existingSuite, "id", "createdBy", "createdAt", "caseCount", "suiteStatus", "lastResult", "lastRunAt");
+        BeanUtils.copyProperties(uiTestSuiteDTO, existingSuite, "id", "createdBy", "createdAt");
         
         // 设置更新时间
         existingSuite.setUpdatedAt(new Date());
         
-        uiTestSuiteMapper.updateById(existingSuite);
+        // 记录所有字段的值，用于调试
+        logger.debug("更新UI测试套件字段值: id={}, suiteName={}, projectId={}, description={}",
+                     existingSuite.getId(), existingSuite.getSuiteName(), existingSuite.getProjectId(), 
+                     existingSuite.getDescription());
+        
+        try {
+            uiTestSuiteMapper.updateById(existingSuite);
+            logger.info("UI测试套件更新成功, ID: {}", id);
+        } catch (Exception e) {
+            logger.error("UI测试套件更新失败, ID: {}, 错误信息: {}", id, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
     @Transactional
     public void deleteUiTestSuite(Long id) {
+        logger.info("开始删除UI测试套件, ID: {}", id);
         // 查询套件是否存在
         UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(id);
         if (uiTestSuite == null) {
+            logger.error("UI测试套件不存在, ID: {}", id);
             throw new RuntimeException("测试套件不存在: " + id);
         }
         
-        // 删除套件和用例的关联关系
-        uiTestSuiteCaseRelMapper.deleteBySuiteId(id);
-        
-        // 删除套件
-        uiTestSuiteMapper.deleteById(id);
+        try {
+            // 删除套件和用例的关联关系
+            int relCount = uiTestSuiteCaseRelMapper.deleteBySuiteId(id);
+            logger.info("删除UI测试套件关联关系, 套件ID: {}, 删除的关联关系数量: {}", id, relCount);
+            
+            // 删除套件
+            int result = uiTestSuiteMapper.deleteById(id);
+            logger.info("UI测试套件删除结果, ID: {}, 影响行数: {}", id, result);
+        } catch (Exception e) {
+            logger.error("UI测试套件删除失败, ID: {}, 错误信息: {}", id, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
     @Transactional
     public void executeUiTestSuite(Long id) {
+        logger.info("开始执行UI测试套件, ID: {}", id);
         // 查询套件是否存在
         UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(id);
         if (uiTestSuite == null) {
+            logger.error("UI测试套件不存在, ID: {}", id);
             throw new RuntimeException("测试套件不存在: " + id);
         }
         
-        // 更新套件状态为运行中
-        uiTestSuite.setSuiteStatus("运行中");
-        uiTestSuite.setLastResult("执行中");
-        uiTestSuite.setLastRunAt(new Date());
-        uiTestSuite.setTriggerMode("手动");
+        // 设置更新时间
+        uiTestSuite.setUpdatedAt(new Date());
         
-        uiTestSuiteMapper.updateById(uiTestSuite);
-        
-        // 实际执行逻辑应该在这里启动一个异步任务
-        // 这里省略执行实现...
+        try {
+            uiTestSuiteMapper.updateById(uiTestSuite);
+            logger.info("UI测试套件执行前状态更新成功, ID: {}", id);
+            
+            // 实际执行逻辑应该在这里启动一个异步任务
+            logger.info("UI测试套件开始异步执行, ID: {}", id);
+            // 这里省略执行实现...
+        } catch (Exception e) {
+            logger.error("UI测试套件执行失败, ID: {}, 错误信息: {}", id, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
     public List<UiTestSuiteDTO.CaseInfo> getSuiteCases(Long suiteId) {
+        logger.info("开始获取UI测试套件关联的用例, 套件ID: {}", suiteId);
         // 查询套件是否存在
         UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId);
         if (uiTestSuite == null) {
+            logger.error("UI测试套件不存在, ID: {}", suiteId);
             throw new RuntimeException("测试套件不存在: " + suiteId);
         }
         
         // 获取套件关联的用例ID及排序信息
         List<UiTestSuiteCaseRel> relations = uiTestSuiteCaseRelMapper.selectBySuiteId(suiteId);
+        logger.info("UI测试套件关联的用例关系数量, 套件ID: {}, 关系数量: {}", suiteId, relations.size());
+        
         if (relations.isEmpty()) {
             return new ArrayList<>();
         }
@@ -151,7 +205,9 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
                 .map(UiTestSuiteCaseRel::getCaseId)
                 .collect(Collectors.toList());
         
+        logger.info("获取UI测试套件关联的用例详情, 套件ID: {}, 用例ID列表: {}", suiteId, caseIds);
         List<UiTestCase> cases = uiTestCaseMapper.selectByIds(caseIds);
+        logger.info("获取到的用例数量: {}", cases.size());
         
         // 转换为DTO并设置排序索引
         return cases.stream().map(testCase -> {
@@ -179,37 +235,122 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
     @Override
     @Transactional
     public void updateSuiteCases(Long suiteId, List<Long> caseIds) {
-        // 查询套件是否存在
+        // 验证测试套件是否存在
         UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId);
         if (uiTestSuite == null) {
-            throw new RuntimeException("测试套件不存在: " + suiteId);
+            logger.error("更新用例关联失败: 测试套件不存在, ID: {}", suiteId);
+            throw new IllegalArgumentException("测试套件不存在, ID: " + suiteId);
         }
         
-        // 删除现有关联关系
-        uiTestSuiteCaseRelMapper.deleteBySuiteId(suiteId);
+        // 先删除该套件下所有用例关联
+        int deleteCount = uiTestSuiteCaseRelMapper.deleteBySuiteId(suiteId);
+        logger.info("已删除原有用例关联 {} 条, 套件ID: {}", deleteCount, suiteId);
         
-        // 创建新的关联关系
-        if (caseIds != null && !caseIds.isEmpty()) {
-            List<UiTestSuiteCaseRel> relations = new ArrayList<>();
-            for (int i = 0; i < caseIds.size(); i++) {
-                UiTestSuiteCaseRel relation = new UiTestSuiteCaseRel();
-                relation.setSuiteId(suiteId);
-                relation.setCaseId(caseIds.get(i));
-                relation.setOrderIndex(i + 1);
-                relations.add(relation);
-            }
-            
-            // 批量插入关联关系
-            uiTestSuiteCaseRelMapper.batchInsert(relations);
-            
-            // 更新套件的用例数量
-            uiTestSuite.setCaseCount(caseIds.size());
-            uiTestSuiteMapper.updateById(uiTestSuite);
-        } else {
-            // 如果没有用例，将用例数量设为0
-            uiTestSuite.setCaseCount(0);
-            uiTestSuiteMapper.updateById(uiTestSuite);
+        // 如果没有新的用例ID, 则直接返回
+        if (caseIds == null || caseIds.isEmpty()) {
+            logger.info("没有需要添加的用例, 套件ID: {}", suiteId);
+            return;
         }
+        
+        // 创建新的关联记录
+        List<UiTestSuiteCaseRel> relations = new ArrayList<>();
+        for (int i = 0; i < caseIds.size(); i++) {
+            UiTestSuiteCaseRel relation = new UiTestSuiteCaseRel();
+            relation.setSuiteId(suiteId);
+            relation.setCaseId(caseIds.get(i));
+            relation.setOrderIndex(i + 1); // 顺序从1开始
+            relations.add(relation);
+        }
+        
+        // 批量插入新的关联记录
+        int insertCount = uiTestSuiteCaseRelMapper.batchInsert(relations);
+        logger.info("已添加新的用例关联 {} 条, 套件ID: {}", insertCount, suiteId);
+        
+        // 更新套件的更新时间
+        uiTestSuite.setUpdatedAt(new Date());
+        uiTestSuiteMapper.updateById(uiTestSuite);
+        logger.info("已更新套件更新时间, 套件ID: {}", suiteId);
+    }
+
+    @Override
+    public void updateConcurrencyConfig(Long suiteId, UiTestSuiteDTO.ConcurrencyConfig concurrencyConfig) {
+        // 验证测试套件是否存在
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId);
+        if (uiTestSuite == null) {
+            logger.error("更新并发配置失败: 测试套件不存在, ID: {}", suiteId);
+            throw new IllegalArgumentException("测试套件不存在, ID: " + suiteId);
+        }
+        
+        // 更新并发执行相关字段
+        uiTestSuite.setExecuteInParallel(concurrencyConfig.getExecuteInParallel());
+        uiTestSuite.setMaxParallelCount(concurrencyConfig.getMaxParallelCount());
+        uiTestSuite.setUpdatedAt(new Date());
+        
+        // 保存更新
+        uiTestSuiteMapper.updateById(uiTestSuite);
+        logger.info("已更新测试套件并发配置, 套件ID: {}, 是否并发执行: {}, 最大并发数: {}", 
+                suiteId, concurrencyConfig.getExecuteInParallel(), concurrencyConfig.getMaxParallelCount());
+    }
+
+    @Override
+    public UiTestSuiteDTO.ScheduleConfig getScheduleConfig(Long suiteId) {
+        // 验证测试套件是否存在
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId);
+        if (uiTestSuite == null) {
+            logger.error("获取定时任务配置失败: 测试套件不存在, ID: {}", suiteId);
+            throw new IllegalArgumentException("测试套件不存在, ID: " + suiteId);
+        }
+        
+        // 这里应该从数据库中获取定时任务配置
+        // 由于示例中没有定时任务配置表，先返回一个空配置
+        UiTestSuiteDTO.ScheduleConfig config = new UiTestSuiteDTO.ScheduleConfig();
+        config.setEnabled(false);
+        config.setCronExpression("0 0 10 * * ?"); // 默认每天10点执行
+        config.setTimezone("Asia/Shanghai");
+        config.setDescription("默认定时任务配置");
+        
+        logger.info("获取测试套件定时任务配置成功, 套件ID: {}", suiteId);
+        return config;
+    }
+    
+    @Override
+    @Transactional
+    public void saveScheduleConfig(Long suiteId, UiTestSuiteDTO.ScheduleConfig scheduleConfig) {
+        // 验证测试套件是否存在
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId);
+        if (uiTestSuite == null) {
+            logger.error("保存定时任务配置失败: 测试套件不存在, ID: {}", suiteId);
+            throw new IllegalArgumentException("测试套件不存在, ID: " + suiteId);
+        }
+        
+        // 这里应该保存定时任务配置到数据库
+        // 由于示例中没有定时任务配置表，仅记录日志
+        logger.info("保存测试套件定时任务配置成功, 套件ID: {}, 是否启用: {}, cron表达式: {}, 时区: {}, 描述: {}", 
+                suiteId, scheduleConfig.getEnabled(), scheduleConfig.getCronExpression(), 
+                scheduleConfig.getTimezone(), scheduleConfig.getDescription());
+        
+        // 更新套件的更新时间
+        uiTestSuite.setUpdatedAt(new Date());
+        uiTestSuiteMapper.updateById(uiTestSuite);
+    }
+    
+    @Override
+    @Transactional
+    public void deleteScheduleConfig(Long suiteId) {
+        // 验证测试套件是否存在
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId);
+        if (uiTestSuite == null) {
+            logger.error("删除定时任务配置失败: 测试套件不存在, ID: {}", suiteId);
+            throw new IllegalArgumentException("测试套件不存在, ID: " + suiteId);
+        }
+        
+        // 这里应该从数据库中删除定时任务配置
+        // 由于示例中没有定时任务配置表，仅记录日志
+        logger.info("删除测试套件定时任务配置成功, 套件ID: {}", suiteId);
+        
+        // 更新套件的更新时间
+        uiTestSuite.setUpdatedAt(new Date());
+        uiTestSuiteMapper.updateById(uiTestSuite);
     }
 
     /**

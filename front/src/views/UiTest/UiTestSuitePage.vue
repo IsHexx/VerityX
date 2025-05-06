@@ -32,7 +32,7 @@
         class="customer-table"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="suiteId" label="ID" min-width="100" />
+        <el-table-column prop="id" label="ID" min-width="100" />
         <el-table-column prop="suiteName" label="套件名称" min-width="150" />
         <el-table-column prop="caseCount" label="用例数量" min-width="100" />
         <el-table-column prop="suiteStatus" label="状态" min-width="120">
@@ -622,7 +622,14 @@ const handleOpenDialog = () => {
 const handleEditTestSuite = async (row) => {
   dialogTitle.value = "编辑套件";
   try {
-    const res = await UiTestSuiteApi.getUiTestSuiteDetail(row.suiteId);
+    // 检查ID是否存在
+    if (!row.id) {
+      ElMessage.error('套件ID不存在');
+      console.error('套件对象缺少ID字段:', row);
+      return;
+    }
+    
+    const res = await UiTestSuiteApi.getUiTestSuiteDetail(row.id);
     if (res.code === 200) {
       Object.assign(testSuiteForm, res.data);
       dialogVisible.value = true;
@@ -630,6 +637,7 @@ const handleEditTestSuite = async (row) => {
       ElMessage.error(res.message || '获取套件详情失败');
     }
   } catch (error) {
+    console.error("获取套件详情失败:", error);
     ElMessage.error("获取套件详情失败");
   }
 };
@@ -637,7 +645,14 @@ const handleEditTestSuite = async (row) => {
 // 删除套件
 const handleDeleteTestSuite = async (row) => {
   try {
-    const res = await UiTestSuiteApi.deleteUiTestSuite(row.suiteId);
+    // 检查ID是否存在
+    if (!row.id) {
+      ElMessage.error('套件ID不存在');
+      console.error('套件对象缺少ID字段:', row);
+      return;
+    }
+    
+    const res = await UiTestSuiteApi.deleteUiTestSuite(row.id);
     if (res.code === 200) {
       ElMessage.success("删除成功");
       await fetchTestSuiteList();
@@ -645,6 +660,7 @@ const handleDeleteTestSuite = async (row) => {
       ElMessage.error(res.message || '删除失败');
     }
   } catch (error) {
+    console.error("删除失败:", error);
     ElMessage.error("删除失败");
   }
 };
@@ -652,7 +668,14 @@ const handleDeleteTestSuite = async (row) => {
 // 执行测试套件
 const handleRunTestSuite = async (row) => {
   try {
-    const res = await UiTestSuiteApi.executeUiTestSuite(row.suiteId);
+    // 检查ID是否存在
+    if (!row.id) {
+      ElMessage.error('套件ID不存在');
+      console.error('套件对象缺少ID字段:', row);
+      return;
+    }
+    
+    const res = await UiTestSuiteApi.executeUiTestSuite(row.id);
     if (res.code === 200) {
       ElMessage.success("执行成功");
       await fetchTestSuiteList();
@@ -660,6 +683,7 @@ const handleRunTestSuite = async (row) => {
       ElMessage.error(res.message || '执行失败');
     }
   } catch (error) {
+    console.error("执行失败:", error);
     ElMessage.error("执行失败");
   }
 };
@@ -672,11 +696,19 @@ const onSubmit = async () => {
   }
 
   try {
+    // 确保projectId为数字类型
+    if (testSuiteForm.projectId && typeof testSuiteForm.projectId === 'string') {
+      testSuiteForm.projectId = parseInt(testSuiteForm.projectId);
+    }
+    
     const data = { ...testSuiteForm };
     let res;
+    
     if (testSuiteForm.id) {
+      console.log(`更新套件，ID: ${testSuiteForm.id}，表单数据:`, data);
       res = await UiTestSuiteApi.updateUiTestSuite(testSuiteForm.id, data);
     } else {
+      console.log(`创建套件，表单数据:`, data);
       res = await UiTestSuiteApi.createUiTestSuite(data);
     }
 
@@ -688,6 +720,7 @@ const onSubmit = async () => {
       ElMessage.error(res.message || '操作失败');
     }
   } catch (error) {
+    console.error("表单提交失败:", error);
     ElMessage.error("操作失败");
   }
 };
@@ -729,11 +762,18 @@ const handleAddTestSuite = () => {
 
 // 管理测试用例
 const handleManageCases = async (row) => {
-  currentSuiteId.value = row.suiteId;
+  // 检查ID是否存在
+  if (!row.id) {
+    ElMessage.error('套件ID不存在');
+    console.error('套件对象缺少ID字段:', row);
+    return;
+  }
+  
+  currentSuiteId.value = row.id;
   caseLoading.value = true;
   try {
     // 获取已添加的用例
-    const addedRes = await UiTestSuiteApi.getSuiteCases(row.suiteId);
+    const addedRes = await UiTestSuiteApi.getSuiteCases(row.id);
     if (addedRes.code === 200) {
       addedCases.value = addedRes.data || [];
     } else {
@@ -745,7 +785,7 @@ const handleManageCases = async (row) => {
       page: 1,
       pageSize: 100,
       filter: 'not_in_suite',
-      suiteId: row.suiteId
+      suiteId: row.id
     });
     if (availableRes.code === 200) {
       availableCases.value = availableRes.data.list || [];
@@ -755,8 +795,8 @@ const handleManageCases = async (row) => {
     
     casesDialogVisible.value = true;
   } catch (error) {
+    console.error("获取用例数据失败:", error);
     ElMessage.error("获取用例数据失败");
-    console.error(error);
   } finally {
     caseLoading.value = false;
   }
@@ -905,17 +945,24 @@ const getPriorityTagType = (priority) => {
 // 编辑套件并发配置
 const handleConcurrencyConfig = async (row) => {
   try {
+    // 检查ID是否存在
+    if (!row.id) {
+      ElMessage.error('套件ID不存在');
+      console.error('套件对象缺少ID字段:', row);
+      return;
+    }
+    
     resetConcurrencyForm();
-    concurrencyForm.suiteId = row.suiteId;
+    concurrencyForm.suiteId = row.id;
     
     // 获取套件详情以获取当前的并发配置
-    const res = await UiTestSuiteApi.getUiTestSuiteDetail(row.suiteId);
+    const res = await UiTestSuiteApi.getUiTestSuiteDetail(row.id);
     if (res.code === 200) {
       // 更新基本的并发级别
       concurrencyForm.concurrencyLevel = res.data.concurrencyLevel || "1";
       
       // 获取高级并发配置
-      const concurrencyRes = await UiTestSuiteApi.updateConcurrencyConfig(row.suiteId, {});
+      const concurrencyRes = await UiTestSuiteApi.updateConcurrencyConfig(row.id, {});
       if (concurrencyRes.code === 200 && concurrencyRes.data) {
         // 填充高级配置
         const config = concurrencyRes.data;
@@ -1014,99 +1061,59 @@ const getNextExecutionTime = () => {
 // 编辑定时任务设置
 const handleScheduleConfig = async (row) => {
   try {
-    resetScheduleForm();
-    scheduleForm.suiteId = row.suiteId;
+    // 检查ID是否存在
+    if (!row.id) {
+      ElMessage.error('套件ID不存在');
+      console.error('套件对象缺少ID字段:', row);
+      return;
+    }
     
-    // 获取现有定时任务配置
-    const res = await UiTestSuiteApi.getScheduleConfig(row.suiteId);
+    resetScheduleForm();
+    scheduleForm.suiteId = row.id;
+    
+    // 获取当前定时任务配置
+    const res = await UiTestSuiteApi.getScheduleConfig(row.id);
     if (res.code === 200 && res.data) {
-      // 填充配置
+      // 填充表单
       const config = res.data;
-      scheduleForm.id = config.id || "";
-      scheduleForm.enabled = config.enabled || false;
-      scheduleForm.name = config.name || `${row.suiteName} 定时任务`;
-      
-      if (config.frequency) {
-        scheduleForm.frequency = config.frequency;
-        
-        // 根据不同频率设置相应字段
-        if (config.frequency === 'daily' && config.dailyTime) {
-          scheduleForm.dailyTime = new Date(config.dailyTime);
-        } else if (config.frequency === 'weekly' && config.weekDay) {
-          scheduleForm.weekDay = config.weekDay;
-        } else if (config.frequency === 'monthly' && config.monthDay) {
-          scheduleForm.monthDay = config.monthDay;
-        } else if (config.frequency === 'custom' && config.cronExpression) {
-          scheduleForm.cronExpression = config.cronExpression;
+      Object.keys(config).forEach(key => {
+        if (key in scheduleForm && config[key] !== null) {
+          scheduleForm[key] = config[key];
         }
-      }
+      });
       
-      if (config.environment) scheduleForm.environment = config.environment;
-      if (config.timeout) scheduleForm.timeout = config.timeout;
-      if (config.notifications) scheduleForm.notifications = config.notifications;
-      if (config.emailRecipients) scheduleForm.emailRecipients = config.emailRecipients;
-    } else {
-      // 如果没有现有配置，设置默认值
-      scheduleForm.name = `${row.suiteName} 定时任务`;
+      // 特殊处理日期时间
+      if (config.dailyTime) {
+        scheduleForm.dailyTime = new Date(config.dailyTime);
+      }
     }
     
     scheduleDialogVisible.value = true;
   } catch (error) {
+    console.error("获取定时任务配置失败:", error);
     ElMessage.error("获取定时任务配置失败");
-    console.error(error);
   }
 };
 
 // 保存定时任务配置
 const saveScheduleConfig = async () => {
   try {
-    // 验证表单
-    if (scheduleForm.enabled) {
-      if (!scheduleForm.name) {
-        ElMessage.warning("请输入任务名称");
-        return;
-      }
-      
-      if (scheduleForm.frequency === 'custom' && !scheduleForm.cronExpression) {
-        ElMessage.warning("请输入Cron表达式");
-        return;
-      }
-      
-      if (scheduleForm.notifications.includes('email') && !scheduleForm.emailRecipients) {
-        ElMessage.warning("请输入邮件接收人");
-        return;
-      }
+    // 确保suiteId存在
+    if (!scheduleForm.suiteId) {
+      ElMessage.error('套件ID不存在');
+      return;
     }
     
-    // 构建配置数据
-    const configData = {
-      suiteId: scheduleForm.suiteId,
-      enabled: scheduleForm.enabled,
-      name: scheduleForm.name,
-      frequency: scheduleForm.frequency
-    };
+    const data = { ...scheduleForm };
     
-    // 根据频率类型添加不同的参数
-    if (scheduleForm.frequency === 'daily') {
-      configData.dailyTime = scheduleForm.dailyTime;
-    } else if (scheduleForm.frequency === 'weekly') {
-      configData.weekDay = scheduleForm.weekDay;
-    } else if (scheduleForm.frequency === 'monthly') {
-      configData.monthDay = scheduleForm.monthDay;
-    } else if (scheduleForm.frequency === 'custom') {
-      configData.cronExpression = scheduleForm.cronExpression;
+    // 特殊处理日期时间
+    if (data.dailyTime instanceof Date) {
+      const hours = data.dailyTime.getHours();
+      const minutes = data.dailyTime.getMinutes();
+      data.timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     }
     
-    configData.environment = scheduleForm.environment;
-    configData.timeout = scheduleForm.timeout;
-    configData.notifications = scheduleForm.notifications;
-    
-    if (scheduleForm.notifications.includes('email')) {
-      configData.emailRecipients = scheduleForm.emailRecipients;
-    }
-    
-    // 保存配置
-    const res = await UiTestSuiteApi.saveScheduleConfig(scheduleForm.suiteId, configData);
+    const res = await UiTestSuiteApi.saveScheduleConfig(scheduleForm.suiteId, data);
     if (res.code === 200) {
       ElMessage.success("定时任务配置保存成功");
       scheduleDialogVisible.value = false;
@@ -1115,8 +1122,8 @@ const saveScheduleConfig = async () => {
       ElMessage.error(res.message || '保存定时任务配置失败');
     }
   } catch (error) {
+    console.error("保存定时任务配置失败:", error);
     ElMessage.error("保存定时任务配置失败");
-    console.error(error);
   }
 };
 

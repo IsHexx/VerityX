@@ -279,13 +279,10 @@ const validateLocator = async () => {
     const data = {
       locatorType: elementForm.locatorType,
       locatorValue: elementForm.locatorValue,
-      pageUrl: elementForm.pageUrl
+      url: elementForm.pageUrl
     };
     
-    // 这里实际上需要调用后端API进行验证
-    // 由于现在只实现前端，我们使用模拟数据
-    
-    /*
+    // 调用后端API进行验证
     const res = await UiElementLocatorApi.validateLocator(data);
     if (res.code === 200) {
       emit('validation-result', true, res.data);
@@ -294,28 +291,6 @@ const validateLocator = async () => {
       emit('validation-result', false, res.message);
       ElMessage.error(res.message || '验证失败');
     }
-    */
-    
-    // 模拟验证结果
-    const success = Math.random() > 0.3; // 70%的概率验证成功
-    if (success) {
-      emit('validation-result', true, {
-        found: true,
-        elementInfo: {
-          tagName: 'div',
-          attributes: {
-            class: 'el-button__content',
-            id: 'btn-submit'
-          },
-          text: '提交'
-        }
-      });
-      ElMessage.success('定位器验证成功');
-    } else {
-      emit('validation-result', false, '未找到匹配的元素，请检查定位器语法或值');
-      ElMessage.error('验证失败: 未找到匹配的元素，请检查定位器语法或值');
-    }
-    
   } catch (error) {
     emit('validation-result', false, error.message);
     ElMessage.error('验证过程发生错误');
@@ -332,10 +307,12 @@ const submitForm = async () => {
       try {
         const formData = { ...elementForm };
         
-        // 这里实际上需要调用后端API保存数据
-        // 由于现在只实现前端，我们使用模拟数据
+        // 处理groupId格式，如果是数组则取最后一个值（级联选择器返回路径数组）
+        if (Array.isArray(formData.groupId)) {
+          formData.groupId = formData.groupId[formData.groupId.length - 1];
+        }
         
-        /*
+        // 调用后端API保存数据
         let res;
         if (props.isEdit) {
           res = await UiElementLocatorApi.updateElement(formData.elementId, formData);
@@ -350,20 +327,6 @@ const submitForm = async () => {
         } else {
           ElMessage.error(res.message || '操作失败');
         }
-        */
-        
-        // 模拟保存成功
-        setTimeout(() => {
-          if (!props.isEdit) {
-            // 模拟生成ID
-            formData.elementId = 'EL' + Math.floor(Math.random() * 10000);
-          }
-          
-          ElMessage.success(props.isEdit ? '更新成功' : '创建成功');
-          dialogVisible.value = false;
-          emit('submit', formData);
-        }, 500);
-        
       } catch (error) {
         ElMessage.error('操作失败');
         console.error('保存元素出错:', error);

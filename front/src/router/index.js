@@ -18,6 +18,14 @@ import UiTestExecutionPage from '@/views/UiTest/UiTestExecutionPage.vue';
 import UiTestReportPage from '@/views/UiTest/UiTestReportPage.vue';
 import UiTestConfigPage from '@/views/UiTest/UiTestConfigPage.vue';
 
+// 系统设置页面
+import UserPermissionPage from '@/views/SystemSettings/UserPermissionPage.vue';
+import SystemParamsPage from '@/views/SystemSettings/SystemParamsPage.vue';
+import IntegrationPage from '@/views/SystemSettings/IntegrationPage.vue';
+import NotificationCenterPage from '@/views/SystemSettings/NotificationCenterPage.vue';
+import SystemMonitorPage from '@/views/SystemSettings/SystemMonitorPage.vue';
+import SystemInfoPage from '@/views/SystemSettings/SystemInfoPage.vue';
+
 // 预加载关键组件，提高性能
 const UserLogin = () => import(/* webpackChunkName: "user" */ '@/components/UserLogin.vue')
 
@@ -131,6 +139,43 @@ const routes = [
     path: '/uitestconfig',
     name: 'UiTestConfig',
     component: UiTestConfigPage,
+    meta: { requiresMenu: true }
+  },
+  // 系统设置路由
+  {
+    path: '/settings/user-permission',
+    name: 'UserPermission',
+    component: UserPermissionPage,
+    meta: { requiresMenu: true }
+  },
+  {
+    path: '/settings/system-params',
+    name: 'SystemParams',
+    component: SystemParamsPage,
+    meta: { requiresMenu: true }
+  },
+  {
+    path: '/settings/integration',
+    name: 'Integration',
+    component: IntegrationPage,
+    meta: { requiresMenu: true }
+  },
+  {
+    path: '/settings/notification',
+    name: 'NotificationCenter',
+    component: NotificationCenterPage,
+    meta: { requiresMenu: true }
+  },
+  {
+    path: '/settings/monitor',
+    name: 'SystemMonitor',
+    component: SystemMonitorPage,
+    meta: { requiresMenu: true }
+  },
+  {
+    path: '/settings/system-info',
+    name: 'SystemInfo',
+    component: SystemInfoPage,
     meta: { requiresMenu: true }
   },
 ];

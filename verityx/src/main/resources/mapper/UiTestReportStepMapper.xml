@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiTestReportStepMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="UiTestReportStepMap" type="com.example.verityx.entity.UiTestReportStep">
+        <id property="id" column="id"/>
+        <result property="reportDetailId" column="report_detail_id"/>
+        <result property="stepIndex" column="step_index"/>
+        <result property="stepName" column="step_name"/>
+        <result property="actionType" column="action_type"/>
+        <result property="target" column="target"/>
+        <result property="inputValue" column="input_value"/>
+        <result property="expectedResult" column="expected_result"/>
+        <result property="actualResult" column="actual_result"/>
+        <result property="status" column="status"/>
+        <result property="duration" column="duration"/>
+        <result property="screenshotBefore" column="screenshot_before"/>
+        <result property="screenshotAfter" column="screenshot_after"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="executedAt" column="executed_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <!-- 所有字段 -->
+    <sql id="Base_Column_List">
+        id, report_detail_id, step_index, step_name, action_type, 
+        target, input_value, expected_result, actual_result, status, 
+        duration, screenshot_before, screenshot_after, error_message, 
+        executed_at, created_at, updated_at
+    </sql>
+    
+    <!-- 插入报告步骤 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.UiTestReportStep" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_report_step(
+            report_detail_id, step_index, step_name, action_type, 
+            target, input_value, expected_result, actual_result, status, 
+            duration, screenshot_before, screenshot_after, error_message, 
+            executed_at, created_at, updated_at
+        ) VALUES (
+            #{reportDetailId}, #{stepIndex}, #{stepName}, #{actionType}, 
+            #{target}, #{inputValue}, #{expectedResult}, #{actualResult}, #{status}, 
+            #{duration}, #{screenshotBefore}, #{screenshotAfter}, #{errorMessage}, 
+            #{executedAt}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+    
+    <!-- 批量插入报告步骤 -->
+    <insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_report_step(
+            report_detail_id, step_index, step_name, action_type, 
+            target, input_value, expected_result, actual_result, status, 
+            duration, screenshot_before, screenshot_after, error_message, 
+            executed_at, created_at, updated_at
+        ) VALUES 
+        <foreach collection="steps" item="step" separator=",">
+            (
+            #{step.reportDetailId}, #{step.stepIndex}, #{step.stepName}, #{step.actionType}, 
+            #{step.target}, #{step.inputValue}, #{step.expectedResult}, #{step.actualResult}, #{step.status}, 
+            #{step.duration}, #{step.screenshotBefore}, #{step.screenshotAfter}, #{step.errorMessage}, 
+            #{step.executedAt}, #{step.createdAt}, #{step.updatedAt}
+            )
+        </foreach>
+    </insert>
+    
+    <!-- 根据ID查询报告步骤 -->
+    <select id="selectById" resultMap="UiTestReportStepMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_report_step
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据报告详情ID查询报告步骤列表 -->
+    <select id="selectByReportDetailId" resultMap="UiTestReportStepMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_report_step
+        WHERE report_detail_id = #{reportDetailId}
+        ORDER BY step_index ASC
+    </select>
+    
+    <!-- 根据报告详情ID和步骤索引查询报告步骤 -->
+    <select id="selectByReportDetailIdAndStepIndex" resultMap="UiTestReportStepMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_report_step
+        WHERE report_detail_id = #{reportDetailId} AND step_index = #{stepIndex}
+    </select>
+    
+    <!-- 更新报告步骤 -->
+    <update id="update" parameterType="com.example.verityx.entity.UiTestReportStep">
+        UPDATE ui_test_report_step
+        <set>
+            <if test="stepName != null">step_name = #{stepName},</if>
+            <if test="actionType != null">action_type = #{actionType},</if>
+            <if test="target != null">target = #{target},</if>
+            <if test="inputValue != null">input_value = #{inputValue},</if>
+            <if test="expectedResult != null">expected_result = #{expectedResult},</if>
+            <if test="actualResult != null">actual_result = #{actualResult},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="screenshotBefore != null">screenshot_before = #{screenshotBefore},</if>
+            <if test="screenshotAfter != null">screenshot_after = #{screenshotAfter},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            <if test="executedAt != null">executed_at = #{executedAt},</if>
+            updated_at = #{updatedAt}
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除报告步骤 -->
+    <delete id="deleteById">
+        DELETE FROM ui_test_report_step WHERE id = #{id}
+    </delete>
+    
+    <!-- 根据报告详情ID删除报告步骤 -->
+    <delete id="deleteByReportDetailId">
+        DELETE FROM ui_test_report_step WHERE report_detail_id = #{reportDetailId}
+    </delete>
+    
+    <!-- 根据报告ID删除报告步骤 -->
+    <delete id="deleteByReportId">
+        DELETE FROM ui_test_report_step 
+        WHERE report_detail_id IN (
+            SELECT id FROM ui_test_report_detail WHERE report_id = #{reportId}
+        )
+    </delete>
+</mapper> 

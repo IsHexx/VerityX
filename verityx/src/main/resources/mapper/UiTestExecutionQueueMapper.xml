@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiTestExecutionQueueMapper">
+    
+    <!-- 执行队列结果映射 -->
+    <resultMap id="UiTestExecutionQueueMap" type="com.example.verityx.entity.UiTestExecutionQueue">
+        <id property="id" column="id"/>
+        <result property="executionId" column="execution_id"/>
+        <result property="priority" column="priority"/>
+        <result property="status" column="status"/>
+        <result property="queueTime" column="queue_time"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="workerId" column="worker_id"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <!-- 公共列 -->
+    <sql id="Base_Column_List">
+        id, execution_id, priority, status, queue_time, start_time, end_time, worker_id, created_at, updated_at
+    </sql>
+    
+    <!-- 插入一条执行队列记录 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.UiTestExecutionQueue" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_execution_queue(
+            execution_id, priority, status, queue_time, start_time, end_time, worker_id
+        ) VALUES (
+            #{executionId}, #{priority}, #{status}, #{queueTime}, #{startTime}, #{endTime}, #{workerId}
+        )
+    </insert>
+    
+    <!-- 根据ID查询队列记录 -->
+    <select id="selectById" resultMap="UiTestExecutionQueueMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_queue
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据执行ID查询队列记录 -->
+    <select id="selectByExecutionId" resultMap="UiTestExecutionQueueMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_queue
+        WHERE execution_id = #{executionId}
+    </select>
+    
+    <!-- 更新执行队列记录 -->
+    <update id="update" parameterType="com.example.verityx.entity.UiTestExecutionQueue">
+        UPDATE ui_test_execution_queue
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="workerId != null">worker_id = #{workerId},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 更新执行队列状态 -->
+    <update id="updateStatus">
+        UPDATE ui_test_execution_queue
+        SET status = #{status},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 获取下一个等待执行的队列记录 -->
+    <select id="selectNextWaiting" resultMap="UiTestExecutionQueueMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_queue
+        WHERE status = 'waiting'
+        ORDER BY priority DESC, queue_time ASC
+        LIMIT 1
+    </select>
+    
+    <!-- 查询所有等待执行的队列记录 -->
+    <select id="selectAllWaiting" resultMap="UiTestExecutionQueueMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_queue
+        WHERE status = 'waiting'
+        ORDER BY priority DESC, queue_time ASC
+    </select>
+    
+    <!-- 查询所有正在处理的队列记录 -->
+    <select id="selectAllProcessing" resultMap="UiTestExecutionQueueMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_queue
+        WHERE status = 'processing'
+        ORDER BY start_time ASC
+    </select>
+    
+    <!-- 分页查询队列记录 -->
+    <select id="selectByPage" resultMap="UiTestExecutionQueueMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM ui_test_execution_queue
+        <where>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY
+        <choose>
+            <when test="status == 'waiting'">priority DESC, queue_time ASC</when>
+            <when test="status == 'processing'">start_time ASC</when>
+            <otherwise>queue_time DESC</otherwise>
+        </choose>
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 查询队列记录总数 -->
+    <select id="countByStatus" resultType="int">
+        SELECT COUNT(*)
+        FROM ui_test_execution_queue
+        <where>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 删除队列记录 -->
+    <delete id="deleteById">
+        DELETE FROM ui_test_execution_queue
+        WHERE id = #{id}
+    </delete>
+    
+    <!-- 根据执行ID删除队列记录 -->
+    <delete id="deleteByExecutionId">
+        DELETE FROM ui_test_execution_queue
+        WHERE execution_id = #{executionId}
+    </delete>
+    
+</mapper> 

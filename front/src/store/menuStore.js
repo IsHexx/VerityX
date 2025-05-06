@@ -50,8 +50,15 @@ export const useMenuStore = () => {
       index: '4',
       icon: 'Setting',
       title: '系统设置',
-      route: '/settings',
-      subMenus: []
+      route: '/settings/user-permission',
+      subMenus: [
+        { index: '4-1', title: '用户与权限管理', route: '/settings/user-permission' },
+        { index: '4-2', title: '系统参数配置', route: '/settings/system-params' },
+        { index: '4-3', title: '集成管理', route: '/settings/integration' },
+        { index: '4-4', title: '通知中心', route: '/settings/notification' },
+        { index: '4-5', title: '系统监控与维护', route: '/settings/monitor' },
+        { index: '4-6', title: '系统信息', route: '/settings/system-info' }
+      ]
     },
     {
       index: '5',

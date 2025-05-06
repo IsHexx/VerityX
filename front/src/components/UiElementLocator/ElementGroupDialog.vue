@@ -249,11 +249,10 @@ const handleDeleteGroup = (node, data) => {
     }
   ).then(async () => {
     try {
-      // 实际使用中需要调用API删除分组
-      // const res = await UiElementLocatorApi.deleteElementGroup(data.id);
+      // 调用API删除分组
+      const res = await UiElementLocatorApi.deleteElementGroup(data.id);
       
-      // 模拟删除成功
-      setTimeout(() => {
+      if (res.code === 200) {
         // 从父节点的children中删除
         const parent = node.parent;
         const children = parent.data.children || parent.data;
@@ -269,7 +268,9 @@ const handleDeleteGroup = (node, data) => {
         if (currentGroup.value && currentGroup.value.id === data.id) {
           currentGroup.value = null;
         }
-      }, 300);
+      } else {
+        ElMessage.error(res.message || '删除分组失败');
+      }
     } catch (error) {
       ElMessage.error('删除分组失败');
       console.error('删除分组出错:', error);
@@ -303,87 +304,60 @@ const submitGroupForm = async () => {
   groupFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        // 实际使用中需要调用API保存分组
-        /*
+        // 调用API保存分组
         let res;
         if (isEditGroup.value) {
-          res = await UiElementLocatorApi.updateElementGroup(groupForm.id, groupForm);
-        } else {
-          res = await UiElementLocatorApi.createElementGroup(groupForm);
-        }
-        */
-        
-        // 模拟保存成功
-        setTimeout(() => {
-          // 创建新分组对象
-          const newGroup = {
-            id: isEditGroup.value ? groupForm.id : 'g' + Math.floor(Math.random() * 10000),
-            label: groupForm.name,
+          const requestData = {
+            groupId: groupForm.id,
+            groupName: groupForm.name,
             description: groupForm.description,
-            parentId: groupForm.parentId,
-            children: []
+            parentId: groupForm.parentId
           };
+          res = await UiElementLocatorApi.updateElementGroup(groupForm.id, requestData);
+        } else {
+          const requestData = {
+            groupName: groupForm.name,
+            description: groupForm.description,
+            parentId: groupForm.parentId
+          };
+          res = await UiElementLocatorApi.createElementGroup(requestData);
+        }
+        
+        if (res.code === 200) {
+          ElMessage.success(isEditGroup.value ? '编辑成功' : '创建成功');
           
-          if (isEditGroup.value) {
-            // 递归查找并更新分组
-            const updateGroup = (groups, id, newData) => {
-              for (let i = 0; i < groups.length; i++) {
-                if (groups[i].id === id) {
-                  groups[i].label = newData.label;
-                  groups[i].description = newData.description;
-                  return true;
-                }
-                if (groups[i].children && groups[i].children.length > 0) {
-                  if (updateGroup(groups[i].children, id, newData)) {
-                    return true;
-                  }
-                }
-              }
-              return false;
-            };
+          // 刷新分组列表
+          const newGroupsRes = await UiElementLocatorApi.getElementGroups();
+          if (newGroupsRes.code === 200) {
+            // 深拷贝并转换API返回的分组数据
+            const formattedGroups = newGroupsRes.data.map(group => ({
+              id: group.id,
+              label: group.groupName,
+              description: group.description,
+              parentId: group.parentId,
+              children: group.subGroups ? group.subGroups.map(sub => ({
+                id: sub.id,
+                label: sub.groupName,
+                description: sub.description,
+                parentId: sub.parentId,
+                children: []
+              })) : []
+            }));
             
-            updateGroup(groupData.value, groupForm.id, newGroup);
-          } else {
-            // 添加新分组
-            if (groupForm.parentId) {
-              // 递归查找父分组并添加子分组
-              const addChildGroup = (groups, parentId, newChild) => {
-                for (let i = 0; i < groups.length; i++) {
-                  if (groups[i].id === parentId) {
-                    if (!groups[i].children) {
-                      groups[i].children = [];
-                    }
-                    groups[i].children.push(newChild);
-                    return true;
-                  }
-                  if (groups[i].children && groups[i].children.length > 0) {
-                    if (addChildGroup(groups[i].children, parentId, newChild)) {
-                      return true;
-                    }
-                  }
-                }
-                return false;
-              };
-              
-              addChildGroup(groupData.value, groupForm.parentId, newGroup);
-            } else {
-              // 添加根分组
-              groupData.value.push(newGroup);
-            }
+            groupData.value = formattedGroups;
+            emit('groups-updated', groupData.value);
           }
           
-          ElMessage.success(isEditGroup.value ? '更新成功' : '创建成功');
-          emit('groups-updated', groupData.value);
+          // 关闭表单，重置数据
           showGroupForm.value = false;
           resetGroupForm();
-        }, 300);
-        
+        } else {
+          ElMessage.error(res.message || (isEditGroup.value ? '编辑失败' : '创建失败'));
+        }
       } catch (error) {
-        ElMessage.error('操作失败');
+        ElMessage.error(isEditGroup.value ? '编辑分组失败' : '创建分组失败');
         console.error('保存分组出错:', error);
       }
-    } else {
-      return false;
     }
   });
 };

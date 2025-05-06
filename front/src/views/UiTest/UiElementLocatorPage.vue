@@ -264,9 +264,7 @@ const fetchElementList = async (tabName = activeTab.value, page = pagination.pag
     
     console.log("请求参数:", params);
     
-    // 使用模拟数据进行前端开发
-    // 实际实现时取消注释下面的代码
-    /*
+    // 调用后端API获取数据
     const res = await UiElementLocatorApi.getElementList(params);
     if (res.code === 200) {
       elementData.value = res.data.list;
@@ -274,16 +272,7 @@ const fetchElementList = async (tabName = activeTab.value, page = pagination.pag
     } else {
       ElMessage.error(res.message || '获取元素列表失败');
     }
-    */
-    
-    // 模拟数据
-    setTimeout(() => {
-      const mockData = generateMockData(10);
-      elementData.value = mockData;
-      total.value = 100;
-      loading.value = false;
-    }, 500);
-    
+    loading.value = false;
   } catch (error) {
     ElMessage.error("获取元素列表失败");
     console.error("获取元素列表失败:", error);
@@ -294,9 +283,7 @@ const fetchElementList = async (tabName = activeTab.value, page = pagination.pag
 // 获取元素分组
 const fetchElementGroups = async () => {
   try {
-    // 使用模拟数据进行前端开发
-    // 实际实现时取消注释下面的代码
-    /*
+    // 调用后端API获取分组数据
     const res = await UiElementLocatorApi.getElementGroups();
     if (res.code === 200) {
       // 构建树形结构
@@ -309,13 +296,14 @@ const fetchElementGroups = async () => {
         }
       ];
       
+      // 将API返回的分组数据转换为树形结构
       groups.forEach(group => {
         treeData[0].children.push({
           id: group.id,
-          label: group.name,
+          label: group.groupName,
           children: group.subGroups ? group.subGroups.map(sub => ({
             id: sub.id,
-            label: sub.name
+            label: sub.groupName
           })) : []
         });
       });
@@ -324,48 +312,6 @@ const fetchElementGroups = async () => {
     } else {
       ElMessage.error(res.message || '获取元素分组失败');
     }
-    */
-    
-    // 模拟数据
-    const mockGroups = [
-      {
-        id: 'g1',
-        label: '登录页面',
-        children: [
-          { id: 'g1-1', label: '登录表单' },
-          { id: 'g1-2', label: '验证码' }
-        ]
-      },
-      {
-        id: 'g2',
-        label: '首页',
-        children: [
-          { id: 'g2-1', label: '导航栏' },
-          { id: 'g2-2', label: '轮播图' },
-          { id: 'g2-3', label: '底部' }
-        ]
-      },
-      {
-        id: 'g3',
-        label: '用户中心',
-        children: [
-          { id: 'g3-1', label: '个人信息' },
-          { id: 'g3-2', label: '安全设置' }
-        ]
-      },
-      {
-        id: 'g4',
-        label: '通用元素',
-        children: [
-          { id: 'g4-1', label: '按钮' },
-          { id: 'g4-2', label: '输入框' },
-          { id: 'g4-3', label: '下拉菜单' }
-        ]
-      }
-    ];
-    
-    groupTreeData.value[0].children = mockGroups;
-    
   } catch (error) {
     ElMessage.error("获取元素分组失败");
     console.error("获取元素分组失败:", error);
@@ -465,9 +411,7 @@ const handleViewScreenshot = (row) => {
 };
 
 // 删除元素
-const handleDeleteElement = (row) => {
-  // 实际实现时应调用API
-  /*
+const handleDeleteElement = async (row) => {
   try {
     const res = await UiElementLocatorApi.deleteElement(row.elementId);
     if (res.code === 200) {
@@ -480,20 +424,11 @@ const handleDeleteElement = (row) => {
     ElMessage.error("删除失败");
     console.error(error);
   }
-  */
-  
-  // 模拟删除成功
-  setTimeout(() => {
-    ElMessage.success("删除成功");
-    // 从当前列表中移除
-    elementData.value = elementData.value.filter(item => item.elementId !== row.elementId);
-  }, 300);
 };
 
 // 处理元素提交结果
 const handleElementSubmit = (formData) => {
-  // 实际实现时会由API返回结果
-  // 模拟保存成功后刷新列表
+  // 表单提交后刷新列表
   fetchElementList();
 };
 
@@ -511,26 +446,6 @@ const handleValidationSuccess = (data) => {
 const handleGroupsUpdated = (groups) => {
   // 更新分组树
   groupTreeData.value[0].children = groups;
-};
-
-// 生成模拟数据
-const generateMockData = (count) => {
-  const locatorTypes = ["ID", "CSS", "XPath", "Name", "ClassName", "LinkText", "TagName", "AccessibilityId"];
-  const groupNames = ["登录页面", "首页", "用户中心", "通用元素"];
-  
-  return Array.from({ length: count }, (_, i) => ({
-    elementId: `EL${1000 + i}`,
-    elementName: `测试元素 ${i + 1}`,
-    groupName: groupNames[Math.floor(Math.random() * groupNames.length)],
-    locatorType: locatorTypes[Math.floor(Math.random() * locatorTypes.length)],
-    locatorValue: i % 2 === 0 ? 
-      `//*[@id="app"]/div[1]/div[${i + 1}]/ul/li[${i + 1}]` : 
-      `#app .container .item-${i + 1} > button.action`,
-    pageUrl: `https://example.com/page${i + 1}`,
-    createdBy: "测试用户",
-    createdAt: new Date().toLocaleString(),
-    hasScreenshot: i % 3 === 0
-  }));
 };
 
 // 组件挂载时获取数据

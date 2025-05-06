@@ -26,41 +26,56 @@ export const UiTestExecutionApi = {
       cleanParams.endTime = params.endTime;
     }
   
-    return http.get('/api/ui-test-execution/list', cleanParams);
+    return http.get('/api/ui-test-executions/list', cleanParams);
   },
   
   // 获取测试执行详情
   getExecutionDetail: (id) => {
-    return http.get(`/api/ui-test-execution/${id}`);
+    return http.get(`/api/ui-test-executions/${id}`);
+  },
+  
+  // 获取执行步骤
+  getExecutionSteps: (id) => {
+    return http.get(`/api/ui-test-executions/details/${id}/steps`);
   },
   
   // 启动测试执行
   startExecution: (data) => {
-    return http.post('/api/ui-test-execution/start', data);
+    return http.post('/api/ui-test-executions/create', data);
   },
   
   // 停止测试执行
   stopExecution: (id) => {
-    return http.post(`/api/ui-test-execution/${id}/stop`);
+    return http.post(`/api/ui-test-executions/${id}/abort`);
   },
   
   // 重新执行测试
   rerunExecution: (id, data) => {
-    return http.post(`/api/ui-test-execution/${id}/rerun`, data);
+    const params = data || {};
+    return http.post(`/api/ui-test-executions/${id}/start`, params);
   },
   
   // 获取执行日志
   getExecutionLogs: (id, params) => {
-    return http.get(`/api/ui-test-execution/${id}/logs`, { params });
+    return http.get(`/api/ui-test-executions/${id}/logs`, params ? { params } : {});
   },
   
   // 获取执行队列
-  getExecutionQueue: () => {
-    return http.get('/api/ui-test-execution/queue');
+  getExecutionQueue: (params = { page: 1, pageSize: 10 }) => {
+    const cleanParams = {
+      page: params.page || 1,
+      pageSize: params.pageSize || 10
+    };
+    
+    if (params.status) {
+      cleanParams.status = params.status;
+    }
+    
+    return http.get('/api/ui-test-executions/queue', cleanParams);
   },
   
   // 获取可用的执行环境
   getExecutionEnvironments: () => {
-    return http.get('/api/ui-test-execution/environments');
+    return http.get('/api/ui-test-executions/environments');
   }
 }; 

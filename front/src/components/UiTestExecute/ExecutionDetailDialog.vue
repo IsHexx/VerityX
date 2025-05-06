@@ -261,31 +261,29 @@ const fetchExecutionDetail = async () => {
   
   loading.value = true;
   try {
-    // 模拟获取数据
-    setTimeout(() => {
-      execution.value = generateMockExecutionDetail(props.executionId);
-      steps.value = generateMockSteps(execution.value);
-      failures.value = steps.value.filter(step => step.status === '失败').map(step => ({
-        step: step.step,
-        description: step.description,
-        message: `无法找到元素: ${step.elementLocator}`,
-        trace: `ElementNotFoundException: 无法找到元素 ${step.elementLocator}\n  at StepExecutor.execute (StepExecutor.java:102)\n  at TestCaseRunner.runStep (TestCaseRunner.java:85)\n  at TestCaseRunner.run (TestCaseRunner.java:45)`,
-        screenshot: step.hasScreenshot ? `/api/ui-test-execution/${props.executionId}/steps/${step.step}/screenshot` : null
-      }));
-      loading.value = false;
-    }, 600);
-    
-    // 实际实现时使用API调用
-    /*
     const res = await UiTestExecutionApi.getExecutionDetail(props.executionId);
     if (res.code === 200) {
       execution.value = res.data;
-      steps.value = res.data.steps || [];
-      failures.value = res.data.failures || [];
+      
+      // 获取执行步骤
+      const stepsRes = await UiTestExecutionApi.getExecutionSteps(props.executionId);
+      if (stepsRes.code === 200) {
+        steps.value = stepsRes.data;
+        
+        // 提取失败步骤作为失败详情
+        failures.value = steps.value
+          .filter(step => step.status === '失败')
+          .map(step => ({
+            step: step.stepIndex || step.step,
+            description: step.stepName || step.description,
+            message: step.errorMessage || '执行失败',
+            trace: step.errorTrace || '',
+            screenshot: step.screenshotPath || null
+          }));
+      }
     } else {
       ElMessage.error(res.message || '获取执行详情失败');
     }
-    */
   } catch (error) {
     ElMessage.error("获取执行详情失败");
     console.error("获取执行详情失败:", error);
@@ -297,11 +295,8 @@ const fetchExecutionDetail = async () => {
 // 查看步骤截图
 const viewStepScreenshot = (step) => {
   currentStep.value = step;
-  currentScreenshot.value = `/api/ui-test-execution/${props.executionId}/steps/${step.step}/screenshot`;
+  currentScreenshot.value = step.screenshotPath || `/api/ui-test-execution/${props.executionId}/steps/${step.stepIndex || step.step}/screenshot`;
   screenshotVisible.value = true;
-  
-  // 模拟截图URL
-  currentScreenshot.value = 'https://placekitten.com/800/600';
 };
 
 // 查看执行日志
@@ -314,152 +309,6 @@ const viewExecutionLogs = () => {
 const rerunExecution = () => {
   emit('rerun', execution.value);
   dialogVisible.value = false;
-};
-
-// 生成模拟执行详情
-const generateMockExecutionDetail = (id) => {
-  const statuses = ['成功', '失败', '执行中'];
-  const types = ['用例', '测试套件'];
-  const environments = ['测试环境', '开发环境', '生产环境'];
-  const browsers = ['Chrome', 'Firefox', 'Edge', 'Safari'];
-  const browserSizes = ['1920x1080', '1366x768', '768x1024', '375x812'];
-  const users = ['管理员', '测试工程师', '开发人员'];
-  
-  // 随机选择状态
-  const status = statuses[Math.floor(Math.random() * statuses.length)];
-  const type = types[Math.floor(Math.random() * types.length)];
-  
-  // 计算通过/失败数量
-  const totalCount = Math.floor(Math.random() * 30) + 5;
-  const failedCount = status === '失败' ? Math.floor(Math.random() * 5) + 1 : 0;
-  const skippedCount = Math.floor(Math.random() * 3);
-  const passedCount = totalCount - failedCount - skippedCount;
-  
-  // 计算进度
-  const progress = status === '执行中' ? Math.floor(Math.random() * 95) + 5 : 100;
-  
-  // 计算时间
-  const startTime = new Date(Date.now() - Math.random() * 86400000 * 3);
-  let endTime = null;
-  let duration = null;
-  
-  if (status !== '执行中') {
-    const durationMs = Math.floor(Math.random() * 300000) + 60000; // 1-6分钟
-    endTime = new Date(startTime.getTime() + durationMs);
-    
-    // 格式化持续时间
-    const minutes = Math.floor(durationMs / 60000);
-    const seconds = Math.floor((durationMs % 60000) / 1000);
-    duration = `${minutes}分${seconds}秒`;
-  }
-  
-  // 参数列表
-  const params = [
-    { name: 'BASE_URL', value: 'https://example.com' },
-    { name: 'USERNAME', value: 'test_user' },
-    { name: 'PASSWORD', value: '********' },
-    { name: 'WAIT_TIMEOUT', value: '30' }
-  ];
-  
-  return {
-    id,
-    name: `UI测试执行 ${id.substring(1)}`,
-    type,
-    status,
-    targetName: type === '用例' ? `登录功能测试` : `核心功能测试套件`,
-    environment: environments[Math.floor(Math.random() * environments.length)],
-    browser: browsers[Math.floor(Math.random() * browsers.length)],
-    browserSize: browserSizes[Math.floor(Math.random() * browserSizes.length)],
-    startTime: startTime.toLocaleString(),
-    endTime: endTime ? endTime.toLocaleString() : null,
-    duration,
-    executedBy: users[Math.floor(Math.random() * users.length)],
-    totalCount,
-    passedCount,
-    failedCount,
-    skippedCount,
-    progress,
-    params
-  };
-};
-
-// 生成模拟步骤数据
-const generateMockSteps = (executionDetail) => {
-  const stepCount = executionDetail.totalCount || 10;
-  const failedCount = executionDetail.failedCount || 0;
-  const skippedCount = executionDetail.skippedCount || 0;
-  
-  const steps = [];
-  const descriptions = [
-    "打开浏览器",
-    "导航到登录页面",
-    "输入用户名",
-    "输入密码",
-    "点击登录按钮",
-    "验证登录成功",
-    "导航到个人中心",
-    "验证用户信息显示正确",
-    "点击退出按钮",
-    "验证成功退出"
-  ];
-  
-  const elementLocators = [
-    "CSS=#username",
-    "CSS=#password",
-    "CSS=button[type='submit']",
-    "XPath=//div[@class='welcome-message']",
-    "CSS=.user-profile",
-    "ID=logout-button",
-    "CSS=.nav-menu li:nth-child(3)"
-  ];
-  
-  // 创建失败的步骤索引
-  const failedIndices = new Set();
-  while (failedIndices.size < failedCount) {
-    const index = Math.floor(Math.random() * stepCount) + 1;
-    failedIndices.add(index);
-  }
-  
-  // 创建跳过的步骤索引
-  const skippedIndices = new Set();
-  while (skippedIndices.size < skippedCount) {
-    const index = Math.floor(Math.random() * stepCount) + 1;
-    if (!failedIndices.has(index)) {
-      skippedIndices.add(index);
-    }
-  }
-  
-  // 生成步骤
-  for (let i = 1; i <= stepCount; i++) {
-    const description = descriptions[i % descriptions.length];
-    const elementLocator = elementLocators[i % elementLocators.length];
-    
-    let status = '通过';
-    if (failedIndices.has(i)) {
-      status = '失败';
-    } else if (skippedIndices.has(i)) {
-      status = '跳过';
-    }
-    
-    // 如果执行中，后面的步骤显示为等待中
-    if (executionDetail.status === '执行中' && i > executionDetail.progress * stepCount / 100) {
-      status = '等待中';
-    }
-    
-    // 计算步骤执行时间
-    const duration = status === '跳过' ? '-' : `${Math.floor(Math.random() * 5) + 1}.${Math.floor(Math.random() * 9)}秒`;
-    
-    steps.push({
-      step: i,
-      description,
-      status,
-      duration,
-      elementLocator,
-      hasScreenshot: status === '失败' || Math.random() > 0.5
-    });
-  }
-  
-  return steps;
 };
 </script>
 
