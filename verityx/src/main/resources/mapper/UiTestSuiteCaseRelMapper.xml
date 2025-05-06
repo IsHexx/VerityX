@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiTestSuiteCaseRelMapper">
+    
+    <resultMap id="BaseResultMap" type="com.example.verityx.entity.UiTestSuiteCaseRel">
+        <id column="id" property="id"/>
+        <result column="suite_id" property="suiteId"/>
+        <result column="case_id" property="caseId"/>
+        <result column="order_index" property="orderIndex"/>
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        id, suite_id, case_id, order_index
+    </sql>
+    
+    <select id="selectBySuiteId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM ui_test_suite_case_rel
+        WHERE suite_id = #{suiteId}
+        ORDER BY order_index ASC
+    </select>
+    
+    <select id="selectByCaseId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM ui_test_suite_case_rel
+        WHERE case_id = #{caseId}
+    </select>
+    
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO ui_test_suite_case_rel (suite_id, case_id, order_index)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.suiteId}, #{item.caseId}, #{item.orderIndex})
+        </foreach>
+    </insert>
+    
+    <delete id="deleteBySuiteId">
+        DELETE FROM ui_test_suite_case_rel
+        WHERE suite_id = #{suiteId}
+    </delete>
+    
+    <delete id="deleteByCaseId">
+        DELETE FROM ui_test_suite_case_rel
+        WHERE case_id = #{caseId}
+    </delete>
+</mapper> 

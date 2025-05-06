@@ -1,0 +1,384 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 后端代码编写规范
+
+## Java代码规范
+
+### 项目结构
+遵循标准的Spring Boot项目结构：
+- `com.example.verityx.controller` - 控制器层，负责API接口定义
+- `com.example.verityx.service` - 服务层，负责业务逻辑
+- `com.example.verityx.service.impl` - 服务实现层
+- `com.example.verityx.dto` - 数据传输对象
+- `com.example.verityx.entity` - 实体类，对应数据库表
+- `com.example.verityx.mapper` - MyBatis映射接口
+- `com.example.verityx.config` - 配置类
+- `com.example.verityx.util` - 工具类
+
+### 命名规范
+
+1. **类命名**：
+   - 使用PascalCase（大驼峰）命名法
+   - Controller类名以`Controller`结尾
+   - Service接口名以`Service`结尾
+   - Service实现类名以`ServiceImpl`结尾
+   - 实体类名与数据库表名对应（可使用单数形式）
+
+2. **方法命名**：
+   - 使用camelCase（小驼峰）命名法
+   - 获取单个对象的方法用`get`做前缀
+   - 获取多个对象的方法用`list`做前缀
+   - 保存方法用`save`或`create`做前缀
+   - 修改方法用`update`做前缀
+   - 删除方法用`delete`或`remove`做前缀
+   - 条件查询类方法用`getXxxByYyy`格式
+
+3. **变量命名**：
+   - 使用camelCase（小驼峰）命名法
+   - 布尔类型变量使用`is`或`has`前缀
+   - 常量使用全大写，单词间用下划线分隔
+
+### Controller层规范
+
+1. **API路径设计**：
+   - 使用REST风格API
+   - 使用名词复数形式作为资源标识
+   - 示例：`/api/ui-test-cases`、`/api/api-test-reports`
+
+2. **返回值包装**：
+   - 统一使用标准响应格式包装返回结果
+   - 包含状态码、消息和数据
+   ```java
+   public class Result<T> {
+       private Integer code;
+       private String message;
+       private T data;
+       // getters and setters
+   }
+   ```
+
+3. **参数验证**：
+   - 使用`@Valid`或`@Validated`进行参数验证
+   - 使用统一的异常处理机制处理验证异常
+
+4. **Controller方法示例**：
+   ```java
+   @GetMapping("/{id}")
+   public Result<UiTestCaseDTO> getUiTestCase(@PathVariable("id") Long id) {
+       UiTestCaseDTO uiTestCase = uiTestCaseService.getUiTestCaseById(id);
+       return Result.success(uiTestCase);
+   }
+
+   @PostMapping
+   public Result<Long> createUiTestCase(@RequestBody @Valid UiTestCaseCreateRequest request) {
+       Long id = uiTestCaseService.createUiTestCase(request);
+       return Result.success(id);
+   }
+   ```
+
+### Service层规范
+
+1. **业务逻辑封装**：
+   - 将复杂业务逻辑封装在Service层
+   - 避免在Controller中编写业务逻辑
+   - 避免在Service中编写控制器逻辑或直接处理HTTP请求/响应
+
+2. **事务管理**：
+   - 在Service层使用`@Transactional`注解管理事务
+   - 明确指定事务的传播行为和隔离级别
+
+3. **异常处理**：
+   - 使用统一的异常类型
+   - 在适当的位置捕获并转换异常
+   - 避免直接抛出通用异常如`Exception`
+
+4. **Service方法示例**：
+   ```java
+   @Service
+   public class UiTestCaseServiceImpl implements UiTestCaseService {
+       
+       @Autowired
+       private UiTestCaseMapper uiTestCaseMapper;
+       
+       @Override
+       @Transactional(readOnly = true)
+       public UiTestCaseDTO getUiTestCaseById(Long id) {
+           UiTestCase uiTestCase = uiTestCaseMapper.selectById(id);
+           if (uiTestCase == null) {
+               throw new ResourceNotFoundException("UI测试用例不存在");
+           }
+           return convertToDTO(uiTestCase);
+       }
+       
+       @Override
+       @Transactional
+       public Long createUiTestCase(UiTestCaseCreateRequest request) {
+           UiTestCase uiTestCase = convertToEntity(request);
+           uiTestCase.setCreatedTime(new Date());
+           uiTestCase.setStatus("未执行");
+           uiTestCaseMapper.insert(uiTestCase);
+           return uiTestCase.getId();
+       }
+   }
+   ```
+
+### 数据访问层规范
+
+1. **Mapper接口**：
+   - 定义清晰的方法名，表达查询意图
+   - 使用`@Mapper`注解标记接口
+   - 不在接口中使用`@Select`, `@Insert`, `@Update`, `@Delete`等注解
+   - 方法参数使用`@Param`注解标注，确保与XML中的参数名匹配
+
+2. **MyBatis XML映射文件**：
+   - SQL语句必须写在resources目录下的mapper文件夹中的XML文件中
+   - 每个XML文件对应一个Mapper接口
+   - XML文件的namespace必须与对应的Mapper接口全限定名一致
+   - 查询使用select标签，插入使用insert标签，更新使用update标签，删除使用delete标签
+   - 使用动态SQL功能处理复杂查询
+
+3. **Mapper示例**：
+
+   Mapper接口 (UiTestCaseMapper.java):
+   ```java
+   @Mapper
+   public interface UiTestCaseMapper {
+       
+       UiTestCase selectById(@Param("id") Long id);
+       
+       int insert(UiTestCase uiTestCase);
+       
+       int updateById(UiTestCase uiTestCase);
+       
+       int deleteById(@Param("id") Long id);
+       
+       List<UiTestCase> selectByPage(@Param("status") String status, 
+                                     @Param("keyword") String keyword,
+                                     @Param("offset") int offset, 
+                                     @Param("pageSize") int pageSize);
+   }
+   ```
+
+   对应的XML映射文件 (resources/mapper/UiTestCaseMapper.xml):
+   ```xml
+   <?xml version="1.0" encoding="UTF-8" ?>
+   <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   <mapper namespace="com.example.verityx.mapper.UiTestCaseMapper">
+       
+       <select id="selectById" resultType="com.example.verityx.entity.UiTestCase">
+           SELECT * FROM ui_test_case WHERE id = #{id}
+       </select>
+       
+       <insert id="insert" parameterType="com.example.verityx.entity.UiTestCase" useGeneratedKeys="true" keyProperty="id">
+           INSERT INTO ui_test_case(case_title, importance_level, environment, precondition, description, created_by, created_at)
+           VALUES(#{caseTitle}, #{importanceLevel}, #{environment}, #{precondition}, #{description}, #{createdBy}, #{createdAt})
+       </insert>
+       
+       <update id="updateById" parameterType="com.example.verityx.entity.UiTestCase">
+           UPDATE ui_test_case
+           SET case_title = #{caseTitle},
+               importance_level = #{importanceLevel},
+               environment = #{environment},
+               precondition = #{precondition},
+               description = #{description},
+               updated_at = #{updatedAt},
+               updated_by = #{updatedBy}
+           WHERE id = #{id}
+       </update>
+       
+       <delete id="deleteById">
+           DELETE FROM ui_test_case WHERE id = #{id}
+       </delete>
+       
+       <select id="selectByPage" resultType="com.example.verityx.entity.UiTestCase">
+           SELECT * FROM ui_test_case
+           <where>
+               <if test="status != null and status != ''">
+                   case_status = #{status}
+               </if>
+               <if test="keyword != null and keyword != ''">
+                   AND (case_title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+               </if>
+           </where>
+           ORDER BY created_at DESC
+           LIMIT #{offset}, #{pageSize}
+       </select>
+   </mapper>
+   ```
+
+### DTO设计规范
+
+1. **数据传输对象**：
+   - 用于前后端数据交换
+   - 避免直接暴露实体类
+   - 根据业务需求设计不同的DTO
+
+2. **请求/响应分离**：
+   - 创建专用的请求DTO（xxxRequest）
+   - 创建专用的响应DTO（xxxResponse或xxxDTO）
+
+3. **DTO示例**：
+   ```java
+   public class UiTestCaseDTO {
+       private Long id;
+       private String caseTitle;
+       private String importanceLevel;
+       private String caseStatus;
+       private String lastResult;
+       private String createdBy;
+       private Date createdAt;
+       private Date lastRunAt;
+       private Integer stepCount;
+       // getters and setters
+   }
+
+   public class UiTestCaseCreateRequest {
+       @NotBlank(message = "用例标题不能为空")
+       private String caseTitle;
+       
+       private String importanceLevel;
+       
+       private String environment;
+       
+       private String precondition;
+       
+       private String description;
+       // getters and setters
+   }
+   ```
+
+### 异常处理规范
+
+1. **自定义异常**：
+   - 创建业务相关的自定义异常类
+   - 继承自适当的基础异常类
+
+2. **全局异常处理**：
+   - 使用`@RestControllerAdvice`实现全局异常处理
+   - 针对不同类型的异常返回适当的状态码和错误消息
+
+3. **异常处理示例**：
+   ```java
+   @RestControllerAdvice
+   public class GlobalExceptionHandler {
+       
+       @ExceptionHandler(ResourceNotFoundException.class)
+       public Result<Void> handleResourceNotFoundException(ResourceNotFoundException e) {
+           return Result.fail(404, e.getMessage());
+       }
+       
+       @ExceptionHandler(MethodArgumentNotValidException.class)
+       public Result<Void> handleValidationException(MethodArgumentNotValidException e) {
+           String message = e.getBindingResult().getFieldErrors().stream()
+                   .map(FieldError::getDefaultMessage)
+                   .collect(Collectors.joining(", "));
+           return Result.fail(400, message);
+       }
+   }
+   ```
+
+## Java代码风格
+
+### 格式化规则
+- 使用4个空格进行缩进，不使用制表符
+- 每行最大长度为120个字符
+- 花括号使用K&R风格（左花括号不换行，右花括号独占一行）
+- 方法之间使用一个空行分隔
+- 类的成员变量应该放在类的顶部
+- 相关的变量声明应该尽量放在一起
+
+### 注释规范
+- 所有公共方法和类应该有JavaDoc注释
+- 复杂的逻辑应该有相应的注释说明
+- TODO注释应该包含创建人信息和期望完成日期
+- 注释应该解释"为什么"而不是"是什么"
+
+```java
+/**
+ * 用户登录服务实现类
+ * 
+ * @author 开发者姓名
+ * @since 1.0.0
+ */
+@Service
+public class UserLoginServiceImpl implements UserLoginService {
+    
+    // 使用BCrypt加密算法对密码进行加密和验证
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    
+    /**
+     * 验证用户登录信息
+     * 
+     * @param username 用户名
+     * @param password 密码
+     * @return 登录成功返回true，否则返回false
+     */
+    @Override
+    public boolean login(String username, String password) {
+        // 实现逻辑
+    }
+}
+```
+
+### SQL风格规范
+- SQL关键字大写，表名和字段名小写
+- 复杂查询使用清晰的缩进和换行
+- 每个字段占一行，逗号位于行尾
+- 使用有意义的别名
+
+```sql
+SELECT 
+    u.username,
+    u.email,
+    p.project_name
+FROM 
+    user_login u
+JOIN 
+    project p ON u.id = p.user_id
+WHERE 
+    u.is_active = true
+    AND p.status = 'active'
+ORDER BY 
+    p.created_at DESC
+LIMIT 10;
+```
+
+### 代码分割
+- 避免大段代码块，保持方法的简短和聚焦
+- 一个方法应该只做一件事，遵循单一职责原则
+- 方法长度一般不超过50行，复杂方法应拆分为多个小方法
+- 优先使用组合而非继承
+- 保持代码的DRY(Don't Repeat Yourself)原则
+- 使用有意义的常量代替魔法数字和字符串
+- 异常处理应该明确且有针对性
+
+## 数据库设计规范
+
+1. **表命名**：
+   - 使用下划线命名法
+   - 使用小写字母
+   - 使用名词复数形式
+
+2. **字段命名**：
+   - 使用下划线命名法
+   - 主键一般命名为`id`
+   - 创建时间字段命名为`created_at`或`create_time`
+   - 更新时间字段命名为`updated_at`或`update_time`
+
+3. **通用字段**：
+   - 每个表都应该有`id`（主键）
+   - 包含审计字段：`created_by`、`created_at`、`updated_by`、`updated_at`
+   - 适当使用软删除字段：`is_deleted`或`deleted_at`
+
+4. **索引设计**：
+   - 为经常用于查询条件的字段创建索引
+   - 为外键字段创建索引
+   - 避免过度索引
+
+
+
+
+

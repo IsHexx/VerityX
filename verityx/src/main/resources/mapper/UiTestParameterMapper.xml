@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiTestParameterMapper">
+    <!-- 结果映射 -->
+    <resultMap id="UiTestParameterResultMap" type="com.example.verityx.entity.UiTestParameter">
+        <id column="id" property="id"/>
+        <result column="case_id" property="caseId"/>
+        <result column="param_name" property="paramName"/>
+        <result column="param_value" property="paramValue"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    
+    <!-- 插入UI测试参数 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.UiTestParameter" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_parameter (
+            case_id, param_name, param_value
+        ) 
+        VALUES (
+            #{caseId}, #{paramName}, #{paramValue}
+        )
+    </insert>
+    
+    <!-- 批量插入UI测试参数 -->
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_parameter (
+            case_id, param_name, param_value
+        ) 
+        VALUES 
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.caseId}, #{item.paramName}, #{item.paramValue}
+            )
+        </foreach>
+    </insert>
+    
+    <!-- 更新UI测试参数 -->
+    <update id="update" parameterType="com.example.verityx.entity.UiTestParameter">
+        UPDATE ui_test_parameter
+        <set>
+            <if test="paramName != null">param_name = #{paramName},</if>
+            <if test="paramValue != null">param_value = #{paramValue}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除UI测试参数 -->
+    <delete id="delete">
+        DELETE FROM ui_test_parameter WHERE id = #{id}
+    </delete>
+    
+    <!-- 删除用例的所有参数 -->
+    <delete id="deleteByCaseId">
+        DELETE FROM ui_test_parameter WHERE case_id = #{caseId}
+    </delete>
+    
+    <!-- 查询指定用例的所有参数 -->
+    <select id="selectByCaseId" resultMap="UiTestParameterResultMap">
+        SELECT * FROM ui_test_parameter WHERE case_id = #{caseId}
+    </select>
+</mapper> 

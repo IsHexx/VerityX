@@ -150,3 +150,232 @@ Content-Type: application/json
 {
   "ids": [3, 4, 5]
 }
+
+### UI测试用例管理接口测试 
+
+### 1. 创建UI测试用例
+POST http://localhost:8089/api/uitestcases
+Content-Type: application/json
+
+{
+  "caseTitle": "用户登录功能测试",
+  "projectId": "1",
+  "importanceLevel": "P1",
+  "environment": "Chrome",
+  "precondition": "系统已部署且可访问",
+  "description": "验证用户使用有效凭据可以成功登录系统",
+  "steps": [
+    {
+      "actionType": "navigate",
+      "targetUrl": "http://localhost:8080/login",
+      "description": "打开登录页面"
+    },
+    {
+      "actionType": "input",
+      "locatorType": "id",
+      "locatorValue": "username",
+      "inputValue": "admin",
+      "description": "输入用户名"
+    },
+    {
+      "actionType": "input",
+      "locatorType": "id",
+      "locatorValue": "password",
+      "inputValue": "123456",
+      "description": "输入密码"
+    },
+    {
+      "actionType": "click",
+      "locatorType": "css",
+      "locatorValue": "button[type='submit']",
+      "description": "点击登录按钮"
+    },
+    {
+      "actionType": "assertText",
+      "locatorType": "css",
+      "locatorValue": ".welcome-message",
+      "inputValue": "欢迎回来",
+      "description": "验证登录成功后的欢迎信息"
+    }
+  ],
+  "timeout": 30,
+  "retryCount": 1,
+  "screenshotPolicy": "failureOnly",
+  "parameters": [
+    {
+      "name": "username",
+      "value": "admin"
+    },
+    {
+      "name": "password",
+      "value": "123456"
+    }
+  ]
+}
+
+###
+### 2. 获取UI测试用例列表（全部）
+GET http://localhost:8089/api/uitestcases/list?page=1&pageSize=10
+Accept: application/json
+
+###
+### 3. 获取UI测试用例列表（带关键字过滤）
+GET http://localhost:8089/api/uitestcases/list?page=1&pageSize=10&keyword=登录
+Accept: application/json
+
+###
+### 4. 获取UI测试用例列表（已执行）
+GET http://localhost:8089/api/uitestcases/list?page=1&pageSize=10&status=executed
+Accept: application/json
+
+###
+### 5. 获取UI测试用例列表（未执行）
+GET http://localhost:8089/api/uitestcases/list?page=1&pageSize=10&status=unexecuted
+Accept: application/json
+
+###
+### 6. 获取UI测试用例详情
+GET http://localhost:8089/api/uitestcases/UI-001
+Accept: application/json
+
+###
+### 7. 更新UI测试用例
+PUT http://localhost:8089/api/uitestcases/UI-001
+Content-Type: application/json
+
+{
+  "caseTitle": "用户登录功能测试-更新版",
+  "projectId": "1",
+  "importanceLevel": "P0",
+  "environment": "Chrome",
+  "precondition": "系统已部署且可访问",
+  "description": "验证用户使用有效凭据可以成功登录系统并跳转到首页",
+  "steps": [
+    {
+      "actionType": "navigate",
+      "targetUrl": "http://localhost:8080/login",
+      "description": "打开登录页面"
+    },
+    {
+      "actionType": "input",
+      "locatorType": "id",
+      "locatorValue": "username",
+      "inputValue": "admin",
+      "description": "输入用户名"
+    },
+    {
+      "actionType": "input",
+      "locatorType": "id",
+      "locatorValue": "password",
+      "inputValue": "123456",
+      "description": "输入密码"
+    },
+    {
+      "actionType": "click",
+      "locatorType": "css",
+      "locatorValue": "button[type='submit']",
+      "description": "点击登录按钮"
+    },
+    {
+      "actionType": "wait",
+      "waitTime": 1000,
+      "description": "等待页面跳转"
+    },
+    {
+      "actionType": "assertText",
+      "locatorType": "css",
+      "locatorValue": ".welcome-message",
+      "inputValue": "欢迎回来，管理员",
+      "description": "验证登录成功后的欢迎信息"
+    },
+    {
+      "actionType": "assertExists",
+      "locatorType": "css",
+      "locatorValue": ".dashboard-container",
+      "description": "验证已跳转到首页"
+    }
+  ],
+  "timeout": 30,
+  "retryCount": 2,
+  "screenshotPolicy": "everyStep",
+  "parameters": [
+    {
+      "name": "username",
+      "value": "admin"
+    },
+    {
+      "name": "password",
+      "value": "123456"
+    }
+  ]
+}
+
+###
+### 8. 删除UI测试用例
+DELETE http://localhost:8089/api/uitestcases/UI-001
+Accept: application/json
+
+###
+### 9. 执行UI测试用例
+POST http://localhost:8089/api/uitestcases/UI-001/execute
+Accept: application/json
+
+###
+### 10. 创建另一个UI测试用例（商品搜索）
+POST http://localhost:8089/api/uitestcases
+Content-Type: application/json
+
+{
+  "caseTitle": "商品搜索功能测试",
+  "projectId": "1",
+  "importanceLevel": "P2",
+  "environment": "Firefox",
+  "precondition": "系统已部署且用户已登录",
+  "description": "验证用户可以通过搜索功能找到指定商品",
+  "steps": [
+    {
+      "actionType": "navigate",
+      "targetUrl": "http://localhost:8080/products",
+      "description": "打开商品页面"
+    },
+    {
+      "actionType": "input",
+      "locatorType": "id",
+      "locatorValue": "search-input",
+      "inputValue": "手机",
+      "description": "在搜索框中输入'手机'"
+    },
+    {
+      "actionType": "click",
+      "locatorType": "id",
+      "locatorValue": "search-button",
+      "description": "点击搜索按钮"
+    },
+    {
+      "actionType": "wait",
+      "waitTime": 1500,
+      "description": "等待搜索结果加载"
+    },
+    {
+      "actionType": "assertExists",
+      "locatorType": "css",
+      "locatorValue": ".product-list .product-item",
+      "description": "验证搜索结果中存在商品"
+    },
+    {
+      "actionType": "getText",
+      "locatorType": "css",
+      "locatorValue": ".search-result-count",
+      "description": "获取搜索结果数量"
+    }
+  ],
+  "timeout": 25,
+  "retryCount": 1,
+  "screenshotPolicy": "failureOnly",
+  "parameters": [
+    {
+      "name": "searchKeyword",
+      "value": "手机"
+    }
+  ]
+}

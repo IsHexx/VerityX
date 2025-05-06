@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiTestCaseMapper">
+    <!-- 结果映射 -->
+    <resultMap id="UiTestCaseResultMap" type="com.example.verityx.entity.UiTestCase">
+        <id column="id" property="id"/>
+        <result column="case_id" property="caseId"/>
+        <result column="case_title" property="caseTitle"/>
+        <result column="project_id" property="projectId"/>
+        <result column="importance_level" property="importanceLevel"/>
+        <result column="environment" property="environment"/>
+        <result column="precondition" property="precondition"/>
+        <result column="description" property="description"/>
+        <result column="timeout" property="timeout"/>
+        <result column="retry_count" property="retryCount"/>
+        <result column="screenshot_policy" property="screenshotPolicy"/>
+        <result column="case_status" property="caseStatus"/>
+        <result column="last_result" property="lastResult"/>
+        <result column="last_run_at" property="lastRunAt"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    
+    <!-- 插入UI测试用例 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.UiTestCase" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_case (
+            case_id, case_title, project_id, importance_level, environment, precondition, 
+            description, timeout, retry_count, screenshot_policy, case_status, 
+            last_result, created_by
+        ) 
+        VALUES (
+            #{caseId}, #{caseTitle}, #{projectId}, #{importanceLevel}, #{environment}, #{precondition}, 
+            #{description}, #{timeout}, #{retryCount}, #{screenshotPolicy}, #{caseStatus}, 
+            #{lastResult}, #{createdBy}
+        )
+    </insert>
+    
+    <!-- 更新UI测试用例 -->
+    <update id="update" parameterType="com.example.verityx.entity.UiTestCase">
+        UPDATE ui_test_case
+        <set>
+            <if test="caseTitle != null">case_title = #{caseTitle},</if>
+            <if test="projectId != null">project_id = #{projectId},</if>
+            <if test="importanceLevel != null">importance_level = #{importanceLevel},</if>
+            <if test="environment != null">environment = #{environment},</if>
+            <if test="precondition != null">precondition = #{precondition},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="timeout != null">timeout = #{timeout},</if>
+            <if test="retryCount != null">retry_count = #{retryCount},</if>
+            <if test="screenshotPolicy != null">screenshot_policy = #{screenshotPolicy},</if>
+            <if test="caseStatus != null">case_status = #{caseStatus},</if>
+            <if test="lastResult != null">last_result = #{lastResult},</if>
+            <if test="lastRunAt != null">last_run_at = #{lastRunAt}</if>
+        </set>
+        WHERE case_id = #{caseId}
+    </update>
+    
+    <!-- 删除UI测试用例 -->
+    <delete id="delete">
+        DELETE FROM ui_test_case WHERE case_id = #{caseId}
+    </delete>
+    
+    <!-- 根据ID查询UI测试用例 -->
+    <select id="selectByCaseId" resultMap="UiTestCaseResultMap">
+        SELECT * FROM ui_test_case WHERE case_id = #{caseId}
+    </select>
+    
+    <!-- 根据数字ID查询UI测试用例 -->
+    <select id="selectById" resultMap="UiTestCaseResultMap">
+        SELECT * FROM ui_test_case WHERE id = #{id}
+    </select>
+    
+    <!-- 分页查询UI测试用例 -->
+    <select id="selectByPage" resultMap="UiTestCaseResultMap">
+        SELECT * FROM ui_test_case
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (case_title LIKE CONCAT('%', #{keyword}, '%') 
+                OR case_id LIKE CONCAT('%', #{keyword}, '%')
+                OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null and status != ''">
+                <choose>
+                    <when test="status == 'executed'">
+                        AND case_status = '已执行'
+                    </when>
+                    <when test="status == 'unexecuted'">
+                        AND case_status = '未执行'
+                    </when>
+                </choose>
+            </if>
+        </where>
+        ORDER BY id DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 查询UI测试用例总数 -->
+    <select id="countTotal" resultType="int">
+        SELECT COUNT(*) FROM ui_test_case
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (case_title LIKE CONCAT('%', #{keyword}, '%') 
+                OR case_id LIKE CONCAT('%', #{keyword}, '%')
+                OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null and status != ''">
+                <choose>
+                    <when test="status == 'executed'">
+                        AND case_status = '已执行'
+                    </when>
+                    <when test="status == 'unexecuted'">
+                        AND case_status = '未执行'
+                    </when>
+                </choose>
+            </if>
+        </where>
+    </select>
+    
+    <!-- 生成新的用例ID -->
+    <select id="generateCaseId" resultType="string">
+        SELECT CONCAT('UI-', LPAD(IFNULL(MAX(SUBSTRING_INDEX(case_id, '-', -1)) + 1, 1), 3, '0'))
+        FROM ui_test_case
+        WHERE case_id LIKE 'UI-%'
+    </select>
+    
+    <!-- 更新执行状态 -->
+    <update id="updateExecutionStatus">
+        UPDATE ui_test_case
+        SET case_status = #{status},
+            last_result = #{result},
+            last_run_at = NOW()
+        WHERE case_id = #{caseId}
+    </update>
+    
+    <select id="selectByIds" resultType="com.example.verityx.entity.UiTestCase">
+        SELECT id, case_title, importance_level
+        FROM ui_test_case
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+    
+    <select id="selectNotInSuite" resultType="com.example.verityx.entity.UiTestCase">
+        SELECT id, case_title, importance_level
+        FROM ui_test_case
+        WHERE id NOT IN (
+            SELECT case_id FROM ui_test_suite_case_rel WHERE suite_id = #{suiteId}
+        )
+        <if test="keyword != null and keyword != ''">
+            AND (case_title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <select id="countNotInSuite" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM ui_test_case
+        WHERE id NOT IN (
+            SELECT case_id FROM ui_test_suite_case_rel WHERE suite_id = #{suiteId}
+        )
+        <if test="keyword != null and keyword != ''">
+            AND (case_title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </select>
+</mapper> 

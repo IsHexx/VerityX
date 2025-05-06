@@ -5,29 +5,461 @@ alwaysApply: false
 ---
 # VerityX 架构与设计模式规范
 
-## 系统架构
+## 系统整体架构
 
-### 分层架构
-VerityX采用传统的多层架构设计:
-- **表示层**: 前端Vue.js应用和RESTful API接口
-- **业务逻辑层**: Spring Boot服务，包含业务规则和流程
-- **数据访问层**: MyBatis映射器，处理数据库交互
-- **数据存储层**: MySQL数据库
+### 架构概述
+VerityX 是一个自动化测试平台，采用前后端分离架构：
+- **前端**：基于 Vue.js 的单页面应用(SPA)
+- **后端**：基于 Spring Boot 的 RESTful API 服务
+- **数据库**：MySQL 关系型数据库
 
-### 后端架构
-后端采用Spring Boot框架，遵循以下架构模式:
-- **控制器(Controller)**: 处理HTTP请求，返回响应
-- **服务(Service)**: 实现业务逻辑
-- **数据访问对象(DAO/Mapper)**: 处理数据库操作
-- **实体(Entity)**: 对应数据库表的Java对象
-- **数据传输对象(DTO)**: 在不同层之间传输数据
+### 技术栈
+- **前端**：Vue.js + Element Plus + Axios
+- **后端**：Spring Boot + MyBatis + MySQL
+- **构建工具**：Maven (后端), npm (前端)
 
-### 前端架构
-前端采用Vue.js框架，遵循以下架构模式:
-- **视图(View)**: Vue组件，负责UI渲染
-- **模型(Model)**: Vuex存储，管理应用状态
-- **API服务**: 处理与后端的通信
-- **路由**: Vue Router，管理页面导航
+## 前端架构
+
+### 目录结构
+前端项目位于 `front` 目录，主要结构如下：
+```
+front/
+  ├── public/              # 静态资源
+  ├── src/                 # 源代码
+  │   ├── api/             # API 接口定义
+  │   ├── assets/          # 资源文件(图片、样式等)
+  │   ├── components/      # 可复用组件
+  │   ├── router/          # 路由配置
+  │   ├── store/           # Vuex 状态管理
+  │   ├── utils/           # 工具函数
+  │   └── views/           # 页面组件
+  ├── package.json         # 项目依赖
+  └── vue.config.js        # Vue 配置
+```
+
+### 核心模块
+1. **API 模块**：
+   - 位于 `src/api` 目录
+   - 每个服务对应一个 API 文件，如 `uiTestCaseService.js`、`apiTestReportService.js`
+   - 使用 Axios 进行 HTTP 请求
+   - 封装 RESTful API 调用
+
+2. **状态管理**：
+   - 使用 Vuex 管理全局状态
+   - 状态按功能模块分离
+   - 用户信息、全局配置等存储在 Vuex 中
+
+3. **路由管理**：
+   - 使用 Vue Router 管理路由
+   - 路由配置位于 `src/router` 目录
+   - 支持路由懒加载提高性能
+
+4. **组件系统**：
+   - 通用组件位于 `src/components` 目录
+   - 页面组件位于 `src/views` 目录
+   - 采用组合式 API (Composition API) 开发组件
+
+## 后端架构
+
+### 目录结构
+后端项目位于 `verityx` 目录，主要结构如下：
+```
+verityx/
+  ├── src/
+  │   ├── main/
+  │   │   ├── java/
+  │   │   │   └── com/example/verityx/
+  │   │   │       ├── config/           # 配置类
+  │   │   │       ├── controller/       # 控制器
+  │   │   │       ├── dto/              # 数据传输对象
+  │   │   │       ├── entity/           # 实体类
+  │   │   │       ├── mapper/           # MyBatis映射器
+  │   │   │       ├── service/          # 服务接口
+  │   │   │       │   └── impl/         # 服务实现
+  │   │   │       └── util/             # 工具类
+  │   │   └── resources/
+  │   │       ├── mapper/               # MyBatis XML映射文件
+  │   │       └── application.properties # 应用配置
+  │   └── test/                         # 测试代码
+  └── pom.xml                           # Maven配置
+```
+
+### 核心模块
+1. **控制器层**：
+   - 处理 HTTP 请求
+   - 定义 RESTful API 端点
+   - 参数验证和响应封装
+   - 例如：`UiTestCaseController`、`ApiTestReportController`
+
+2. **服务层**：
+   - 实现业务逻辑
+   - 事务管理
+   - 例如：`UiTestCaseService`、`ApiTestReportService`
+
+3. **数据访问层**：
+   - MyBatis Mapper 接口
+   - XML映射文件
+   - 例如：`UiTestCaseMapper`、`ApiTestReportMapper`
+
+4. **实体层**：
+   - JPA实体对象，对应数据库表
+   - 数据传输对象(DTO)，用于API交互
+   - 例如：`UiTestCase`、`ApiTestReport`
+
+## 前后端交互
+
+### API通信规范
+1. **请求格式**：
+   - 请求URL采用RESTful风格
+   - GET请求使用URL参数
+   - POST/PUT请求使用JSON格式请求体
+   - 请求头包含Content-Type: application/json
+
+2. **响应格式**：
+   - 统一使用JSON格式
+   - 标准响应结构：
+   ```json
+   {
+     "code": 200,           // 状态码
+     "message": "success",  // 状态消息
+     "data": {              // 响应数据
+       // 具体数据结构
+     }
+   }
+   ```
+
+3. **状态码规范**：
+   - 200: 成功
+   - 400: 请求参数错误
+   - 401: 未授权
+   - 403: 禁止访问
+   - 404: 资源不存在
+   - 500: 服务器内部错误
+
+### 前端API调用示例
+```javascript
+// 前端API服务示例 (uiTestCaseService.js)
+import http from '@/utils/http';
+
+export const UiTestCaseApi = {
+  // 获取UI测试用例列表
+  getUiTestCaseList: (params) => {
+    // 构造干净的查询参数对象
+    const cleanParams = {
+      page: params.page || 1, // 默认值为 1
+      pageSize: params.pageSize || 10, // 默认值为 10
+    };
+  
+    // 仅在有值时添加其他参数
+    if (params.keyword) {
+      cleanParams.keyword = params.keyword;
+    }
+  
+    if (params.status) {
+      cleanParams.status = params.status;
+    }
+  
+    return http.get('/api/uitestcases/list', cleanParams);
+  },
+  
+  // 获取UI测试用例详情
+  getUiTestCaseDetail: (id) => {
+    return http.get(`/api/uitestcases/${id}`);
+  },
+  
+  // 创建UI测试用例
+  createUiTestCase: (data) => {
+    return http.post('/api/uitestcases/create', data);
+  },
+  
+  // 更新UI测试用例
+  updateUiTestCase: (id, data) => {
+    return http.put(`/api/uitestcases/update/${id}`, data);
+  },
+  
+  // 删除UI测试用例
+  deleteUiTestCase: (id) => {
+    return http.delete(`/api/uitestcases/delete/${id}`);
+  },
+  
+  // 执行UI测试用例
+  executeUiTestCase: (id) => {
+    return http.post(`/api/uitestcases/execute/${id}`);
+  }
+};
+```
+
+### 页面组件中调用API示例
+```javascript
+// 在页面组件中调用API的示例 (UiTestCasePage.vue)
+import { UiTestCaseApi } from '@/api/uiTestCaseService';
+import { ref, reactive } from 'vue';
+import { ElMessage } from 'element-plus';
+
+// 状态管理
+const loading = ref(false);
+const uiTestCaseData = ref([]);
+const total = ref(0);
+
+// 分页
+const pagination = reactive({
+  page: 1,
+  pageSize: 10,
+});
+
+// 加载测试用例数据的核心方法
+const loadTestCaseData = async (tabName, page = pagination.page, pageSize = pagination.pageSize, keyword = '') => {
+  loading.value = true;
+  try {
+    // 根据tab名称确定status值
+    let status = null;
+    if (tabName === 'executed') {
+      console.log("加载已执行用例数据");
+      status = 'executed';
+    } else if (tabName === 'unexecuted') {
+      console.log("加载未执行用例数据");
+      status = 'unexecuted';
+    } else {
+      console.log("加载全部用例数据");
+    }
+    
+    // 构造请求参数
+    const params = { page, pageSize };
+    if (keyword) params.keyword = keyword;
+    if (status) params.status = status;
+    
+    console.log("请求参数:", params);
+    
+    const res = await UiTestCaseApi.getUiTestCaseList(params);
+    if (res.code === 200) {
+      uiTestCaseData.value = res.data.list;
+      total.value = res.data.total;
+    } else {
+      ElMessage.error(res.message || '获取测试用例列表失败');
+    }
+  } catch (error) {
+    ElMessage.error("获取测试用例列表失败");
+    console.error("获取测试用例列表失败:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+```
+
+### 后端API实现示例
+```java
+// 后端控制器示例 (UiTestCaseController.java)
+@RestController
+@RequestMapping("/api/ui-test-cases")
+public class UiTestCaseController {
+    
+    @Autowired
+    private UiTestCaseService uiTestCaseService;
+    
+    // 获取UI测试用例列表
+    @GetMapping
+    public Result<PageResult<UiTestCaseDTO>> getUiTestCaseList(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "status", required = false) String status) {
+        
+        PageResult<UiTestCaseDTO> result = uiTestCaseService.getUiTestCaseList(page, pageSize, keyword, status);
+        return Result.success(result);
+    }
+    
+    // 获取UI测试用例详情
+    @GetMapping("/{id}")
+    public Result<UiTestCaseDTO> getUiTestCaseDetail(@PathVariable("id") Long id) {
+        UiTestCaseDTO uiTestCase = uiTestCaseService.getUiTestCaseById(id);
+        return Result.success(uiTestCase);
+    }
+    
+    // 创建UI测试用例
+    @PostMapping
+    public Result<Long> createUiTestCase(@RequestBody @Valid UiTestCaseCreateRequest request) {
+        Long id = uiTestCaseService.createUiTestCase(request);
+        return Result.success(id);
+    }
+    
+    // 更新UI测试用例
+    @PutMapping("/{id}")
+    public Result<Void> updateUiTestCase(@PathVariable("id") Long id, @RequestBody @Valid UiTestCaseUpdateRequest request) {
+        uiTestCaseService.updateUiTestCase(id, request);
+        return Result.success();
+    }
+    
+    // 删除UI测试用例
+    @DeleteMapping("/{id}")
+    public Result<Void> deleteUiTestCase(@PathVariable("id") Long id) {
+        uiTestCaseService.deleteUiTestCase(id);
+        return Result.success();
+    }
+    
+    // 执行UI测试用例
+    @PostMapping("/{id}/execute")
+    public Result<Void> executeUiTestCase(@PathVariable("id") Long id) {
+        uiTestCaseService.executeUiTestCase(id);
+        return Result.success();
+    }
+}
+```
+
+### 数据传输对象示例
+```java
+// DTO示例 (UiTestCaseDTO.java)
+public class UiTestCaseDTO {
+    private Long id;
+    private String caseTitle;
+    private String importanceLevel;
+    private String caseStatus;
+    private String lastResult;
+    private String createdBy;
+    private Date createdAt;
+    private Date lastRunAt;
+    private Integer stepCount;
+    // getters and setters
+}
+
+// 创建请求示例 (UiTestCaseCreateRequest.java)
+public class UiTestCaseCreateRequest {
+    @NotBlank(message = "用例标题不能为空")
+    private String caseTitle;
+    
+    private String importanceLevel;
+    private String environment;
+    private String precondition;
+    private String description;
+    // getters and setters
+}
+```
+
+## 认证与授权
+
+### 认证机制
+- 使用基于Token的认证机制
+- 登录成功后，服务端返回JWT Token
+- 前端存储Token到localStorage
+- 每次请求携带Token在Authorization请求头
+
+### 请求拦截器
+```javascript
+// 前端请求拦截器 (request.js)
+import axios from 'axios';
+import store from '@/store';
+import { ElMessage } from 'element-plus';
+
+const service = axios.create({
+  baseURL: process.env.VUE_APP_BASE_API,
+  timeout: 5000
+});
+
+// 请求拦截器
+service.interceptors.request.use(
+  config => {
+    // 添加token到请求头
+    if (store.getters.token) {
+      config.headers['Authorization'] = `Bearer ${store.getters.token}`;
+    }
+    return config;
+  },
+  error => {
+    console.log(error);
+    return Promise.reject(error);
+  }
+);
+
+// 响应拦截器
+service.interceptors.response.use(
+  response => {
+    const res = response.data;
+    // 请求成功但业务状态码不是200
+    if (res.code !== 200) {
+      ElMessage.error(res.message || '请求失败');
+      
+      // 未授权，跳转登录页
+      if (res.code === 401) {
+        store.dispatch('user/resetToken').then(() => {
+          location.reload();
+        });
+      }
+      return Promise.reject(new Error(res.message || '请求失败'));
+    } else {
+      return res;
+    }
+  },
+  error => {
+    console.log('请求错误: ' + error);
+    ElMessage.error(error.message || '请求失败');
+    return Promise.reject(error);
+  }
+);
+
+export default service;
+```
+
+## 错误处理
+
+### 前端错误处理
+- 请求错误统一由axios响应拦截器处理
+- 业务逻辑错误在具体业务代码中处理
+- 全局异常使用Vue的errorHandler处理
+
+### 后端错误处理
+- 使用全局异常处理器(@RestControllerAdvice)捕获异常
+- 封装统一的错误响应格式
+- 针对不同类型的异常返回不同的状态码和消息
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public Result<Void> handleResourceNotFoundException(ResourceNotFoundException e) {
+        return Result.fail(404, e.getMessage());
+    }
+    
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Result<Void> handleValidationException(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.joining(", "));
+        return Result.fail(400, message);
+    }
+    
+    @ExceptionHandler(Exception.class)
+    public Result<Void> handleException(Exception e) {
+        log.error("系统异常", e);
+        return Result.fail(500, "系统错误，请联系管理员");
+    }
+}
+```
+
+## API文档
+
+### Swagger配置
+- 使用Swagger/OpenAPI生成API文档
+- 所有接口都必须有详细的文档注释
+- API文档访问地址：[http://localhost:8080/swagger-ui/index.html](mdc:http:/localhost:8080/swagger-ui/index.html)
+
+### 文档示例
+```java
+@Tag(name = "UI测试用例管理", description = "UI测试用例的增删改查接口")
+@RestController
+@RequestMapping("/api/ui-test-cases")
+public class UiTestCaseController {
+    
+    @Operation(summary = "分页查询UI测试用例", description = "根据关键字、状态和分页参数查询UI测试用例")
+    @GetMapping
+    public Result<PageResult<UiTestCaseDTO>> getUiTestCaseList(
+            @Parameter(description = "页码") @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @Parameter(description = "每页大小") @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+            @Parameter(description = "搜索关键词") @RequestParam(value = "keyword", required = false) String keyword,
+            @Parameter(description = "用例状态") @RequestParam(value = "status", required = false) String status) {
+        // 实现代码
+    }
+}
+```
 
 ## 设计模式应用
 

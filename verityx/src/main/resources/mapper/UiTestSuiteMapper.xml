@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiTestSuiteMapper">
+    
+    <resultMap id="BaseResultMap" type="com.example.verityx.entity.UiTestSuite">
+        <id column="id" property="id"/>
+        <result column="suite_name" property="suiteName"/>
+        <result column="suite_status" property="suiteStatus"/>
+        <result column="case_count" property="caseCount"/>
+        <result column="last_result" property="lastResult"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="last_run_at" property="lastRunAt"/>
+        <result column="trigger_mode" property="triggerMode"/>
+        <result column="project_id" property="projectId"/>
+        <result column="concurrency_level" property="concurrencyLevel"/>
+        <result column="environment" property="environment"/>
+        <result column="timeout" property="timeout"/>
+        <result column="retry_count" property="retryCount"/>
+        <result column="screenshot_policy" property="screenshotPolicy"/>
+        <result column="description" property="description"/>
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        id, suite_name, suite_status, case_count, last_result, created_by, created_at, updated_at, 
+        last_run_at, trigger_mode, project_id, concurrency_level, environment, timeout, retry_count, 
+        screenshot_policy, description
+    </sql>
+    
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM ui_test_suite
+        WHERE id = #{id}
+    </select>
+    
+    <select id="selectByPage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM ui_test_suite
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (suite_name LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null and status != ''">
+                <choose>
+                    <when test="status == 'running'">
+                        AND suite_status = '运行中'
+                    </when>
+                    <when test="status == 'completed'">
+                        AND suite_status = '已完成'
+                    </when>
+                </choose>
+            </if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <select id="countTestSuites" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM ui_test_suite
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (suite_name LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null and status != ''">
+                <choose>
+                    <when test="status == 'running'">
+                        AND suite_status = '运行中'
+                    </when>
+                    <when test="status == 'completed'">
+                        AND suite_status = '已完成'
+                    </when>
+                </choose>
+            </if>
+        </where>
+    </select>
+    
+    <insert id="insert" parameterType="com.example.verityx.entity.UiTestSuite" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_suite (
+            suite_name, suite_status, case_count, last_result, created_by, created_at, 
+            trigger_mode, project_id, concurrency_level, environment, timeout, retry_count, 
+            screenshot_policy, description
+        ) VALUES (
+            #{suiteName}, #{suiteStatus}, #{caseCount}, #{lastResult}, #{createdBy}, #{createdAt}, 
+            #{triggerMode}, #{projectId}, #{concurrencyLevel}, #{environment}, #{timeout}, #{retryCount}, 
+            #{screenshotPolicy}, #{description}
+        )
+    </insert>
+    
+    <update id="updateById" parameterType="com.example.verityx.entity.UiTestSuite">
+        UPDATE ui_test_suite
+        <set>
+            <if test="suiteName != null">suite_name = #{suiteName},</if>
+            <if test="suiteStatus != null">suite_status = #{suiteStatus},</if>
+            <if test="caseCount != null">case_count = #{caseCount},</if>
+            <if test="lastResult != null">last_result = #{lastResult},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+            <if test="lastRunAt != null">last_run_at = #{lastRunAt},</if>
+            <if test="triggerMode != null">trigger_mode = #{triggerMode},</if>
+            <if test="projectId != null">project_id = #{projectId},</if>
+            <if test="concurrencyLevel != null">concurrency_level = #{concurrencyLevel},</if>
+            <if test="environment != null">environment = #{environment},</if>
+            <if test="timeout != null">timeout = #{timeout},</if>
+            <if test="retryCount != null">retry_count = #{retryCount},</if>
+            <if test="screenshotPolicy != null">screenshot_policy = #{screenshotPolicy},</if>
+            <if test="description != null">description = #{description}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <delete id="deleteById">
+        DELETE FROM ui_test_suite
+        WHERE id = #{id}
+    </delete>
+</mapper> 

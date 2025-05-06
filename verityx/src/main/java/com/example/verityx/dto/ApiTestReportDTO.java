@@ -9,7 +9,7 @@ public class ApiTestReportDTO {
     private Integer pageSize;
     private String keyword;
     private String status;
-    
+
     // 报告详情
     private Integer id;
     private String apiName;
@@ -21,7 +21,7 @@ public class ApiTestReportDTO {
     private String headers;
     private String params;
     private String response;
-    
+
     // 批量操作
     private List<Integer> ids;
 
@@ -144,3 +144,4 @@ public class ApiTestReportDTO {
     public void setIds(List<Integer> ids) {
         this.ids = ids;
     }
+}

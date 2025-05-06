@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.UiTestStepMapper">
+    <!-- 结果映射 -->
+    <resultMap id="UiTestStepResultMap" type="com.example.verityx.entity.UiTestStep">
+        <id column="id" property="id"/>
+        <result column="case_id" property="caseId"/>
+        <result column="step_index" property="stepIndex"/>
+        <result column="action_type" property="actionType"/>
+        <result column="locator_type" property="locatorType"/>
+        <result column="locator_value" property="locatorValue"/>
+        <result column="input_value" property="inputValue"/>
+        <result column="wait_time" property="waitTime"/>
+        <result column="target_url" property="targetUrl"/>
+        <result column="description" property="description"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    
+    <!-- 插入UI测试步骤 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.UiTestStep" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_step (
+            case_id, step_index, action_type, locator_type, locator_value, 
+            input_value, wait_time, target_url, description
+        ) 
+        VALUES (
+            #{caseId}, #{stepIndex}, #{actionType}, #{locatorType}, #{locatorValue}, 
+            #{inputValue}, #{waitTime}, #{targetUrl}, #{description}
+        )
+    </insert>
+    
+    <!-- 批量插入UI测试步骤 -->
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ui_test_step (
+            case_id, step_index, action_type, locator_type, locator_value, 
+            input_value, wait_time, target_url, description
+        ) 
+        VALUES 
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.caseId}, #{item.stepIndex}, #{item.actionType}, #{item.locatorType}, #{item.locatorValue}, 
+                #{item.inputValue}, #{item.waitTime}, #{item.targetUrl}, #{item.description}
+            )
+        </foreach>
+    </insert>
+    
+    <!-- 更新UI测试步骤 -->
+    <update id="update" parameterType="com.example.verityx.entity.UiTestStep">
+        UPDATE ui_test_step
+        <set>
+            <if test="stepIndex != null">step_index = #{stepIndex},</if>
+            <if test="actionType != null">action_type = #{actionType},</if>
+            <if test="locatorType != null">locator_type = #{locatorType},</if>
+            <if test="locatorValue != null">locator_value = #{locatorValue},</if>
+            <if test="inputValue != null">input_value = #{inputValue},</if>
+            <if test="waitTime != null">wait_time = #{waitTime},</if>
+            <if test="targetUrl != null">target_url = #{targetUrl},</if>
+            <if test="description != null">description = #{description}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除UI测试步骤 -->
+    <delete id="delete">
+        DELETE FROM ui_test_step WHERE id = #{id}
+    </delete>
+    
+    <!-- 删除用例的所有步骤 -->
+    <delete id="deleteByCaseId">
+        DELETE FROM ui_test_step WHERE case_id = #{caseId}
+    </delete>
+    
+    <!-- 查询指定用例的所有步骤 -->
+    <select id="selectByCaseId" resultMap="UiTestStepResultMap">
+        SELECT * FROM ui_test_step WHERE case_id = #{caseId} ORDER BY step_index
+    </select>
+    
+    <!-- 获取指定用例的步骤数量 -->
+    <select id="countStepsByCaseId" resultType="int">
+        SELECT COUNT(*) FROM ui_test_step WHERE case_id = #{caseId}
+    </select>
+</mapper> 
