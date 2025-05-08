@@ -1,6 +1,6 @@
 <template>
   <div class="system-params-container">
-    <el-tabs v-model="activeTab" class="system-tabs">
+    <el-tabs v-model="activeTab" class="system-tabs" @tab-change="handleTabChange">
       <el-tab-pane label="全局参数设置" name="global">
         <div class="tab-content">
           <el-card shadow="hover" class="system-card">
@@ -348,6 +348,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import SysConfigApi from '@/api/sysConfigService';
+import SysDictApi from '@/api/sysDictService';
 
 // 选项卡状态
 const activeTab = ref('global');
@@ -368,34 +371,20 @@ const globalParams = ref({
 });
 
 // 数据字典管理数据
-const dictTypeList = ref([
-  { id: 1, name: '缺陷类型' },
-  { id: 2, name: '测试用例类型' },
-  { id: 3, name: '测试计划状态' },
-  { id: 4, name: '缺陷严重程度' },
-  { id: 5, name: '缺陷优先级' },
-]);
-
-const activeDictType = ref('1');
-const activeDictTypeName = ref('缺陷类型');
-
-const dictDataList = ref([
-  { id: 1, label: '功能缺陷', value: 'functional', cssClass: 'danger', sort: 1, status: '启用' },
-  { id: 2, label: '性能问题', value: 'performance', cssClass: 'warning', sort: 2, status: '启用' },
-  { id: 3, label: 'UI问题', value: 'ui', cssClass: 'info', sort: 3, status: '启用' },
-  { id: 4, label: '安全问题', value: 'security', cssClass: 'danger', sort: 4, status: '启用' },
-  { id: 5, label: '兼容性问题', value: 'compatibility', cssClass: 'warning', sort: 5, status: '启用' },
-]);
+const dictTypeList = ref([]);
+const activeDictType = ref('');
+const activeDictTypeName = ref('');
+const dictDataList = ref([]);
 
 // 邮件服务配置数据
 const emailConfig = ref({
-  smtpServer: 'smtp.example.com',
-  smtpPort: 587,
-  fromEmail: 'system@example.com',
-  fromName: 'VerityX测试平台',
-  username: 'system@example.com',
-  password: '******',
-  encryptionType: 'tls'
+  smtpServer: '',
+  smtpPort: 25,
+  fromEmail: '',
+  fromName: '',
+  username: '',
+  password: '',
+  encryptionType: 'none'
 });
 
 const emailTemplateList = ref([
@@ -416,9 +405,249 @@ const securityPolicy = ref({
   concurrentLoginControl: 'kickout'
 });
 
+// 加载系统参数
+const loadGlobalParams = async () => {
+  loading.value = true;
+  try {
+    // 定义需要获取的配置键名列表
+    const configKeys = [
+      'sys.default.test.env', 
+      'sys.request.timeout', 
+      'sys.retry.count',
+      'sys.concurrent.count',
+      'sys.default.page.size',
+      'sys.date.format',
+      'sys.theme',
+      'sys.sidebar.mode',
+      'sys.default.project',
+      'sys.default.report.template'
+    ];
+    
+    // 调用API批量获取配置
+    const res = await SysConfigApi.getConfigMap(configKeys);
+    if (res.code === 200 && res.data) {
+      // 映射API返回的数据到globalParams对象
+      globalParams.value = {
+        defaultTestEnv: res.data['sys.default.test.env'] || 'test',
+        requestTimeout: parseInt(res.data['sys.request.timeout'] || '10'),
+        retryCount: parseInt(res.data['sys.retry.count'] || '3'),
+        concurrentCount: parseInt(res.data['sys.concurrent.count'] || '5'),
+        defaultPageSize: parseInt(res.data['sys.default.page.size'] || '20'),
+        dateFormat: res.data['sys.date.format'] || 'YYYY-MM-DD',
+        theme: res.data['sys.theme'] || 'light',
+        sidebarMode: res.data['sys.sidebar.mode'] || 'expanded',
+        defaultProject: res.data['sys.default.project'] || 'all',
+        defaultReportTemplate: res.data['sys.default.report.template'] || 'standard'
+      };
+    }
+  } catch (error) {
+    console.error('加载系统参数失败:', error);
+    ElMessage.error('加载系统参数失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 加载邮件配置
+const loadEmailConfig = async () => {
+  loading.value = true;
+  try {
+    // 定义需要获取的配置键名列表
+    const configKeys = [
+      'mail.smtp.host', 
+      'mail.smtp.port', 
+      'mail.smtp.username',
+      'mail.smtp.password',
+      'mail.smtp.ssl.enable',
+      'mail.smtp.from',
+      'mail.smtp.from.name'
+    ];
+    
+    // 调用API批量获取配置
+    const res = await SysConfigApi.getConfigMap(configKeys);
+    if (res.code === 200 && res.data) {
+      // 设置加密类型
+      let encType = 'none';
+      if (res.data['mail.smtp.ssl.enable'] === 'true') {
+        encType = 'ssl';
+      } else if (res.data['mail.smtp.starttls.enable'] === 'true') {
+        encType = 'tls';
+      }
+      
+      // 映射API返回的数据到emailConfig对象
+      emailConfig.value = {
+        smtpServer: res.data['mail.smtp.host'] || '',
+        smtpPort: parseInt(res.data['mail.smtp.port'] || '25'),
+        fromEmail: res.data['mail.smtp.from'] || '',
+        fromName: res.data['mail.smtp.from.name'] || '',
+        username: res.data['mail.smtp.username'] || '',
+        password: res.data['mail.smtp.password'] || '',
+        encryptionType: encType
+      };
+    }
+  } catch (error) {
+    console.error('加载邮件配置失败:', error);
+    ElMessage.error('加载邮件配置失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 加载安全策略
+const loadSecurityPolicy = async () => {
+  loading.value = true;
+  try {
+    // 定义需要获取的配置键名列表
+    const configKeys = [
+      'sys.password.min.length', 
+      'sys.password.complexity', 
+      'sys.password.expiry.days',
+      'sys.password.history.count',
+      'sys.login.fail.lock.threshold',
+      'sys.account.lock.duration',
+      'sys.session.timeout',
+      'sys.concurrent.login.control'
+    ];
+    
+    // 调用API批量获取配置
+    const res = await SysConfigApi.getConfigMap(configKeys);
+    if (res.code === 200 && res.data) {
+      // 映射API返回的数据到securityPolicy对象
+      securityPolicy.value = {
+        passwordMinLength: parseInt(res.data['sys.password.min.length'] || '8'),
+        passwordComplexity: res.data['sys.password.complexity'] || 'medium',
+        passwordExpiryDays: parseInt(res.data['sys.password.expiry.days'] || '90'),
+        passwordHistoryCount: parseInt(res.data['sys.password.history.count'] || '3'),
+        loginFailLockThreshold: parseInt(res.data['sys.login.fail.lock.threshold'] || '5'),
+        accountLockDuration: parseInt(res.data['sys.account.lock.duration'] || '30'),
+        sessionTimeout: parseInt(res.data['sys.session.timeout'] || '60'),
+        concurrentLoginControl: res.data['sys.concurrent.login.control'] || 'kickout'
+      };
+    }
+  } catch (error) {
+    console.error('加载安全策略失败:', error);
+    ElMessage.error('加载安全策略失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 加载字典类型列表
+const loadDictTypes = async () => {
+  loading.value = true;
+  try {
+    const res = await SysDictApi.getAllDictTypes();
+    if (res.code === 200 && res.data) {
+      dictTypeList.value = res.data.map(item => ({
+        id: item.id,
+        name: item.dictName
+      }));
+      
+      // 如果有数据，默认选中第一项
+      if (dictTypeList.value.length > 0) {
+        activeDictType.value = dictTypeList.value[0].id.toString();
+        activeDictTypeName.value = dictTypeList.value[0].name;
+        loadDictData(activeDictType.value);
+      }
+    }
+  } catch (error) {
+    console.error('加载字典类型失败:', error);
+    ElMessage.error('加载字典类型失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 加载字典数据
+const loadDictData = async (typeId) => {
+  if (!typeId) return;
+  
+  loading.value = true;
+  try {
+    // 先获取字典类型详情，获取dictType值
+    const typeRes = await SysDictApi.getDictTypeById(typeId);
+    if (typeRes.code === 200 && typeRes.data) {
+      const dictType = typeRes.data.dictType;
+      
+      // 根据dictType获取字典数据列表
+      const dataRes = await SysDictApi.getDictDataByType(dictType);
+      if (dataRes.code === 200 && dataRes.data) {
+        dictDataList.value = dataRes.data.map(item => ({
+          id: item.id,
+          label: item.dictLabel,
+          value: item.dictValue,
+          cssClass: item.cssClass || '',
+          sort: item.dictSort,
+          status: item.status ? '启用' : '停用'
+        }));
+      }
+    }
+  } catch (error) {
+    console.error('加载字典数据失败:', error);
+    ElMessage.error('加载字典数据失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
 // 全局参数方法
-const handleSaveParams = () => {
-  console.log('保存全局参数', globalParams.value);
+const handleSaveParams = async () => {
+  loading.value = true;
+  try {
+    // 将globalParams转换为批量更新的请求格式
+    const updateRequests = [
+      { id: 0, configKey: 'sys.default.test.env', configValue: globalParams.value.defaultTestEnv, configName: '默认测试环境', configType: 'text' },
+      { id: 0, configKey: 'sys.request.timeout', configValue: globalParams.value.requestTimeout.toString(), configName: '请求超时时间', configType: 'number' },
+      { id: 0, configKey: 'sys.retry.count', configValue: globalParams.value.retryCount.toString(), configName: '重试次数', configType: 'number' },
+      { id: 0, configKey: 'sys.concurrent.count', configValue: globalParams.value.concurrentCount.toString(), configName: '并发执行数', configType: 'number' },
+      { id: 0, configKey: 'sys.default.page.size', configValue: globalParams.value.defaultPageSize.toString(), configName: '默认分页大小', configType: 'number' },
+      { id: 0, configKey: 'sys.date.format', configValue: globalParams.value.dateFormat, configName: '日期格式', configType: 'text' },
+      { id: 0, configKey: 'sys.theme', configValue: globalParams.value.theme, configName: '默认主题', configType: 'text' },
+      { id: 0, configKey: 'sys.sidebar.mode', configValue: globalParams.value.sidebarMode, configName: '侧边栏模式', configType: 'text' },
+      { id: 0, configKey: 'sys.default.project', configValue: globalParams.value.defaultProject, configName: '默认项目', configType: 'text' },
+      { id: 0, configKey: 'sys.default.report.template', configValue: globalParams.value.defaultReportTemplate, configName: '默认报告模板', configType: 'text' }
+    ];
+    
+    // 查询现有配置，如果存在则使用其ID
+    const configKeysToCheck = updateRequests.map(req => req.configKey);
+    const res = await SysConfigApi.getConfigMap(configKeysToCheck);
+    
+    if (res.code === 200) {
+      // 获取所有配置详情，填充ID
+      const configPromises = configKeysToCheck.map(key => SysConfigApi.getConfigByKey(key));
+      const configResults = await Promise.allSettled(configPromises);
+      
+      // 处理每个配置的结果
+      for (let i = 0; i < configResults.length; i++) {
+        const result = configResults[i];
+        if (result.status === 'fulfilled' && result.value.code === 200 && result.value.data) {
+          updateRequests[i].id = result.value.data.id;
+        }
+      }
+      
+      // 分离需要创建的和需要更新的
+      const createRequests = updateRequests.filter(req => req.id === 0);
+      const updateRequestsWithId = updateRequests.filter(req => req.id !== 0);
+      
+      // 创建新配置
+      for (const req of createRequests) {
+        const { id, ...createData } = req;
+        await SysConfigApi.createConfig(createData);
+      }
+      
+      // 批量更新现有配置
+      if (updateRequestsWithId.length > 0) {
+        await SysConfigApi.batchUpdateConfig(updateRequestsWithId);
+      }
+      
+      ElMessage.success('保存全局参数成功');
+    }
+  } catch (error) {
+    console.error('保存全局参数失败:', error);
+    ElMessage.error('保存全局参数失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 数据字典管理方法
@@ -426,66 +655,376 @@ const handleDictTypeSelect = (index) => {
   activeDictType.value = index;
   const selectedType = dictTypeList.value.find(item => item.id.toString() === index);
   activeDictTypeName.value = selectedType ? selectedType.name : '';
-  // 加载字典数据
+  loadDictData(index);
 };
 
 const handleAddDictType = () => {
-  console.log('添加字典类型');
+  ElMessageBox.prompt('请输入字典类型名称', '新增字典类型', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    inputPattern: /^.{2,50}$/,
+    inputErrorMessage: '名称长度必须在2-50个字符之间'
+  }).then(({ value }) => {
+    // 显示第二个输入框，获取字典类型编码
+    ElMessageBox.prompt('请输入字典类型编码', '新增字典类型', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      inputPattern: /^[a-zA-Z0-9_]{2,50}$/,
+      inputErrorMessage: '编码只能包含字母、数字和下划线，长度在2-50个字符之间'
+    }).then(async ({ value: typeCode }) => {
+      try {
+        loading.value = true;
+        const data = {
+          dictName: value,
+          dictType: typeCode,
+          status: true,
+          remark: ''
+        };
+        
+        const res = await SysDictApi.createDictType(data);
+        if (res.code === 200) {
+          ElMessage.success('添加字典类型成功');
+          loadDictTypes();
+        }
+      } catch (error) {
+        console.error('添加字典类型失败:', error);
+        ElMessage.error('添加字典类型失败');
+      } finally {
+        loading.value = false;
+      }
+    });
+  });
 };
 
 const handleAddDictData = () => {
-  console.log('添加字典数据');
+  // 获取当前选中的字典类型
+  const typeId = activeDictType.value;
+  if (!typeId) {
+    ElMessage.warning('请先选择字典类型');
+    return;
+  }
+  
+  // 获取字典类型详情
+  SysDictApi.getDictTypeById(typeId).then(res => {
+    if (res.code === 200 && res.data) {
+      const dictType = res.data.dictType;
+      
+      // 弹出表单对话框收集字典数据信息
+      ElMessageBox.prompt('请输入字典标签', '新增字典数据', {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        inputPattern: /^.{1,100}$/,
+        inputErrorMessage: '标签长度必须在1-100个字符之间'
+      }).then(({ value: dictLabel }) => {
+        // 弹出第二个输入框获取字典值
+        ElMessageBox.prompt('请输入字典键值', '新增字典数据', {
+          confirmButtonText: '确认',
+          cancelButtonText: '取消',
+          inputPattern: /^.{1,100}$/,
+          inputErrorMessage: '键值长度必须在1-100个字符之间'
+        }).then(async ({ value: dictValue }) => {
+          try {
+            loading.value = true;
+            const data = {
+              dictType: dictType,
+              dictLabel: dictLabel,
+              dictValue: dictValue,
+              dictSort: 0,
+              cssClass: '',
+              listClass: '',
+              isDefault: false,
+              status: true,
+              remark: ''
+            };
+            
+            const res = await SysDictApi.createDictData(data);
+            if (res.code === 200) {
+              ElMessage.success('添加字典数据成功');
+              loadDictData(typeId);
+            }
+          } catch (error) {
+            console.error('添加字典数据失败:', error);
+            ElMessage.error('添加字典数据失败');
+          } finally {
+            loading.value = false;
+          }
+        });
+      });
+    }
+  });
 };
 
 const handleEditDictData = (row) => {
-  console.log('编辑字典数据', row);
+  // 弹出表单对话框编辑字典数据信息
+  ElMessageBox.prompt('请输入字典标签', '编辑字典数据', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    inputPattern: /^.{1,100}$/,
+    inputErrorMessage: '标签长度必须在1-100个字符之间',
+    inputValue: row.label
+  }).then(({ value: dictLabel }) => {
+    // 弹出第二个输入框编辑字典值
+    ElMessageBox.prompt('请输入字典键值', '编辑字典数据', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      inputPattern: /^.{1,100}$/,
+      inputErrorMessage: '键值长度必须在1-100个字符之间',
+      inputValue: row.value
+    }).then(async ({ value: dictValue }) => {
+      try {
+        loading.value = true;
+        
+        // 获取完整的字典数据
+        const res = await SysDictApi.getDictDataById(row.id);
+        if (res.code === 200 && res.data) {
+          const dictData = res.data;
+          
+          // 更新数据
+          dictData.dictLabel = dictLabel;
+          dictData.dictValue = dictValue;
+          
+          const updateRes = await SysDictApi.updateDictData(dictData);
+          if (updateRes.code === 200) {
+            ElMessage.success('更新字典数据成功');
+            loadDictData(activeDictType.value);
+          }
+        }
+      } catch (error) {
+        console.error('更新字典数据失败:', error);
+        ElMessage.error('更新字典数据失败');
+      } finally {
+        loading.value = false;
+      }
+    });
+  });
 };
 
-const handleToggleDictDataStatus = (row) => {
-  console.log('切换字典数据状态', row);
+const handleToggleDictDataStatus = async (row) => {
+  try {
+    loading.value = true;
+    
+    // 获取完整的字典数据
+    const res = await SysDictApi.getDictDataById(row.id);
+    if (res.code === 200 && res.data) {
+      const dictData = res.data;
+      
+      // 切换状态
+      dictData.status = !dictData.status;
+      
+      const updateRes = await SysDictApi.updateDictData(dictData);
+      if (updateRes.code === 200) {
+        ElMessage.success(`${dictData.status ? '启用' : '停用'}字典数据成功`);
+        loadDictData(activeDictType.value);
+      }
+    }
+  } catch (error) {
+    console.error('切换字典数据状态失败:', error);
+    ElMessage.error('切换字典数据状态失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
 const handleDeleteDictData = (row) => {
-  console.log('删除字典数据', row);
+  ElMessageBox.confirm(`确定要删除字典数据"${row.label}"吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      loading.value = true;
+      const res = await SysDictApi.deleteDictData(row.id);
+      if (res.code === 200) {
+        ElMessage.success('删除字典数据成功');
+        loadDictData(activeDictType.value);
+      }
+    } catch (error) {
+      console.error('删除字典数据失败:', error);
+      ElMessage.error('删除字典数据失败');
+    } finally {
+      loading.value = false;
+    }
+  });
 };
 
 // 邮件服务配置方法
-const handleSaveEmailConfig = () => {
-  console.log('保存邮件配置', emailConfig.value);
+const handleSaveEmailConfig = async () => {
+  loading.value = true;
+  try {
+    // 将emailConfig转换为批量更新的请求格式
+    const updateRequests = [
+      { id: 0, configKey: 'mail.smtp.host', configValue: emailConfig.value.smtpServer, configName: 'SMTP服务器地址', configType: 'text' },
+      { id: 0, configKey: 'mail.smtp.port', configValue: emailConfig.value.smtpPort.toString(), configName: 'SMTP服务器端口', configType: 'number' },
+      { id: 0, configKey: 'mail.smtp.username', configValue: emailConfig.value.username, configName: 'SMTP用户名', configType: 'text' },
+      { id: 0, configKey: 'mail.smtp.password', configValue: emailConfig.value.password, configName: 'SMTP密码', configType: 'text' },
+      { id: 0, configKey: 'mail.smtp.from', configValue: emailConfig.value.fromEmail, configName: '发件人邮箱', configType: 'text' },
+      { id: 0, configKey: 'mail.smtp.from.name', configValue: emailConfig.value.fromName, configName: '发件人名称', configType: 'text' },
+      { id: 0, configKey: 'mail.smtp.ssl.enable', configValue: (emailConfig.value.encryptionType === 'ssl').toString(), configName: '启用SSL', configType: 'boolean' },
+      { id: 0, configKey: 'mail.smtp.starttls.enable', configValue: (emailConfig.value.encryptionType === 'tls').toString(), configName: '启用TLS', configType: 'boolean' }
+    ];
+    
+    // 查询现有配置，如果存在则使用其ID
+    const configKeysToCheck = updateRequests.map(req => req.configKey);
+    const res = await SysConfigApi.getConfigMap(configKeysToCheck);
+    
+    if (res.code === 200) {
+      // 获取所有配置详情，填充ID
+      const configPromises = configKeysToCheck.map(key => SysConfigApi.getConfigByKey(key));
+      const configResults = await Promise.allSettled(configPromises);
+      
+      // 处理每个配置的结果
+      for (let i = 0; i < configResults.length; i++) {
+        const result = configResults[i];
+        if (result.status === 'fulfilled' && result.value.code === 200 && result.value.data) {
+          updateRequests[i].id = result.value.data.id;
+        }
+      }
+      
+      // 分离需要创建的和需要更新的
+      const createRequests = updateRequests.filter(req => req.id === 0);
+      const updateRequestsWithId = updateRequests.filter(req => req.id !== 0);
+      
+      // 创建新配置
+      for (const req of createRequests) {
+        const { id, ...createData } = req;
+        await SysConfigApi.createConfig(createData);
+      }
+      
+      // 批量更新现有配置
+      if (updateRequestsWithId.length > 0) {
+        await SysConfigApi.batchUpdateConfig(updateRequestsWithId);
+      }
+      
+      ElMessage.success('保存邮件配置成功');
+    }
+  } catch (error) {
+    console.error('保存邮件配置失败:', error);
+    ElMessage.error('保存邮件配置失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
 const handleTestEmailConnection = () => {
-  console.log('测试邮件连接');
+  ElMessage.info('测试邮件连接功能待实现');
 };
 
 const handleSendTestEmail = () => {
-  console.log('发送测试邮件');
+  ElMessage.info('发送测试邮件功能待实现');
 };
 
 const handleAddEmailTemplate = () => {
-  console.log('添加邮件模板');
+  ElMessage.info('添加邮件模板功能待实现');
 };
 
 const handleEditEmailTemplate = (row) => {
-  console.log('编辑邮件模板', row);
+  ElMessage.info('编辑邮件模板功能待实现');
 };
 
 const handleViewEmailTemplate = (row) => {
-  console.log('预览邮件模板', row);
+  ElMessage.info('预览邮件模板功能待实现');
 };
 
 const handleDeleteEmailTemplate = (row) => {
-  console.log('删除邮件模板', row);
+  ElMessage.info('删除邮件模板功能待实现');
 };
 
 // 安全策略方法
-const handleSaveSecurityPolicy = () => {
-  console.log('保存安全策略', securityPolicy.value);
+const handleSaveSecurityPolicy = async () => {
+  loading.value = true;
+  try {
+    // 将securityPolicy转换为批量更新的请求格式
+    const updateRequests = [
+      { id: 0, configKey: 'sys.password.min.length', configValue: securityPolicy.value.passwordMinLength.toString(), configName: '密码最小长度', configType: 'number' },
+      { id: 0, configKey: 'sys.password.complexity', configValue: securityPolicy.value.passwordComplexity, configName: '密码复杂度', configType: 'text' },
+      { id: 0, configKey: 'sys.password.expiry.days', configValue: securityPolicy.value.passwordExpiryDays.toString(), configName: '密码过期天数', configType: 'number' },
+      { id: 0, configKey: 'sys.password.history.count', configValue: securityPolicy.value.passwordHistoryCount.toString(), configName: '密码历史记录数', configType: 'number' },
+      { id: 0, configKey: 'sys.login.fail.lock.threshold', configValue: securityPolicy.value.loginFailLockThreshold.toString(), configName: '登录失败锁定阈值', configType: 'number' },
+      { id: 0, configKey: 'sys.account.lock.duration', configValue: securityPolicy.value.accountLockDuration.toString(), configName: '账户锁定时长', configType: 'number' },
+      { id: 0, configKey: 'sys.session.timeout', configValue: securityPolicy.value.sessionTimeout.toString(), configName: '会话超时时间', configType: 'number' },
+      { id: 0, configKey: 'sys.concurrent.login.control', configValue: securityPolicy.value.concurrentLoginControl, configName: '并发登录控制', configType: 'text' }
+    ];
+    
+    // 查询现有配置，如果存在则使用其ID
+    const configKeysToCheck = updateRequests.map(req => req.configKey);
+    const res = await SysConfigApi.getConfigMap(configKeysToCheck);
+    
+    if (res.code === 200) {
+      // 获取所有配置详情，填充ID
+      const configPromises = configKeysToCheck.map(key => SysConfigApi.getConfigByKey(key));
+      const configResults = await Promise.allSettled(configPromises);
+      
+      // 处理每个配置的结果
+      for (let i = 0; i < configResults.length; i++) {
+        const result = configResults[i];
+        if (result.status === 'fulfilled' && result.value.code === 200 && result.value.data) {
+          updateRequests[i].id = result.value.data.id;
+        }
+      }
+      
+      // 分离需要创建的和需要更新的
+      const createRequests = updateRequests.filter(req => req.id === 0);
+      const updateRequestsWithId = updateRequests.filter(req => req.id !== 0);
+      
+      // 创建新配置
+      for (const req of createRequests) {
+        const { id, ...createData } = req;
+        await SysConfigApi.createConfig(createData);
+      }
+      
+      // 批量更新现有配置
+      if (updateRequestsWithId.length > 0) {
+        await SysConfigApi.batchUpdateConfig(updateRequestsWithId);
+      }
+      
+      ElMessage.success('保存安全策略成功');
+    }
+  } catch (error) {
+    console.error('保存安全策略失败:', error);
+    ElMessage.error('保存安全策略失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
+// 加载数据
 onMounted(() => {
-  // 初始化加载数据
+  // 只加载当前活动tab的数据
+  loadTabData(activeTab.value);
 });
+
+// 监听tab切换
+const handleTabChange = (tabName) => {
+  // 切换tab时加载对应数据
+  loadTabData(tabName);
+};
+
+// 根据当前tab加载数据
+const loadTabData = (tabName) => {
+  loading.value = true;
+  
+  try {
+    switch (tabName) {
+      case 'global':
+        loadGlobalParams();
+        break;
+      case 'dictionary':
+        loadDictTypes();
+        break;
+      case 'email':
+        loadEmailConfig();
+        break;
+      case 'security':
+        loadSecurityPolicy();
+        break;
+    }
+  } catch (error) {
+    console.error(`加载${tabName}标签页数据失败:`, error);
+    ElMessage.error(`加载数据失败`);
+  } finally {
+    loading.value = false;
+  }
+};
 </script>
 
 <style scoped>

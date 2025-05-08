@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysAboutMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="AboutResultMap" type="com.example.verityx.entity.SysAbout">
+        <id property="id" column="id"/>
+        <result property="systemName" column="system_name"/>
+        <result property="systemLogo" column="system_logo"/>
+        <result property="companyName" column="company_name"/>
+        <result property="companyWebsite" column="company_website"/>
+        <result property="contactEmail" column="contact_email"/>
+        <result property="copyright" column="copyright"/>
+        <result property="description" column="description"/>
+        <result property="termsOfService" column="terms_of_service"/>
+        <result property="privacyPolicy" column="privacy_policy"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+    
+    <!-- 获取系统基本信息 -->
+    <select id="selectSysAbout" resultMap="AboutResultMap">
+        SELECT * FROM sys_about LIMIT 1
+    </select>
+    
+</mapper> 

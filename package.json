@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "date-fns": "^4.1.0",
+    "marked": "^15.0.11"
+  }
+}

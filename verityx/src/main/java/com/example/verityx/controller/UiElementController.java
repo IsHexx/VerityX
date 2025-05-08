@@ -1,11 +1,11 @@
 package com.example.verityx.controller;
 
 import com.example.verityx.dto.PageResult;
-import com.example.verityx.dto.Result;
 import com.example.verityx.dto.UiElementDTO;
 import com.example.verityx.dto.UiElementGroupDTO;
 import com.example.verityx.service.UiElementGroupService;
 import com.example.verityx.service.UiElementService;
+import com.example.verityx.util.Result;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

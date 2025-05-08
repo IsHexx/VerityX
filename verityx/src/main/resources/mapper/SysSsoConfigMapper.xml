@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysSsoConfigMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.verityx.entity.SysSsoConfig">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="provider" property="provider"/>
+        <result column="server_url" property="serverUrl"/>
+        <result column="domain" property="domain"/>
+        <result column="client_id" property="clientId"/>
+        <result column="client_secret" property="clientSecret"/>
+        <result column="certificate" property="certificate"/>
+        <result column="base_dn" property="baseDn"/>
+        <result column="username_attribute" property="usernameAttribute"/>
+        <result column="email_attribute" property="emailAttribute"/>
+        <result column="config" property="config"/>
+        <result column="status" property="status"/>
+        <result column="is_default" property="isDefault"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="updater_id" property="updaterId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 自定义查询映射结果 -->
+    <resultMap id="DTOResultMap" type="com.example.verityx.dto.SysSsoConfigDTO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="provider" property="provider"/>
+        <result column="server_url" property="serverUrl"/>
+        <result column="domain" property="domain"/>
+        <result column="client_id" property="clientId"/>
+        <result column="base_dn" property="baseDn"/>
+        <result column="username_attribute" property="usernameAttribute"/>
+        <result column="email_attribute" property="emailAttribute"/>
+        <result column="config" property="config"/>
+        <result column="status" property="status"/>
+        <result column="is_default" property="isDefault"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="creator_name" property="creatorName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 基本列 -->
+    <sql id="Base_Column_List">
+        id, name, type, provider, server_url, domain, client_id, client_secret, 
+        certificate, base_dn, username_attribute, email_attribute, config, status, 
+        is_default, creator_id, updater_id, create_time, update_time, deleted
+    </sql>
+
+    <!-- 分页查询单点登录配置列表 -->
+    <select id="selectSsoConfigPage" resultMap="DTOResultMap">
+        SELECT s.id, s.name, s.type, s.provider, s.server_url, s.domain, s.client_id,
+               s.base_dn, s.username_attribute, s.email_attribute, s.config, s.status,
+               s.is_default, s.creator_id, u.username as creator_name,
+               s.create_time, s.update_time
+        FROM sys_sso_config s
+        LEFT JOIN sys_user u ON s.creator_id = u.id
+        WHERE s.deleted = 0
+        <if test="name != null and name != ''">
+            AND s.name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        <if test="type != null and type != ''">
+            AND s.type = #{type}
+        </if>
+        <if test="status != null">
+            AND s.status = #{status}
+        </if>
+        ORDER BY s.create_time DESC
+    </select>
+
+    <!-- 根据ID查询单点登录配置详情 -->
+    <select id="selectSsoConfigById" resultMap="DTOResultMap">
+        SELECT s.id, s.name, s.type, s.provider, s.server_url, s.domain, s.client_id,
+               s.base_dn, s.username_attribute, s.email_attribute, s.config, s.status,
+               s.is_default, s.creator_id, u.username as creator_name,
+               s.create_time, s.update_time
+        FROM sys_sso_config s
+        LEFT JOIN sys_user u ON s.creator_id = u.id
+        WHERE s.id = #{id} AND s.deleted = 0
+    </select>
+
+</mapper> 

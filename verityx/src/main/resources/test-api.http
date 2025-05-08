@@ -1,0 +1,229 @@
+### 第三方工具集成接口测试
+
+### 获取工具集成列表
+GET http://localhost:8089/api/sys/tool-integrations?page=1&size=10
+Accept: application/json
+
+### 根据名称和类型筛选工具集成列表
+GET http://localhost:8089/api/sys/tool-integrations?page=1&size=10&name=Jira&type=JIRA&status=true
+Accept: application/json
+
+### 获取工具集成详情
+GET http://localhost:8089/api/sys/tool-integrations/1
+Accept: application/json
+
+### 创建工具集成
+POST http://localhost:8089/api/sys/tool-integrations
+Content-Type: application/json
+
+{
+  "name": "JIRA集成",
+  "type": "JIRA",
+  "url": "https://jira.example.com",
+  "apiKey": "jira-api-key",
+  "username": "jira-user",
+  "password": "jira-password",
+  "status": true
+}
+
+### 更新工具集成
+PUT http://localhost:8089/api/sys/tool-integrations
+Content-Type: application/json
+  
+{
+  "id": 1,
+  "name": "JIRA集成(已更新)",
+  "type": "JIRA",
+  "url": "https://jira.example.com",
+  "apiKey": "jira-api-key-updated",
+  "username": "jira-user",
+  "password": "jira-password-updated",
+  "status": true
+}
+
+### 修改工具集成状态
+PUT http://localhost:8089/api/sys/tool-integrations/1/status?status=false
+Accept: application/json
+
+### 测试工具集成连接
+POST http://localhost:8089/api/sys/tool-integrations/1/test-connection
+Accept: application/json
+
+### 删除工具集成
+DELETE http://localhost:8089/api/sys/tool-integrations/1
+Accept: application/json
+
+### 批量删除工具集成
+DELETE http://localhost:8089/api/sys/tool-integrations/batch
+Content-Type: application/json
+
+[1, 2, 3]
+
+### API管理接口测试
+
+### 获取API管理列表
+GET http://localhost:8089/api/sys/api-management?page=1&size=10
+Accept: application/json
+
+### 根据名称筛选API管理列表
+GET http://localhost:8089/api/sys/api-management?page=1&size=10&name=Test&status=true
+Accept: application/json
+
+### 获取API管理详情
+GET http://localhost:8089/api/sys/api-management/1
+Accept: application/json
+
+### 创建API管理
+POST http://localhost:8089/api/sys/api-management
+Content-Type: application/json
+
+{
+  "name": "测试API",
+  "description": "用于测试的API密钥",
+  "callbackUrl": "https://example.com/callback",
+  "permissions": "read,write",
+  "rateLimit": 100,
+  "expirationDate": "2024-12-31T23:59:59",
+  "status": true
+}
+
+### 更新API管理
+PUT http://localhost:8089/api/sys/api-management
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "测试API(已更新)",
+  "description": "用于测试的API密钥(已更新)",
+  "callbackUrl": "https://example.com/callback-updated",
+  "permissions": "read,write,admin",
+  "rateLimit": 200,
+  "expirationDate": "2025-12-31T23:59:59",
+  "status": true
+}
+
+### 修改API管理状态
+PUT http://localhost:8089/api/sys/api-management/1/status?status=false
+Accept: application/json
+
+### 重新生成API密钥
+POST http://localhost:8089/api/sys/api-management/1/regenerate
+Accept: application/json
+
+### 删除API管理
+DELETE http://localhost:8089/api/sys/api-management/1
+Accept: application/json
+
+### 批量删除API管理
+DELETE http://localhost:8089/api/sys/api-management/batch
+Content-Type: application/json
+
+[1, 2, 3]
+
+### 单点登录配置接口测试
+
+### 获取单点登录配置列表
+GET http://localhost:8089/api/sys/sso-configs?page=1&size=10
+Accept: application/json
+
+### 根据名称和类型筛选单点登录配置列表
+GET http://localhost:8089/api/sys/sso-configs?page=1&size=10&name=LDAP&type=LDAP&status=true
+Accept: application/json
+
+### 获取单点登录配置详情
+GET http://localhost:8089/api/sys/sso-configs/1
+Accept: application/json
+
+### 创建单点登录配置 - LDAP
+POST http://localhost:8089/api/sys/sso-configs
+Content-Type: application/json
+
+{
+  "name": "公司LDAP",
+  "type": "LDAP",
+  "provider": "ActiveDirectory",
+  "serverUrl": "ldap://ldap.example.com:389",
+  "domain": "example.com",
+  "baseDn": "dc=example,dc=com",
+  "usernameAttribute": "sAMAccountName",
+  "emailAttribute": "mail",
+  "clientId": "ldap-client",
+  "clientSecret": "ldap-secret",
+  "status": true,
+  "isDefault": true
+}
+
+### 创建单点登录配置 - OAuth
+POST http://localhost:8089/api/sys/sso-configs
+Content-Type: application/json
+
+{
+  "name": "Google OAuth",
+  "type": "OAUTH",
+  "provider": "Google",
+  "serverUrl": "https://accounts.google.com/o/oauth2/auth",
+  "domain": "example.com",
+  "clientId": "google-client-id",
+  "clientSecret": "google-client-secret",
+  "status": true,
+  "isDefault": false
+}
+
+### 创建单点登录配置 - SAML
+POST http://localhost:8089/api/sys/sso-configs
+Content-Type: application/json
+
+{
+  "name": "Okta SAML",
+  "type": "SAML",
+  "provider": "Okta",
+  "serverUrl": "https://example.okta.com/app/saml",
+  "domain": "example.com",
+  "clientId": "saml-client-id",
+  "clientSecret": "saml-client-secret",
+  "certificate": "-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----",
+  "status": true,
+  "isDefault": false
+}
+
+### 更新单点登录配置
+PUT http://localhost:8089/api/sys/sso-configs
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "公司LDAP(已更新)",
+  "type": "LDAP",
+  "provider": "ActiveDirectory",
+  "serverUrl": "ldap://ldap.example.com:389",
+  "domain": "example.com",
+  "baseDn": "dc=example,dc=com",
+  "usernameAttribute": "sAMAccountName",
+  "emailAttribute": "mail",
+  "clientId": "ldap-client-updated",
+  "clientSecret": "ldap-secret-updated",
+  "status": true,
+  "isDefault": true
+}
+
+### 修改单点登录配置状态
+PUT http://localhost:8089/api/sys/sso-configs/1/status?status=false
+Accept: application/json
+
+### 设置为默认单点登录配置
+PUT http://localhost:8089/api/sys/sso-configs/2/default
+Accept: application/json
+
+### 测试单点登录配置连接
+POST http://localhost:8089/api/sys/sso-configs/1/test-connection
+Accept: application/json
+
+### 删除单点登录配置
+DELETE http://localhost:8089/api/sys/sso-configs/1
+Accept: application/json
+
+### 批量删除单点登录配置
+DELETE http://localhost:8089/api/sys/sso-configs/batch
+Content-Type: application/json
+
+[1, 2, 3] 

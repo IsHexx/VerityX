@@ -1,9 +1,9 @@
 package com.example.verityx.controller;
 
 import com.example.verityx.dto.PageResult;
-import com.example.verityx.dto.Result;
 import com.example.verityx.dto.UiTestSuiteDTO;
 import com.example.verityx.service.UiTestSuiteService;
+import com.example.verityx.util.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysPermissionMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="PermissionResultMap" type="com.example.verityx.entity.SysPermission">
+        <id property="id" column="id"/>
+        <result property="permissionName" column="permission_name"/>
+        <result property="permissionCode" column="permission_code"/>
+        <result property="permissionType" column="permission_type"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="permissionPath" column="permission_path"/>
+        <result property="component" column="component"/>
+        <result property="icon" column="icon"/>
+        <result property="sort" column="sort"/>
+        <result property="isActive" column="is_active"/>
+        <result property="isVisible" column="is_visible"/>
+        <result property="isSystem" column="is_system"/>
+        <result property="description" column="description"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <!-- DTO结果映射 -->
+    <resultMap id="PermissionDTOResultMap" type="com.example.verityx.dto.SysPermissionDTO">
+        <id property="id" column="id"/>
+        <result property="permissionName" column="permission_name"/>
+        <result property="permissionCode" column="permission_code"/>
+        <result property="permissionType" column="permission_type"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="permissionPath" column="permission_path"/>
+        <result property="component" column="component"/>
+        <result property="icon" column="icon"/>
+        <result property="sort" column="sort"/>
+        <result property="isActive" column="is_active"/>
+        <result property="isVisible" column="is_visible"/>
+        <result property="isSystem" column="is_system"/>
+        <result property="description" column="description"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <collection property="children" ofType="com.example.verityx.dto.SysPermissionDTO" column="id" select="selectPermissionsByParentId"/>
+    </resultMap>
+    
+    <!-- 查询所有权限列表 -->
+    <select id="selectAllPermissions" resultMap="PermissionDTOResultMap">
+        SELECT * FROM sys_permission WHERE parent_id IS NULL
+        ORDER BY sort ASC, id ASC
+    </select>
+    
+    <!-- 根据权限类型查询权限列表 -->
+    <select id="selectPermissionsByType" resultMap="PermissionDTOResultMap">
+        SELECT * FROM sys_permission WHERE permission_type = #{permissionType}
+        ORDER BY sort ASC, id ASC
+    </select>
+    
+    <!-- 根据ID查询权限详情 -->
+    <select id="selectPermissionById" resultMap="PermissionDTOResultMap">
+        SELECT * FROM sys_permission WHERE id = #{permissionId}
+    </select>
+    
+    <!-- 根据权限编码查询权限 -->
+    <select id="selectByPermissionCode" resultMap="PermissionResultMap">
+        SELECT * FROM sys_permission WHERE permission_code = #{permissionCode}
+    </select>
+    
+    <!-- 根据父ID查询权限列表 -->
+    <select id="selectPermissionsByParentId" resultMap="PermissionDTOResultMap">
+        SELECT * FROM sys_permission WHERE parent_id = #{parentId}
+        ORDER BY sort ASC, id ASC
+    </select>
+    
+    <!-- 根据角色ID查询权限列表 -->
+    <select id="selectPermissionsByRoleId" resultMap="PermissionDTOResultMap">
+        SELECT p.*
+        FROM sys_permission p
+        JOIN sys_role_permission rp ON p.id = rp.permission_id
+        WHERE rp.role_id = #{roleId}
+        ORDER BY p.sort ASC, p.id ASC
+    </select>
+    
+    <!-- 根据用户ID查询权限列表 -->
+    <select id="selectPermissionsByUserId" resultMap="PermissionDTOResultMap">
+        SELECT DISTINCT p.*
+        FROM sys_permission p
+        JOIN sys_role_permission rp ON p.id = rp.permission_id
+        JOIN sys_user_role ur ON rp.role_id = ur.role_id
+        WHERE ur.user_id = #{userId}
+          AND p.is_active = 1
+        ORDER BY p.sort ASC, p.id ASC
+    </select>
+    
+    <!-- 查询菜单权限列表 -->
+    <select id="selectMenuPermissions" resultMap="PermissionDTOResultMap">
+        SELECT * FROM sys_permission 
+        WHERE permission_type = 'menu' AND parent_id IS NULL
+        ORDER BY sort ASC, id ASC
+    </select>
+    
+    <!-- 根据用户ID查询菜单权限列表 -->
+    <select id="selectMenuPermissionsByUserId" resultMap="PermissionDTOResultMap">
+        SELECT DISTINCT p.*
+        FROM sys_permission p
+        JOIN sys_role_permission rp ON p.id = rp.permission_id
+        JOIN sys_user_role ur ON rp.role_id = ur.role_id
+        WHERE ur.user_id = #{userId}
+          AND p.permission_type = 'menu'
+          AND p.is_active = 1
+          AND p.parent_id IS NULL
+        ORDER BY p.sort ASC, p.id ASC
+    </select>
+</mapper> 

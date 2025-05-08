@@ -167,7 +167,7 @@ Content-Type: application/json
   "steps": [
     {
       "actionType": "navigate",
-      "targetUrl": "http://localhost:8080/login",
+      "targetUrl": "http://localhost:8089/login",
       "description": "打开登录页面"
     },
     {
@@ -253,7 +253,7 @@ Content-Type: application/json
   "steps": [
     {
       "actionType": "navigate",
-      "targetUrl": "http://localhost:8080/login",
+      "targetUrl": "http://localhost:8089/login",
       "description": "打开登录页面"
     },
     {
@@ -335,7 +335,7 @@ Content-Type: application/json
   "steps": [
     {
       "actionType": "navigate",
-      "targetUrl": "http://localhost:8080/products",
+      "targetUrl": "http://localhost:8089/products",
       "description": "打开商品页面"
     },
     {
@@ -494,7 +494,7 @@ Content-Type: application/json
   "locatorType": "CSS",
   "locatorValue": "#login-btn",
   "description": "登录页面的登录按钮",
-  "pageUrl": "http://localhost:8080/login"
+  "pageUrl": "http://localhost:8089/login"
 }
 
 ### 7. 更新UI元素
@@ -507,7 +507,7 @@ Content-Type: application/json
   "locatorType": "ID",
   "locatorValue": "login-button",
   "description": "更新后的登录按钮描述",
-  "pageUrl": "http://localhost:8080/login"
+  "pageUrl": "http://localhost:8089/login"
 }
 
 ### 8. 删除UI元素
@@ -521,7 +521,7 @@ Content-Type: application/json
 {
   "locatorType": "CSS",
   "locatorValue": "#login-btn",
-  "url": "http://localhost:8080/login"
+  "url": "http://localhost:8089/login"
 }
 
 ### 10. 上传元素截图（使用multipart表单，不能直接在HTTP文件中测试，需要使用Postman等工具）
@@ -664,7 +664,7 @@ Content-Type: application/json
   "stepIndex": 1,
   "stepName": "打开登录页面",
   "actionType": "navigate",
-  "target": "http://localhost:8080/login",
+  "target": "http://localhost:8089/login",
   "inputValue": "",
   "expectedResult": "页面成功打开",
   "actualResult": "页面成功打开",
@@ -925,8 +925,746 @@ Content-Type: application/json
   "pageLoadTimeout": 30,
   "scriptTimeout": 30,
   "headless": false,
-  "proxySettings": "{\"server\": \"proxy.example.com\", \"port\": 8080, \"username\": \"user\", \"password\": \"pwd\"}",
+  "proxySettings": "{\"server\": \"proxy.example.com\", \"port\": 8089, \"username\": \"user\", \"password\": \"pwd\"}",
   "capabilities": "{\"ms:edgeOptions\": {\"args\": [\"--start-maximized\", \"--disable-extensions\"]}}",
   "isDefault": false,
   "isActive": true
 }
+
+### --------------- 系统设置模块 API 测试 ---------------
+
+### 系统用户管理 API 测试 
+
+### 1. 分页查询用户列表
+GET http://localhost:8089/api/sys/users?page=1&size=10
+Content-Type: application/json
+
+### 2. 条件查询用户列表
+GET http://localhost:8089/api/sys/users?page=1&size=10&username=admin&phone=1380000&deptId=1&status=true
+Content-Type: application/json
+
+### 3. 获取用户详情
+GET http://localhost:8089/api/sys/users/1
+Content-Type: application/json
+
+### 4. 创建用户
+POST http://localhost:8089/api/sys/users
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "Test123456",
+  "realName": "测试用户",
+  "nickname": "小测",
+  "gender": "0",
+  "email": "test@example.com",
+  "phone": "13800138000",
+  "avatar": "",
+  "deptId": 1,
+  "roleIds": [2, 3],
+  "remark": "测试创建用户"
+}
+
+### 5. 更新用户
+PUT http://localhost:8089/api/sys/users
+Content-Type: application/json
+
+{
+  "id": 2,
+  "realName": "测试用户更新",
+  "nickname": "小测更新",
+  "gender": "女",
+  "email": "test_update@example.com",
+  "phone": "13900139000",
+  "avatar": "",
+  "deptId": 2,
+  "roleIds": [2],
+  "remark": "测试更新用户"
+}
+
+### 6. 删除用户
+DELETE http://localhost:8089/api/sys/users/2
+Content-Type: application/json
+
+### 7. 批量删除用户
+DELETE http://localhost:8089/api/sys/users/batch
+Content-Type: application/json
+
+[3, 4, 5]
+
+### 8. 修改用户状态
+PUT http://localhost:8089/api/sys/users/2/status?status=false
+Content-Type: application/json
+
+### 9. 重置用户密码
+PUT http://localhost:8089/api/sys/users/reset-password
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "newPassword": "NewPass123"
+}
+
+### 10. 获取用户权限列表
+GET http://localhost:8089/api/sys/users/2/permissions
+Content-Type: application/json
+
+### 11. 根据部门ID获取用户列表
+GET http://localhost:8089/api/sys/users/dept/1
+Content-Type: application/json
+
+### 系统角色管理 API 测试
+
+### 1. 分页查询角色列表
+GET http://localhost:8089/api/sys/roles?page=1&size=10
+Content-Type: application/json
+
+### 2. 条件查询角色列表
+GET http://localhost:8089/api/sys/roles?page=1&size=10&roleName=管理员&status=true
+Content-Type: application/json
+
+### 3. 获取所有角色列表
+GET http://localhost:8089/api/sys/roles/all
+Content-Type: application/json
+
+### 4. 获取角色详情
+GET http://localhost:8089/api/sys/roles/1
+Content-Type: application/json
+
+### 5. 创建角色
+POST http://localhost:8089/api/sys/roles
+Content-Type: application/json
+
+{
+  "roleName": "测试角色",
+  "roleCode": "TEST_ROLE",
+  "sort": 5,
+  "isActive": true,
+  "isSystem": false,
+  "remark": "测试创建角色"
+}
+
+### 6. 更新角色
+PUT http://localhost:8089/api/sys/roles
+Content-Type: application/json
+
+{
+  "id": 3,
+  "roleName": "测试角色更新",
+  "roleCode": "TEST_ROLE_UPDATE",
+  "sort": 6,
+  "isActive": true,
+  "isSystem": false,
+  "remark": "测试更新角色"
+}
+
+### 7. 删除角色
+DELETE http://localhost:8089/api/sys/roles/3
+Content-Type: application/json
+
+### 8. 批量删除角色
+DELETE http://localhost:8089/api/sys/roles/batch
+Content-Type: application/json
+
+[4, 5]
+
+### 9. 修改角色状态
+PUT http://localhost:8089/api/sys/roles/3/status?status=false
+Content-Type: application/json
+
+### 10. 分配角色权限
+POST http://localhost:8089/api/sys/roles/3/permissions
+Content-Type: application/json
+
+[1, 2, 3, 4, 5]
+
+### 11. 获取角色权限ID列表
+GET http://localhost:8089/api/sys/roles/3/permissions
+Content-Type: application/json
+
+### 12. 根据用户ID获取角色列表
+GET http://localhost:8089/api/sys/roles/user/1
+Content-Type: application/json
+
+### 系统权限管理 API 测试
+
+### 1. 获取所有权限列表
+GET http://localhost:8089/api/sys/permissions
+Content-Type: application/json
+
+### 2. 根据权限类型获取权限列表
+GET http://localhost:8089/api/sys/permissions/type/menu
+Content-Type: application/json
+
+### 3. 获取权限详情
+GET http://localhost:8089/api/sys/permissions/1
+Content-Type: application/json
+
+### 4. 创建权限
+POST http://localhost:8089/api/sys/permissions
+Content-Type: application/json
+
+{
+  "permissionName": "测试权限",
+  "permissionCode": "TEST:PERMISSION",
+  "permissionType": "button",
+  "parentId": 1,
+  "path": "",
+  "component": "",
+  "icon": "",
+  "sort": 5,
+  "isActive": true,
+  "isSystem": false,
+  "remark": "测试创建权限"
+}
+
+### 5. 更新权限
+PUT http://localhost:8089/api/sys/permissions
+Content-Type: application/json
+
+{
+  "id": 4,
+  "permissionName": "测试权限更新",
+  "permissionCode": "TEST:PERMISSION:UPDATE",
+  "permissionType": "button",
+  "parentId": 1,
+  "path": "",
+  "component": "",
+  "icon": "edit",
+  "sort": 6,
+  "isActive": true,
+  "isSystem": false,
+  "remark": "测试更新权限"
+}
+
+### 6. 删除权限
+DELETE http://localhost:8089/api/sys/permissions/4
+Content-Type: application/json
+
+### 7. 根据父ID获取权限列表
+GET http://localhost:8089/api/sys/permissions/parent/1
+Content-Type: application/json
+
+### 8. 根据角色ID获取权限列表
+GET http://localhost:8089/api/sys/permissions/role/1
+Content-Type: application/json
+
+### 9. 根据用户ID获取权限列表
+GET http://localhost:8089/api/sys/permissions/user/1
+Content-Type: application/json
+
+### 10. 获取菜单权限列表
+GET http://localhost:8089/api/sys/permissions/menus
+Content-Type: application/json
+
+### 11. 根据用户ID获取菜单权限列表
+GET http://localhost:8089/api/sys/permissions/menus/user/1
+Content-Type: application/json
+
+### 系统部门管理 API 测试
+
+### 1. 获取所有部门列表
+GET http://localhost:8089/api/sys/depts
+Content-Type: application/json
+
+### 2. 获取部门详情
+GET http://localhost:8089/api/sys/depts/1
+Content-Type: application/json
+
+### 3. 创建部门
+POST http://localhost:8089/api/sys/depts
+Content-Type: application/json
+
+{
+  "deptName": "测试部门",
+  "deptCode": "TEST_DEPT",
+  "parentId": 1,
+  "leader": "测试领导",
+  "phone": "13800138000",
+  "email": "test@example.com",
+  "sort": 5,
+  "isActive": true,
+  "remark": "测试创建部门"
+}
+
+### 4. 更新部门
+PUT http://localhost:8089/api/sys/depts
+Content-Type: application/json
+
+{
+  "id": 3,
+  "deptName": "测试部门更新",
+  "deptCode": "TEST_DEPT_UPDATE",
+  "parentId": 1,
+  "leader": "测试领导更新",
+  "phone": "13900139000",
+  "email": "test_update@example.com",
+  "sort": 6,
+  "isActive": true,
+  "remark": "测试更新部门"
+}
+
+### 5. 删除部门
+DELETE http://localhost:8089/api/sys/depts/3
+Content-Type: application/json
+
+### 6. 修改部门状态
+PUT http://localhost:8089/api/sys/depts/3/status?status=false
+Content-Type: application/json
+
+### 7. 根据父ID获取部门列表
+GET http://localhost:8089/api/sys/depts/parent/1
+Content-Type: application/json
+
+### 8. 根据用户ID获取部门列表
+GET http://localhost:8089/api/sys/depts/user/1
+Content-Type: application/json
+
+### 9. 查询部门及其下级部门ID列表
+GET http://localhost:8089/api/sys/depts/1/children/ids
+Content-Type: application/json
+
+### 10. 查询用户的主部门
+GET http://localhost:8089/api/sys/depts/user/1/primary
+Content-Type: application/json
+
+### 系统配置相关API测试
+
+### 获取系统配置分页列表
+GET http://localhost:8089/api/sys/configs?page=1&size=10
+Accept: application/json
+
+### 根据ID获取系统配置详情
+GET http://localhost:8089/api/sys/configs/1
+Accept: application/json
+
+### 根据配置键名获取配置
+GET http://localhost:8089/api/sys/configs/key/sys.name
+Accept: application/json
+
+### 根据配置键名获取配置值
+GET http://localhost:8089/api/sys/configs/value/sys.name
+Accept: application/json
+
+### 获取多个配置键值对
+POST http://localhost:8089/api/sys/configs/values
+Content-Type: application/json
+Accept: application/json
+
+[
+  "sys.name",
+  "sys.version",
+  "sys.index.path"
+]
+
+### 创建系统配置
+POST http://localhost:8089/api/sys/configs
+Content-Type: application/json
+Accept: application/json
+
+{
+  "configName": "测试配置",
+  "configKey": "test.config",
+  "configValue": "test value",
+  "configType": "text",
+  "isSystem": false,
+  "status": true,
+  "remark": "测试用配置"
+}
+
+### 更新系统配置
+PUT http://localhost:8089/api/sys/configs
+Content-Type: application/json
+Accept: application/json
+
+{
+  "id": 1,
+  "configName": "系统名称",
+  "configKey": "sys.name",
+  "configValue": "VerityX测试平台V2",
+  "configType": "text",
+  "status": true,
+  "remark": "系统名称，显示在页面顶部"
+}
+
+### 批量更新系统配置
+PUT http://localhost:8089/api/sys/configs/batch
+Content-Type: application/json
+Accept: application/json
+
+[
+  {
+    "id": 1,
+    "configName": "系统名称",
+    "configKey": "sys.name",
+    "configValue": "VerityX测试平台",
+    "configType": "text",
+    "status": true,
+    "remark": "系统名称，显示在页面顶部"
+  },
+  {
+    "id": 2,
+    "configName": "系统版本",
+    "configKey": "sys.version",
+    "configValue": "1.0.1",
+    "configType": "text",
+    "status": true,
+    "remark": "系统版本号"
+  }
+]
+
+### 删除系统配置
+DELETE http://localhost:8089/api/sys/configs/15
+Accept: application/json
+
+### 批量删除系统配置
+DELETE http://localhost:8089/api/sys/configs/batch
+Content-Type: application/json
+Accept: application/json
+
+[15, 16, 17]
+
+### 刷新系统配置缓存
+POST http://localhost:8089/api/sys/configs/refresh
+Accept: application/json
+
+### 字典类型相关API测试
+
+### 获取字典类型分页列表
+GET http://localhost:8089/api/sys/dict/types?page=1&size=10
+Accept: application/json
+
+### 获取所有字典类型列表
+GET http://localhost:8089/api/sys/dict/types/all
+Accept: application/json
+
+### 根据ID获取字典类型详情
+GET http://localhost:8089/api/sys/dict/types/1
+Accept: application/json
+
+### 创建字典类型
+POST http://localhost:8089/api/sys/dict/types
+Content-Type: application/json
+Accept: application/json
+
+{
+  "dictName": "测试字典",
+  "dictType": "test_dict",
+  "status": true,
+  "remark": "测试用字典"
+}
+
+### 更新字典类型
+PUT http://localhost:8089/api/sys/dict/types
+Content-Type: application/json
+Accept: application/json
+
+{
+  "id": 8,
+  "dictName": "测试字典更新",
+  "dictType": "test_dict",
+  "status": true,
+  "remark": "测试用字典已更新"
+}
+
+### 删除字典类型
+DELETE http://localhost:8089/api/sys/dict/types/8
+Accept: application/json
+
+### 字典数据相关API测试
+
+### 获取字典数据分页列表
+GET http://localhost:8089/api/sys/dict/data?page=1&size=10&dictType=sys_yes_no
+Accept: application/json
+
+### 根据字典类型获取字典数据列表
+GET http://localhost:8089/api/sys/dict/data/type/sys_yes_no
+Accept: application/json
+
+### 根据ID获取字典数据详情
+GET http://localhost:8089/api/sys/dict/data/1
+Accept: application/json
+
+### 创建字典数据
+POST http://localhost:8089/api/sys/dict/data
+Content-Type: application/json
+Accept: application/json
+
+{
+  "dictType": "test_dict",
+  "dictLabel": "测试标签",
+  "dictValue": "test",
+  "dictSort": 1,
+  "isDefault": true,
+  "status": true,
+  "remark": "测试用字典数据"
+}
+
+### 更新字典数据
+PUT http://localhost:8089/api/sys/dict/data
+Content-Type: application/json
+Accept: application/json
+
+{
+  "id": 30,
+  "dictType": "test_dict",
+  "dictLabel": "测试标签更新",
+  "dictValue": "test",
+  "dictSort": 2,
+  "isDefault": true,
+  "status": true,
+  "remark": "测试用字典数据已更新"
+}
+
+### 删除字典数据
+DELETE http://localhost:8089/api/sys/dict/data/30
+Accept: application/json
+
+### 通知中心相关API测试
+
+### 通知模板管理 API 测试
+
+### 1. 分页查询通知模板列表
+GET http://localhost:8089/api/sys/notification-templates?page=1&size=10
+Accept: application/json
+
+### 2. 条件查询通知模板列表
+GET http://localhost:8089/api/sys/notification-templates?page=1&size=10&name=测试&code=TEST&type=EMAIL&status=true
+Accept: application/json
+
+### 3. 获取通知模板详情
+GET http://localhost:8089/api/sys/notification-templates/1
+Accept: application/json
+
+### 4. 根据编码获取通知模板
+GET http://localhost:8089/api/sys/notification-templates/code/TEST_EMAIL_01
+Accept: application/json
+
+### 5. 创建通知模板
+POST http://localhost:8089/api/sys/notification-templates
+Content-Type: application/json
+
+{
+  "name": "测试计划创建通知",
+  "code": "TEST_PLAN_CREATE",
+  "type": "EMAIL",
+  "title": "新测试计划已创建",
+  "content": "您好 {userName}，\n\n新的测试计划 {testPlanName} 已创建。\n\n详情请查看：{testPlanUrl}",
+  "params": "{\"userName\":\"用户名\",\"testPlanName\":\"测试计划名称\",\"testPlanUrl\":\"测试计划链接\"}",
+  "status": true,
+  "createTime": "2023-05-08 11:30:00",
+  "updateTime": "2023-05-08 11:30:00"
+}
+
+### 6. 更新通知模板
+PUT http://localhost:8089/api/sys/notification-templates
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "测试计划创建通知-更新",
+  "code": "TEST_PLAN_CREATE",
+  "type": "EMAIL",
+  "title": "新测试计划已创建（更新）",
+  "content": "您好 {userName}，\n\n新的测试计划 {testPlanName} 已创建。\n\n详情请查看：{testPlanUrl}\n\n祝好，\nVerityX团队",
+  "params": "{\"userName\":\"用户名\",\"testPlanName\":\"测试计划名称\",\"testPlanUrl\":\"测试计划链接\"}",
+  "status": true,
+  "createTime": "2023-11-20 14:30:00"
+}
+
+### 7. 删除通知模板
+DELETE http://localhost:8089/api/sys/notification-templates/2
+Accept: application/json
+
+### 8. 批量删除通知模板
+POST http://localhost:8089/api/sys/notification-templates/batch
+Content-Type: application/json
+
+[3, 4, 5]
+
+### 9. 修改通知模板状态
+PUT http://localhost:8089/api/sys/notification-templates/1/status?status=false
+Accept: application/json
+
+### 通知规则管理 API 测试
+
+### 1. 分页查询通知规则列表
+GET http://localhost:8089/api/sys/notification-rules?page=1&size=10
+Accept: application/json
+
+### 2. 条件查询通知规则列表
+GET http://localhost:8089/api/sys/notification-rules?page=1&size=10&name=测试&code=TEST&eventType=TEST_PLAN&eventAction=CREATE&status=true
+Accept: application/json
+
+### 3. 获取通知规则详情
+GET http://localhost:8089/api/sys/notification-rules/1
+Accept: application/json
+
+### 4. 根据编码获取通知规则
+GET http://localhost:8089/api/sys/notification-rules/code/TEST_PLAN_CREATE_RULE
+Accept: application/json
+
+### 5. 根据事件类型和事件动作获取规则列表
+GET http://localhost:8089/api/sys/notification-rules/event?eventType=TEST_PLAN&eventAction=CREATE
+Accept: application/json
+
+### 6. 创建通知规则
+POST http://localhost:8089/api/sys/notification-rules
+Content-Type: application/json
+
+{
+  "name": "测试计划创建通知规则",
+  "code": "TEST_PLAN_CREATE_RULE",
+  "eventType": "TEST_PLAN",
+  "eventAction": "CREATE",
+  "templateId": 1,
+  "notifyType": "EMAIL",
+  "status": true
+}
+
+### 7. 更新通知规则
+PUT http://localhost:8089/api/sys/notification-rules
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "测试计划创建通知规则-更新",
+  "code": "TEST_PLAN_CREATE_RULE",
+  "eventType": "TEST_PLAN",
+  "eventAction": "CREATE",
+  "templateId": 1,
+  "notifyType": "EMAIL",
+  "status": true
+}
+
+### 8. 删除通知规则
+DELETE http://localhost:8089/api/sys/notification-rules/2
+Accept: application/json
+
+### 9. 批量删除通知规则
+POST http://localhost:8089/api/sys/notification-rules/batch
+Content-Type: application/json
+
+[3, 4, 5]
+
+### 10. 修改通知规则状态
+PUT http://localhost:8089/api/sys/notification-rules/1/status?status=false
+Accept: application/json
+
+### 用户订阅管理 API 测试
+
+### 1. 分页查询用户订阅列表
+GET http://localhost:8089/api/sys/user-subscriptions?page=1&size=10
+Accept: application/json
+
+### 2. 条件查询用户订阅列表
+GET http://localhost:8089/api/sys/user-subscriptions?page=1&size=10&userId=1&ruleId=1&status=true
+Accept: application/json
+
+### 3. 获取用户订阅详情
+GET http://localhost:8089/api/sys/user-subscriptions/1
+Accept: application/json
+
+### 4. 根据用户ID获取订阅列表
+GET http://localhost:8089/api/sys/user-subscriptions/user/1
+Accept: application/json
+
+### 5. 根据规则ID获取用户订阅列表
+GET http://localhost:8089/api/sys/user-subscriptions/rule/1
+Accept: application/json
+
+### 6. 创建用户订阅
+POST http://localhost:8089/api/sys/user-subscriptions
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "ruleId": 1,
+  "notifyType": "EMAIL",
+  "status": true
+}
+
+### 7. 更新用户订阅
+PUT http://localhost:8089/api/sys/user-subscriptions
+Content-Type: application/json
+
+{
+  "id": 1,
+  "userId": 1,
+  "ruleId": 1,
+  "notifyType": "EMAIL",
+  "status": true
+}
+
+### 8. 删除用户订阅
+DELETE http://localhost:8089/api/sys/user-subscriptions/2
+Accept: application/json
+
+### 9. 批量删除用户订阅
+POST http://localhost:8089/api/sys/user-subscriptions/batch
+Content-Type: application/json
+
+[3, 4, 5]
+
+### 10. 修改用户订阅状态
+PUT http://localhost:8089/api/sys/user-subscriptions/1/status?status=false
+Accept: application/json
+
+### 部门订阅管理 API 测试
+
+### 1. 分页查询部门订阅列表
+GET http://localhost:8089/api/sys/dept-subscriptions?page=1&size=10
+Accept: application/json
+
+### 2. 条件查询部门订阅列表
+GET http://localhost:8089/api/sys/dept-subscriptions?page=1&size=10&deptId=1&ruleId=1&status=true
+Accept: application/json
+
+### 3. 获取部门订阅详情
+GET http://localhost:8089/api/sys/dept-subscriptions/1
+Accept: application/json
+
+### 4. 根据部门ID获取订阅列表
+GET http://localhost:8089/api/sys/dept-subscriptions/dept/1
+Accept: application/json
+
+### 5. 根据规则ID获取部门订阅列表
+GET http://localhost:8089/api/sys/dept-subscriptions/rule/1
+Accept: application/json
+
+### 6. 创建部门订阅
+POST http://localhost:8089/api/sys/dept-subscriptions
+Content-Type: application/json
+
+{
+  "deptId": 1,
+  "ruleId": 1,
+  "notifyType": "EMAIL",
+  "status": true
+}
+
+### 7. 更新部门订阅
+PUT http://localhost:8089/api/sys/dept-subscriptions
+Content-Type: application/json
+
+{
+  "id": 1,
+  "deptId": 1,
+  "ruleId": 1,
+  "notifyType": "EMAIL",
+  "status": true
+}
+
+### 8. 删除部门订阅
+DELETE http://localhost:8089/api/sys/dept-subscriptions/2
+Accept: application/json
+
+### 9. 批量删除部门订阅
+POST http://localhost:8089/api/sys/dept-subscriptions/batch
+Content-Type: application/json
+
+[3, 4, 5]
+
+### 10. 修改部门订阅状态
+PUT http://localhost:8089/api/sys/dept-subscriptions/1/status?status=false
+Accept: application/json 

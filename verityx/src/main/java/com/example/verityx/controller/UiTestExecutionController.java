@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.verityx.dto.PageResult;
-import com.example.verityx.dto.Result;
+import com.example.verityx.util.Result;
 import com.example.verityx.dto.UiTestExecutionCreateRequest;
 import com.example.verityx.dto.UiTestExecutionDTO;
 import com.example.verityx.dto.UiTestExecutionDetailDTO;

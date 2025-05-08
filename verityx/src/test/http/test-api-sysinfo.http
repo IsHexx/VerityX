@@ -1,0 +1,173 @@
+### API测试文件 - 系统信息相关接口
+
+### 全局变量
+@host = http://localhost:8089
+@token = {{login.response.body.data.token}}
+
+### 登录获取Token
+# @name login
+POST {{host}}/api/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### ==================================
+### 版本信息相关接口
+### ==================================
+
+### 获取当前版本信息
+GET {{host}}/api/system/info/version/current
+Authorization: Bearer {{token}}
+
+### 获取版本历史记录
+GET {{host}}/api/system/info/version/history
+Authorization: Bearer {{token}}
+
+### 添加新版本信息
+POST {{host}}/api/system/info/version
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "version": "1.2.0",
+  "releaseDate": "2025-06-15T10:00:00",
+  "releaseNotes": "新增功能：用户角色管理优化，性能提升，UI改进",
+  "isCurrent": false
+}
+
+### 更新版本信息
+PUT {{host}}/api/system/info/version
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 2,
+  "version": "1.2.0",
+  "releaseDate": "2025-06-15T10:00:00",
+  "releaseNotes": "新增功能：用户角色管理优化，性能提升，UI改进，Bug修复",
+  "isCurrent": false
+}
+
+### 设置当前版本
+PUT {{host}}/api/system/info/version/2/current
+Authorization: Bearer {{token}}
+
+### ==================================
+### 许可证信息相关接口
+### ==================================
+
+### 获取当前许可证信息
+GET {{host}}/api/system/info/license/current
+Authorization: Bearer {{token}}
+
+### 获取许可证列表
+GET {{host}}/api/system/info/license/list
+Authorization: Bearer {{token}}
+
+### 添加许可证信息
+POST {{host}}/api/system/info/license
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "licenseKey": "VERITYX-ENTE-RPRI-SE25-XXXX-XXXX-XXXX-XXXX",
+  "licenseType": "企业版",
+  "issuedTo": "示例公司",
+  "issuedBy": "VerityX Inc.",
+  "issueDate": "2025-06-01T00:00:00",
+  "expirationDate": "2026-06-01T00:00:00",
+  "maxUsers": 100,
+  "features": "{\"advancedReporting\":true,\"multipleEnvironments\":true,\"cicdIntegration\":true}",
+  "status": "有效",
+  "remarks": "企业版许可证，支持所有高级功能"
+}
+
+### 更新许可证信息
+PUT {{host}}/api/system/info/license
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "licenseKey": "VERITYX-ENTE-RPRI-SE25-XXXX-XXXX-XXXX-XXXX",
+  "licenseType": "企业版",
+  "issuedTo": "示例公司（更新）",
+  "issuedBy": "VerityX Inc.",
+  "issueDate": "2025-06-01T00:00:00",
+  "expirationDate": "2026-06-01T00:00:00",
+  "maxUsers": 150,
+  "features": "{\"advancedReporting\":true,\"multipleEnvironments\":true,\"cicdIntegration\":true}",
+  "status": "有效",
+  "remarks": "企业版许可证，支持所有高级功能，用户数增加到150"
+}
+
+### 验证许可证密钥
+POST {{host}}/api/system/info/license/validate?licenseKey=VERITYX-ENTE-RPRI-SE25-XXXX-XXXX-XXXX-XXXX
+Authorization: Bearer {{token}}
+
+### ==================================
+### 系统升级相关接口
+### ==================================
+
+### 获取升级记录列表
+GET {{host}}/api/system/info/upgrade/list?page=1&size=10
+Authorization: Bearer {{token}}
+
+### 获取升级记录列表（按状态过滤）
+GET {{host}}/api/system/info/upgrade/list?page=1&size=10&status=成功
+Authorization: Bearer {{token}}
+
+### 获取升级记录详情
+GET {{host}}/api/system/info/upgrade/1
+Authorization: Bearer {{token}}
+
+### 执行系统升级
+POST {{host}}/api/system/info/upgrade
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "toVersion": "1.3.0",
+  "upgradeUser": "admin",
+  "createBackup": true,
+  "backupRemark": "升级到1.3.0前的备份",
+  "remarks": "计划升级到1.3.0版本，新增功能：报表导出、批量处理、性能优化"
+}
+
+### 获取最近一次升级记录
+GET {{host}}/api/system/info/upgrade/latest
+Authorization: Bearer {{token}}
+
+### ==================================
+### 关于系统相关接口
+### ==================================
+
+### 获取系统基本信息
+GET {{host}}/api/system/info/about
+Authorization: Bearer {{token}}
+
+### 更新系统基本信息
+PUT {{host}}/api/system/info/about
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "systemName": "VerityX测试平台",
+  "systemLogo": "/assets/logo.png",
+  "companyName": "VerityX Inc.",
+  "companyWebsite": "https://www.verityx.com",
+  "contactEmail": "support@verityx.com",
+  "copyright": "Copyright © 2025 VerityX Inc. All rights reserved.",
+  "description": "VerityX是一个完整的自动化测试平台，支持UI测试、API测试和性能测试，提供丰富的测试管理功能。"
+}
+
+### 获取服务条款
+GET {{host}}/api/system/info/about/terms
+Authorization: Bearer {{token}}
+
+### 获取隐私政策
+GET {{host}}/api/system/info/about/privacy
+Authorization: Bearer {{token}}

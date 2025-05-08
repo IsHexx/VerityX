@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysErrorLogMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="ErrorLogResultMap" type="com.example.verityx.entity.SysErrorLog">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="requestUrl" column="request_url"/>
+        <result property="requestMethod" column="request_method"/>
+        <result property="requestParams" column="request_params"/>
+        <result property="requestIp" column="request_ip"/>
+        <result property="errorMsg" column="error_msg"/>
+        <result property="stackTrace" column="stack_trace"/>
+        <result property="errorTime" column="error_time"/>
+    </resultMap>
+    
+    <resultMap id="ErrorLogDTOResultMap" type="com.example.verityx.dto.SysErrorLogDTO">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="requestUrl" column="request_url"/>
+        <result property="requestMethod" column="request_method"/>
+        <result property="requestParams" column="request_params"/>
+        <result property="requestIp" column="request_ip"/>
+        <result property="errorMsg" column="error_msg"/>
+        <result property="stackTrace" column="stack_trace"/>
+        <result property="errorTime" column="error_time"/>
+    </resultMap>
+    
+    <!-- 分页查询异常日志 -->
+    <select id="selectErrorLogPage" resultMap="ErrorLogDTOResultMap">
+        SELECT * FROM sys_error_log
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="requestMethod != null and requestMethod != ''">
+                AND request_method = #{requestMethod}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    request_url LIKE CONCAT('%', #{keyword}, '%')
+                    OR request_params LIKE CONCAT('%', #{keyword}, '%')
+                    OR error_msg LIKE CONCAT('%', #{keyword}, '%')
+                    OR stack_trace LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="startTime != null">
+                AND error_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND error_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY error_time DESC
+    </select>
+    
+    <!-- 根据ID查询异常日志详情 -->
+    <select id="selectErrorLogById" resultMap="ErrorLogDTOResultMap">
+        SELECT * FROM sys_error_log WHERE id = #{id}
+    </select>
+    
+    <!-- 清理指定时间之前的异常日志 -->
+    <delete id="deleteErrorLogBefore">
+        DELETE FROM sys_error_log WHERE error_time &lt; #{beforeTime}
+    </delete>
+    
+</mapper>

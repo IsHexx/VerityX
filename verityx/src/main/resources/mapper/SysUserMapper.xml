@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysUserMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="UserResultMap" type="com.example.verityx.entity.SysUser">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="realName" column="real_name"/>
+        <result property="nickname" column="nickname"/>
+        <result property="gender" column="gender"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="avatar" column="avatar"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="isLocked" column="is_locked"/>
+        <result property="isActive" column="is_active"/>
+        <result property="lastLoginIp" column="last_login_ip"/>
+        <result property="lastLoginTime" column="last_login_time"/>
+        <result property="remark" column="remark"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <!-- DTO结果映射 -->
+    <resultMap id="UserDTOResultMap" type="com.example.verityx.dto.SysUserDTO">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="realName" column="real_name"/>
+        <result property="nickname" column="nickname"/>
+        <result property="gender" column="gender"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="avatar" column="avatar"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="deptName" column="dept_name"/>
+        <result property="isLocked" column="is_locked"/>
+        <result property="isActive" column="is_active"/>
+        <result property="lastLoginIp" column="last_login_ip"/>
+        <result property="lastLoginTime" column="last_login_time"/>
+        <result property="remark" column="remark"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <!-- 根据用户名查询用户 -->
+    <select id="selectByUsername" resultMap="UserResultMap">
+        SELECT * FROM sys_user WHERE username = #{username}
+    </select>
+    
+    <!-- 分页查询用户列表 -->
+    <select id="selectUserPage" resultMap="UserDTOResultMap">
+        SELECT u.*, d.dept_name
+        FROM sys_user u
+        LEFT JOIN sys_dept d ON u.dept_id = d.id
+        <where>
+            <if test="username != null and username != ''">
+                AND u.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                AND u.phone LIKE CONCAT('%', #{phone}, '%')
+            </if>
+            <if test="deptId != null">
+                AND u.dept_id = #{deptId}
+            </if>
+            <if test="status != null">
+                AND u.is_active = #{status}
+            </if>
+        </where>
+        ORDER BY u.id DESC
+    </select>
+    
+    <!-- 根据ID查询用户详情 -->
+    <select id="selectUserById" resultMap="UserDTOResultMap">
+        SELECT u.*, d.dept_name
+        FROM sys_user u
+        LEFT JOIN sys_dept d ON u.dept_id = d.id
+        WHERE u.id = #{userId}
+    </select>
+    
+    <!-- 根据用户ID查询角色ID列表 -->
+    <select id="selectRoleIdsByUserId" resultType="java.lang.Long">
+        SELECT role_id FROM sys_user_role WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 根据用户ID查询所有权限 -->
+    <select id="selectPermissionCodesByUserId" resultType="java.lang.String">
+        SELECT DISTINCT p.permission_code
+        FROM sys_permission p
+        JOIN sys_role_permission rp ON p.id = rp.permission_id
+        JOIN sys_user_role ur ON rp.role_id = ur.role_id
+        WHERE ur.user_id = #{userId}
+          AND p.is_active = 1
+    </select>
+    
+    <!-- 根据部门ID查询用户列表 -->
+    <select id="selectUsersByDeptId" resultMap="UserDTOResultMap">
+        SELECT u.*, d.dept_name
+        FROM sys_user u
+        LEFT JOIN sys_dept d ON u.dept_id = d.id
+        WHERE u.dept_id = #{deptId}
+        ORDER BY u.id DESC
+    </select>
+</mapper> 

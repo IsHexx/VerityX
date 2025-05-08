@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysOperationLogMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="OperationLogResultMap" type="com.example.verityx.dto.SysOperationLogDTO">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="logType" column="log_type"/>
+        <result property="logLevel" column="log_level"/>
+        <result property="module" column="module"/>
+        <result property="content" column="content"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="createTime" column="create_time"/>
+        <result property="traceId" column="trace_id"/>
+        <result property="extraInfo" column="extra_info"/>
+    </resultMap>
+
+    <!-- 分页查询操作日志 -->
+    <select id="selectOperationLogPage" resultMap="OperationLogResultMap">
+        SELECT * FROM sys_operation_log
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="logType != null and logType != ''">
+                AND log_type = #{logType}
+            </if>
+            <if test="logLevel != null and logLevel != ''">
+                AND log_level = #{logLevel}
+            </if>
+            <if test="module != null and module != ''">
+                AND module = #{module}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND content LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="startTime != null">
+                AND create_time >= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND create_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据ID查询操作日志详情 -->
+    <select id="selectOperationLogById" resultMap="OperationLogResultMap">
+        SELECT * FROM sys_operation_log WHERE id = #{id}
+    </select>
+
+    <!-- 清理指定时间之前的操作日志 -->
+    <delete id="deleteOperationLogBefore">
+        DELETE FROM sys_operation_log WHERE create_time &lt; #{beforeTime}
+    </delete>
+
+</mapper>

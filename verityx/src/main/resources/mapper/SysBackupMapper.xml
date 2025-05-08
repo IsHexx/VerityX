@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysBackupMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BackupResultMap" type="com.example.verityx.entity.SysBackup">
+        <id property="id" column="id"/>
+        <result property="backupName" column="backup_name"/>
+        <result property="fileName" column="file_name"/>
+        <result property="filePath" column="file_path"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="backupType" column="backup_type"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+    
+    <resultMap id="BackupDTOResultMap" type="com.example.verityx.dto.SysBackupDTO">
+        <id property="id" column="id"/>
+        <result property="backupName" column="backup_name"/>
+        <result property="fileName" column="file_name"/>
+        <result property="filePath" column="file_path"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="backupType" column="backup_type"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdByName" column="created_by_name"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+    
+    <!-- 分页查询备份记录 -->
+    <select id="selectBackupPage" resultMap="BackupDTOResultMap">
+        SELECT 
+            b.*,
+            u.username AS created_by_name
+        FROM sys_backup b
+        LEFT JOIN sys_user u ON b.created_by = u.id
+        <where>
+            <if test="backupName != null and backupName != ''">
+                AND b.backup_name LIKE CONCAT('%', #{backupName}, '%')
+            </if>
+            <if test="backupType != null and backupType != ''">
+                AND b.backup_type = #{backupType}
+            </if>
+            <if test="status != null and status != ''">
+                AND b.status = #{status}
+            </if>
+        </where>
+        ORDER BY b.created_at DESC
+    </select>
+    
+    <!-- 根据ID查询备份记录详情 -->
+    <select id="selectBackupById" resultMap="BackupDTOResultMap">
+        SELECT 
+            b.*,
+            u.username AS created_by_name
+        FROM sys_backup b
+        LEFT JOIN sys_user u ON b.created_by = u.id
+        WHERE b.id = #{id}
+    </select>
+    
+</mapper> 

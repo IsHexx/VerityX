@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysRoleMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="RoleResultMap" type="com.example.verityx.entity.SysRole">
+        <id property="id" column="id"/>
+        <result property="roleName" column="role_name"/>
+        <result property="roleCode" column="role_code"/>
+        <result property="description" column="description"/>
+        <result property="isSystem" column="is_system"/>
+        <result property="isActive" column="is_active"/>
+        <result property="sort" column="sort"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <!-- DTO结果映射 -->
+    <resultMap id="RoleDTOResultMap" type="com.example.verityx.dto.SysRoleDTO">
+        <id property="id" column="id"/>
+        <result property="roleName" column="role_name"/>
+        <result property="roleCode" column="role_code"/>
+        <result property="description" column="description"/>
+        <result property="isSystem" column="is_system"/>
+        <result property="isActive" column="is_active"/>
+        <result property="sort" column="sort"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <!-- 分页查询角色列表 -->
+    <select id="selectRolePage" resultMap="RoleDTOResultMap">
+        SELECT * FROM sys_role
+        <where>
+            <if test="roleName != null and roleName != ''">
+                AND role_name LIKE CONCAT('%', #{roleName}, '%')
+            </if>
+            <if test="status != null">
+                AND is_active = #{status}
+            </if>
+        </where>
+        ORDER BY sort ASC, id DESC
+    </select>
+    
+    <!-- 查询所有角色列表 -->
+    <select id="selectAllRoles" resultMap="RoleDTOResultMap">
+        SELECT * FROM sys_role
+        ORDER BY sort ASC, id DESC
+    </select>
+    
+    <!-- 根据ID查询角色详情 -->
+    <select id="selectRoleById" resultMap="RoleDTOResultMap">
+        SELECT * FROM sys_role WHERE id = #{roleId}
+    </select>
+    
+    <!-- 根据角色编码查询角色 -->
+    <select id="selectByRoleCode" resultMap="RoleResultMap">
+        SELECT * FROM sys_role WHERE role_code = #{roleCode}
+    </select>
+    
+    <!-- 根据用户ID查询角色列表 -->
+    <select id="selectRolesByUserId" resultMap="RoleDTOResultMap">
+        SELECT r.*
+        FROM sys_role r
+        JOIN sys_user_role ur ON r.id = ur.role_id
+        WHERE ur.user_id = #{userId}
+        ORDER BY r.sort ASC, r.id DESC
+    </select>
+    
+    <!-- 根据角色ID查询权限ID列表 -->
+    <select id="selectPermissionIdsByRoleId" resultType="java.lang.Long">
+        SELECT permission_id FROM sys_role_permission WHERE role_id = #{roleId}
+    </select>
+</mapper> 

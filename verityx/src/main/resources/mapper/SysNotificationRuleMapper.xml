@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysNotificationRuleMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.verityx.entity.SysNotificationRule">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="event_type" property="eventType"/>
+        <result column="event_action" property="eventAction"/>
+        <result column="template_id" property="templateId"/>
+        <result column="notify_type" property="notifyType"/>
+        <result column="status" property="status"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="updater_id" property="updaterId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 自定义查询映射结果 -->
+    <resultMap id="DTOResultMap" type="com.example.verityx.dto.SysNotificationRuleDTO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="event_type" property="eventType"/>
+        <result column="event_action" property="eventAction"/>
+        <result column="template_id" property="templateId"/>
+        <result column="template_name" property="templateName"/>
+        <result column="notify_type" property="notifyType"/>
+        <result column="status" property="status"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="creator_name" property="creatorName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 基本列 -->
+    <sql id="Base_Column_List">
+        id, name, code, event_type, event_action, template_id, notify_type, status, 
+        creator_id, updater_id, create_time, update_time, deleted
+    </sql>
+
+    <!-- 分页查询通知规则列表 -->
+    <select id="selectRulePage" resultMap="DTOResultMap">
+        SELECT r.id, r.name, r.code, r.event_type, r.event_action, r.template_id, 
+               t.name as template_name, r.notify_type, r.status, r.creator_id, 
+               u.username as creator_name, r.create_time, r.update_time
+        FROM sys_notification_rule r
+        LEFT JOIN sys_notification_template t ON r.template_id = t.id
+        LEFT JOIN sys_user u ON r.creator_id = u.id
+        WHERE r.deleted = 0
+        <if test="name != null and name != ''">
+            AND r.name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        <if test="code != null and code != ''">
+            AND r.code LIKE CONCAT('%', #{code}, '%')
+        </if>
+        <if test="eventType != null and eventType != ''">
+            AND r.event_type = #{eventType}
+        </if>
+        <if test="eventAction != null and eventAction != ''">
+            AND r.event_action = #{eventAction}
+        </if>
+        <if test="status != null">
+            AND r.status = #{status}
+        </if>
+        ORDER BY r.create_time DESC
+    </select>
+
+    <!-- 根据ID查询通知规则详情 -->
+    <select id="selectRuleById" resultMap="DTOResultMap">
+        SELECT r.id, r.name, r.code, r.event_type, r.event_action, r.template_id, 
+               t.name as template_name, r.notify_type, r.status, r.creator_id, 
+               u.username as creator_name, r.create_time, r.update_time
+        FROM sys_notification_rule r
+        LEFT JOIN sys_notification_template t ON r.template_id = t.id
+        LEFT JOIN sys_user u ON r.creator_id = u.id
+        WHERE r.id = #{id} AND r.deleted = 0
+    </select>
+
+    <!-- 根据编码查询通知规则 -->
+    <select id="selectRuleByCode" resultMap="DTOResultMap">
+        SELECT r.id, r.name, r.code, r.event_type, r.event_action, r.template_id, 
+               t.name as template_name, r.notify_type, r.status, r.creator_id, 
+               u.username as creator_name, r.create_time, r.update_time
+        FROM sys_notification_rule r
+        LEFT JOIN sys_notification_template t ON r.template_id = t.id
+        LEFT JOIN sys_user u ON r.creator_id = u.id
+        WHERE r.code = #{code} AND r.deleted = 0
+    </select>
+
+    <!-- 根据事件类型和事件动作查询启用的规则列表 -->
+    <select id="selectRulesByEvent" resultMap="DTOResultMap">
+        SELECT r.id, r.name, r.code, r.event_type, r.event_action, r.template_id, 
+               t.name as template_name, r.notify_type, r.status, r.creator_id, 
+               u.username as creator_name, r.create_time, r.update_time
+        FROM sys_notification_rule r
+        LEFT JOIN sys_notification_template t ON r.template_id = t.id
+        LEFT JOIN sys_user u ON r.creator_id = u.id
+        WHERE r.event_type = #{eventType} 
+          AND r.event_action = #{eventAction}
+          AND r.status = 1
+          AND r.deleted = 0
+    </select>
+
+</mapper> 

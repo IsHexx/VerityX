@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysPerformanceLogMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="PerformanceLogResultMap" type="com.example.verityx.entity.SysPerformanceLog">
+        <id property="id" column="id"/>
+        <result property="resourceType" column="resource_type"/>
+        <result property="metricName" column="metric_name"/>
+        <result property="metricValue" column="metric_value"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="logLevel" column="log_level"/>
+        <result property="recordTime" column="record_time"/>
+        <result property="remarks" column="remarks"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+    
+    <resultMap id="PerformanceLogDTOResultMap" type="com.example.verityx.dto.SysPerformanceLogDTO">
+        <id property="id" column="id"/>
+        <result property="resourceType" column="resource_type"/>
+        <result property="metricName" column="metric_name"/>
+        <result property="metricValue" column="metric_value"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="logLevel" column="log_level"/>
+        <result property="recordTime" column="record_time"/>
+        <result property="remarks" column="remarks"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+    
+    <!-- 分页查询性能日志 -->
+    <select id="selectPerformanceLogPage" resultMap="PerformanceLogDTOResultMap">
+        SELECT * FROM sys_performance_log
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="username != null and username != ''">
+                AND username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="resourceType != null and resourceType != ''">
+                AND resource_type = #{resourceType}
+            </if>
+            <if test="logLevel != null and logLevel != ''">
+                AND log_level = #{logLevel}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND metric_name LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="startTime != null">
+                AND record_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND record_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY record_time DESC
+    </select>
+    
+    <!-- 根据ID查询性能日志详情 -->
+    <select id="selectPerformanceLogById" resultMap="PerformanceLogDTOResultMap">
+        SELECT * FROM sys_performance_log WHERE id = #{id}
+    </select>
+    
+    <!-- 清理指定时间之前的性能日志 -->
+    <delete id="deletePerformanceLogBefore">
+        DELETE FROM sys_performance_log WHERE record_time &lt; #{beforeTime}
+    </delete>
+    
+</mapper> 

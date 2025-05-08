@@ -332,7 +332,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import SysIntegrationApi from '@/api/sysIntegrationService';
 
 // 选项卡状态
 const activeTab = ref('tools');
@@ -340,7 +342,14 @@ const activeTools = ref(['jira']);
 const oauthActiveProvider = ref('google');
 const loading = ref(false);
 
+// 分页和查询参数
+const queryParams = ref({
+  page: 1,
+  size: 10
+});
+
 // 第三方工具集成数据
+const toolIntegrations = ref([]); // 存储所有工具集成
 const jiraConfig = ref({
   connected: false,
   url: '',
@@ -371,31 +380,11 @@ const seleniumConfig = ref({
 });
 
 // API管理数据
-const apiKeyList = ref([
-  { 
-    id: 1, 
-    name: '测试API密钥', 
-    key: 'vx_test_api_key_12345abcdef', 
-    createdAt: '2023-05-15', 
-    expiresAt: '2024-05-15', 
-    status: '有效' 
-  },
-  { 
-    id: 2, 
-    name: '开发API密钥', 
-    key: 'vx_dev_api_key_67890ghijkl', 
-    createdAt: '2023-06-10', 
-    expiresAt: '永不过期', 
-    status: '有效' 
-  }
-]);
-
-const callbackUrlList = ref([
-  { id: 1, name: '测试报告通知', url: 'https://example.com/webhooks/testreport', eventType: '测试报告生成', enabled: true },
-  { id: 2, name: '缺陷创建通知', url: 'https://example.com/webhooks/bug', eventType: '缺陷创建', enabled: false }
-]);
+const apiKeyList = ref([]);
+const callbackUrlList = ref([]);
 
 // 单点登录配置数据
+const ssoConfigs = ref([]); // 存储所有SSO配置
 const ldapConfig = ref({
   enabled: false,
   server: '',
@@ -428,104 +417,708 @@ const samlConfig = ref({
   acsUrl: window.location.origin + '/saml/acs'
 });
 
+// 加载第三方工具集成数据
+const loadToolIntegrations = async () => {
+  loading.value = true;
+  try {
+    const res = await SysIntegrationApi.toolIntegration.getToolIntegrationList(queryParams.value);
+    toolIntegrations.value = res.data.records || [];
+    
+    // 根据类型提取相应配置
+    const jira = toolIntegrations.value.find(item => item.type === 'JIRA');
+    if (jira) {
+      jiraConfig.value = {
+        id: jira.id,
+        connected: jira.status,
+        url: jira.url,
+        username: jira.username,
+        apiToken: jira.apiKey,
+        defaultProject: jira.config ? JSON.parse(jira.config).defaultProject : ''
+      };
+    }
+    
+    const git = toolIntegrations.value.find(item => item.type === 'GITHUB' || item.type === 'GITLAB');
+    if (git) {
+      gitConfig.value = {
+        id: git.id,
+        connected: git.status,
+        type: git.type.toLowerCase(),
+        url: git.url,
+        token: git.token,
+        repository: git.config ? JSON.parse(git.config).repository : ''
+      };
+    }
+    
+    const jenkins = toolIntegrations.value.find(item => item.type === 'JENKINS');
+    if (jenkins) {
+      jenkinsConfig.value = {
+        id: jenkins.id,
+        connected: jenkins.status,
+        url: jenkins.url,
+        username: jenkins.username,
+        apiToken: jenkins.apiKey
+      };
+    }
+    
+    const selenium = toolIntegrations.value.find(item => item.type === 'SELENIUM');
+    if (selenium) {
+      seleniumConfig.value = {
+        id: selenium.id,
+        connected: selenium.status,
+        url: selenium.url,
+        maxSessions: selenium.config ? JSON.parse(selenium.config).maxSessions : 10
+      };
+    }
+  } catch (error) {
+    console.error('加载工具集成数据失败:', error);
+    ElMessage.error('加载工具集成数据失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 加载API管理数据
+const loadApiManagement = async () => {
+  loading.value = true;
+  try {
+    const res = await SysIntegrationApi.apiManagement.getApiManagementList(queryParams.value);
+    
+    // 格式化API密钥列表数据
+    apiKeyList.value = (res.data.records || []).map(item => ({
+      id: item.id,
+      name: item.name,
+      key: item.apiKey,
+      createdAt: item.createTime,
+      expiresAt: item.expirationDate || '永不过期',
+      status: item.status ? '有效' : '无效'
+    }));
+    
+    // TODO: 加载回调URL配置，目前后端未提供该API
+    // 暂时使用Mock数据
+    callbackUrlList.value = [
+      { id: 1, name: '测试报告通知', url: 'https://example.com/webhooks/testreport', eventType: '测试报告生成', enabled: true },
+      { id: 2, name: '缺陷创建通知', url: 'https://example.com/webhooks/bug', eventType: '缺陷创建', enabled: false }
+    ];
+  } catch (error) {
+    console.error('加载API管理数据失败:', error);
+    ElMessage.error('加载API管理数据失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 加载单点登录配置数据
+const loadSsoConfig = async () => {
+  loading.value = true;
+  try {
+    const res = await SysIntegrationApi.ssoConfig.getSsoConfigList(queryParams.value);
+    ssoConfigs.value = res.data.records || [];
+    
+    // 提取LDAP配置
+    const ldap = ssoConfigs.value.find(item => item.type === 'LDAP');
+    if (ldap) {
+      ldapConfig.value = {
+        id: ldap.id,
+        enabled: ldap.status,
+        server: ldap.serverUrl,
+        bindDn: ldap.config ? JSON.parse(ldap.config).bindDn : '',
+        bindPassword: ldap.clientSecret,
+        userSearchBase: ldap.baseDn,
+        userFilter: ldap.config ? JSON.parse(ldap.config).userFilter : '',
+        userIdAttribute: ldap.usernameAttribute
+      };
+    }
+    
+    // 提取OAuth配置
+    const oauth = ssoConfigs.value.find(item => item.type === 'OAUTH');
+    if (oauth) {
+      oauthConfig.value.enabled = oauth.status;
+      
+      if (oauth.provider === 'Google') {
+        oauthConfig.value.google = {
+          clientId: oauth.clientId,
+          clientSecret: oauth.clientSecret,
+          redirectUri: window.location.origin + '/oauth/callback/google'
+        };
+      } else if (oauth.provider === 'GitHub') {
+        oauthConfig.value.github = {
+          clientId: oauth.clientId,
+          clientSecret: oauth.clientSecret,
+          redirectUri: window.location.origin + '/oauth/callback/github'
+        };
+      }
+    }
+    
+    // 提取SAML配置
+    const saml = ssoConfigs.value.find(item => item.type === 'SAML');
+    if (saml) {
+      samlConfig.value = {
+        id: saml.id,
+        enabled: saml.status,
+        identityProvider: saml.provider ? saml.provider.toLowerCase() : 'okta',
+        metadataUrl: saml.config ? JSON.parse(saml.config).metadataUrl : '',
+        entityId: window.location.origin,
+        acsUrl: window.location.origin + '/saml/acs'
+      };
+    }
+  } catch (error) {
+    console.error('加载单点登录配置数据失败:', error);
+    ElMessage.error('加载单点登录配置数据失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
 // 第三方工具集成方法
-const handleSaveJiraConfig = () => {
-  console.log('保存Jira配置', jiraConfig.value);
+const handleSaveJiraConfig = async () => {
+  loading.value = true;
+  try {
+    const data = {
+      name: 'JIRA集成',
+      type: 'JIRA',
+      url: jiraConfig.value.url,
+      apiKey: jiraConfig.value.apiToken,
+      username: jiraConfig.value.username,
+      config: JSON.stringify({ defaultProject: jiraConfig.value.defaultProject }),
+      status: jiraConfig.value.connected
+    };
+    
+    if (jiraConfig.value.id) {
+      // 更新
+      data.id = jiraConfig.value.id;
+      await SysIntegrationApi.toolIntegration.updateToolIntegration(data);
+      ElMessage.success('更新JIRA配置成功');
+    } else {
+      // 创建
+      const res = await SysIntegrationApi.toolIntegration.createToolIntegration(data);
+      jiraConfig.value.id = res.data;
+      ElMessage.success('创建JIRA配置成功');
+    }
+    
+    // 重新加载数据
+    await loadToolIntegrations();
+  } catch (error) {
+    console.error('保存JIRA配置失败:', error);
+    ElMessage.error('保存JIRA配置失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleTestJiraConnection = () => {
-  console.log('测试Jira连接');
-  // 模拟成功连接
+const handleTestJiraConnection = async () => {
+  if (!jiraConfig.value.id) {
+    ElMessage.warning('请先保存配置');
+    return;
+  }
+  
+  loading.value = true;
+  try {
+    const res = await SysIntegrationApi.toolIntegration.testToolIntegrationConnection(jiraConfig.value.id);
+    if (res.data) {
+      ElMessage.success('JIRA连接测试成功');
   jiraConfig.value.connected = true;
+    } else {
+      ElMessage.error('JIRA连接测试失败');
+      jiraConfig.value.connected = false;
+    }
+  } catch (error) {
+    console.error('测试JIRA连接失败:', error);
+    ElMessage.error('测试JIRA连接失败');
+    jiraConfig.value.connected = false;
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleSaveGitConfig = () => {
-  console.log('保存Git配置', gitConfig.value);
+const handleSaveGitConfig = async () => {
+  loading.value = true;
+  try {
+    const data = {
+      name: gitConfig.value.type === 'github' ? 'GitHub集成' : 'GitLab集成',
+      type: gitConfig.value.type.toUpperCase(),
+      url: gitConfig.value.type === 'gitlab' ? gitConfig.value.url : 'https://api.github.com',
+      token: gitConfig.value.token,
+      config: JSON.stringify({ repository: gitConfig.value.repository }),
+      status: gitConfig.value.connected
+    };
+    
+    if (gitConfig.value.id) {
+      // 更新
+      data.id = gitConfig.value.id;
+      await SysIntegrationApi.toolIntegration.updateToolIntegration(data);
+      ElMessage.success(`更新${gitConfig.value.type === 'github' ? 'GitHub' : 'GitLab'}配置成功`);
+    } else {
+      // 创建
+      const res = await SysIntegrationApi.toolIntegration.createToolIntegration(data);
+      gitConfig.value.id = res.data;
+      ElMessage.success(`创建${gitConfig.value.type === 'github' ? 'GitHub' : 'GitLab'}配置成功`);
+    }
+    
+    // 重新加载数据
+    await loadToolIntegrations();
+  } catch (error) {
+    console.error('保存Git配置失败:', error);
+    ElMessage.error('保存Git配置失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleTestGitConnection = () => {
-  console.log('测试Git连接');
-  // 模拟成功连接
+const handleTestGitConnection = async () => {
+  if (!gitConfig.value.id) {
+    ElMessage.warning('请先保存配置');
+    return;
+  }
+  
+  loading.value = true;
+  try {
+    const res = await SysIntegrationApi.toolIntegration.testToolIntegrationConnection(gitConfig.value.id);
+    if (res.data) {
+      ElMessage.success(`${gitConfig.value.type === 'github' ? 'GitHub' : 'GitLab'}连接测试成功`);
   gitConfig.value.connected = true;
+    } else {
+      ElMessage.error(`${gitConfig.value.type === 'github' ? 'GitHub' : 'GitLab'}连接测试失败`);
+      gitConfig.value.connected = false;
+    }
+  } catch (error) {
+    console.error('测试Git连接失败:', error);
+    ElMessage.error('测试Git连接失败');
+    gitConfig.value.connected = false;
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleSaveJenkinsConfig = () => {
-  console.log('保存Jenkins配置', jenkinsConfig.value);
+const handleSaveJenkinsConfig = async () => {
+  loading.value = true;
+  try {
+    const data = {
+      name: 'Jenkins集成',
+      type: 'JENKINS',
+      url: jenkinsConfig.value.url,
+      username: jenkinsConfig.value.username,
+      apiKey: jenkinsConfig.value.apiToken,
+      status: jenkinsConfig.value.connected
+    };
+    
+    if (jenkinsConfig.value.id) {
+      // 更新
+      data.id = jenkinsConfig.value.id;
+      await SysIntegrationApi.toolIntegration.updateToolIntegration(data);
+      ElMessage.success('更新Jenkins配置成功');
+    } else {
+      // 创建
+      const res = await SysIntegrationApi.toolIntegration.createToolIntegration(data);
+      jenkinsConfig.value.id = res.data;
+      ElMessage.success('创建Jenkins配置成功');
+    }
+    
+    // 重新加载数据
+    await loadToolIntegrations();
+  } catch (error) {
+    console.error('保存Jenkins配置失败:', error);
+    ElMessage.error('保存Jenkins配置失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleTestJenkinsConnection = () => {
-  console.log('测试Jenkins连接');
-  // 模拟成功连接
+const handleTestJenkinsConnection = async () => {
+  if (!jenkinsConfig.value.id) {
+    ElMessage.warning('请先保存配置');
+    return;
+  }
+  
+  loading.value = true;
+  try {
+    const res = await SysIntegrationApi.toolIntegration.testToolIntegrationConnection(jenkinsConfig.value.id);
+    if (res.data) {
+      ElMessage.success('Jenkins连接测试成功');
   jenkinsConfig.value.connected = true;
+    } else {
+      ElMessage.error('Jenkins连接测试失败');
+      jenkinsConfig.value.connected = false;
+    }
+  } catch (error) {
+    console.error('测试Jenkins连接失败:', error);
+    ElMessage.error('测试Jenkins连接失败');
+    jenkinsConfig.value.connected = false;
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleSaveSeleniumConfig = () => {
-  console.log('保存Selenium配置', seleniumConfig.value);
+const handleSaveSeleniumConfig = async () => {
+  loading.value = true;
+  try {
+    const data = {
+      name: 'Selenium Grid配置',
+      type: 'SELENIUM',
+      url: seleniumConfig.value.url,
+      config: JSON.stringify({ maxSessions: seleniumConfig.value.maxSessions }),
+      status: seleniumConfig.value.connected
+    };
+    
+    if (seleniumConfig.value.id) {
+      // 更新
+      data.id = seleniumConfig.value.id;
+      await SysIntegrationApi.toolIntegration.updateToolIntegration(data);
+      ElMessage.success('更新Selenium配置成功');
+    } else {
+      // 创建
+      const res = await SysIntegrationApi.toolIntegration.createToolIntegration(data);
+      seleniumConfig.value.id = res.data;
+      ElMessage.success('创建Selenium配置成功');
+    }
+    
+    // 重新加载数据
+    await loadToolIntegrations();
+  } catch (error) {
+    console.error('保存Selenium配置失败:', error);
+    ElMessage.error('保存Selenium配置失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleTestSeleniumConnection = () => {
-  console.log('测试Selenium连接');
-  // 模拟成功连接
+const handleTestSeleniumConnection = async () => {
+  if (!seleniumConfig.value.id) {
+    ElMessage.warning('请先保存配置');
+    return;
+  }
+  
+  loading.value = true;
+  try {
+    const res = await SysIntegrationApi.toolIntegration.testToolIntegrationConnection(seleniumConfig.value.id);
+    if (res.data) {
+      ElMessage.success('Selenium连接测试成功');
   seleniumConfig.value.connected = true;
+    } else {
+      ElMessage.error('Selenium连接测试失败');
+      seleniumConfig.value.connected = false;
+    }
+  } catch (error) {
+    console.error('测试Selenium连接失败:', error);
+    ElMessage.error('测试Selenium连接失败');
+    seleniumConfig.value.connected = false;
+  } finally {
+    loading.value = false;
+  }
 };
 
 // API管理方法
-const handleGenerateApiKey = () => {
-  console.log('生成新API密钥');
+const handleGenerateApiKey = async () => {
+  try {
+    loading.value = true;
+    
+    // 弹出对话框让用户输入名称
+    ElMessageBox.prompt('请输入API密钥名称', '生成新API密钥', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      inputPattern: /\S+/,
+      inputErrorMessage: '名称不能为空'
+    }).then(async ({ value }) => {
+      // 创建API密钥
+      const data = {
+        name: value,
+        description: `${value} API密钥`,
+        status: true
+      };
+      
+      const res = await SysIntegrationApi.apiManagement.createApiManagement(data);
+      ElMessage.success('生成API密钥成功');
+      
+      // 重新加载API密钥列表
+      await loadApiManagement();
+    }).catch(() => {
+      // 用户取消
+    });
+  } catch (error) {
+    console.error('生成API密钥失败:', error);
+    ElMessage.error('生成API密钥失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
 const handleCopyApiKey = (key) => {
-  console.log('复制API密钥', key);
-  // 复制到剪贴板
+  navigator.clipboard.writeText(key).then(() => {
+    ElMessage.success('API密钥已复制到剪贴板');
+  }).catch(() => {
+    ElMessage.error('复制失败，请手动复制');
+  });
 };
 
-const handleRevokeApiKey = (row) => {
-  console.log('撤销API密钥', row);
+const handleRevokeApiKey = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要撤销此API密钥吗？撤销后将无法恢复，依赖此密钥的应用将无法访问API。',
+      '撤销API密钥',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+    
+    loading.value = true;
+    await SysIntegrationApi.apiManagement.deleteApiManagement(row.id);
+    ElMessage.success('撤销API密钥成功');
+    
+    // 重新加载API密钥列表
+    await loadApiManagement();
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('撤销API密钥失败:', error);
+      ElMessage.error('撤销API密钥失败');
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 
 const handleAddCallbackUrl = () => {
-  console.log('添加回调URL');
+  ElMessage.info('回调URL管理功能正在开发中');
 };
 
 const handleEditCallbackUrl = (row) => {
-  console.log('编辑回调URL', row);
+  ElMessage.info('回调URL管理功能正在开发中');
 };
 
 const handleToggleCallbackStatus = (row) => {
-  console.log('切换回调URL状态', row);
+  ElMessage.info('回调URL管理功能正在开发中');
 };
 
 const handleTestCallback = (row) => {
-  console.log('测试回调URL', row);
+  ElMessage.info('回调URL管理功能正在开发中');
 };
 
 const handleDeleteCallbackUrl = (row) => {
-  console.log('删除回调URL', row);
+  ElMessage.info('回调URL管理功能正在开发中');
 };
 
 // 单点登录配置方法
-const handleSaveLdapConfig = () => {
-  console.log('保存LDAP配置', ldapConfig.value);
+const handleSaveLdapConfig = async () => {
+  loading.value = true;
+  try {
+    const data = {
+      name: 'LDAP配置',
+      type: 'LDAP',
+      provider: 'ActiveDirectory',
+      serverUrl: ldapConfig.value.server,
+      baseDn: ldapConfig.value.userSearchBase,
+      usernameAttribute: ldapConfig.value.userIdAttribute,
+      clientId: 'ldap-client',
+      clientSecret: ldapConfig.value.bindPassword,
+      config: JSON.stringify({
+        bindDn: ldapConfig.value.bindDn,
+        userFilter: ldapConfig.value.userFilter
+      }),
+      status: ldapConfig.value.enabled,
+      isDefault: true
+    };
+    
+    if (ldapConfig.value.id) {
+      // 更新
+      data.id = ldapConfig.value.id;
+      await SysIntegrationApi.ssoConfig.updateSsoConfig(data);
+      ElMessage.success('更新LDAP配置成功');
+    } else {
+      // 创建
+      const res = await SysIntegrationApi.ssoConfig.createSsoConfig(data);
+      ldapConfig.value.id = res.data;
+      ElMessage.success('创建LDAP配置成功');
+    }
+    
+    // 重新加载数据
+    await loadSsoConfig();
+  } catch (error) {
+    console.error('保存LDAP配置失败:', error);
+    ElMessage.error('保存LDAP配置失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleTestLdapConnection = () => {
-  console.log('测试LDAP连接');
+const handleTestLdapConnection = async () => {
+  if (!ldapConfig.value.id) {
+    ElMessage.warning('请先保存配置');
+    return;
+  }
+  
+  loading.value = true;
+  try {
+    const res = await SysIntegrationApi.ssoConfig.testSsoConfigConnection(ldapConfig.value.id);
+    if (res.data) {
+      ElMessage.success('LDAP连接测试成功');
+    } else {
+      ElMessage.error('LDAP连接测试失败');
+    }
+  } catch (error) {
+    console.error('测试LDAP连接失败:', error);
+    ElMessage.error('测试LDAP连接失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleSaveOauthConfig = () => {
-  console.log('保存OAuth配置', oauthConfig.value);
+const handleSaveOauthConfig = async () => {
+  loading.value = true;
+  try {
+    // 保存Google OAuth配置
+    if (oauthConfig.value.google.clientId) {
+      const googleData = {
+        name: 'Google OAuth',
+        type: 'OAUTH',
+        provider: 'Google',
+        clientId: oauthConfig.value.google.clientId,
+        clientSecret: oauthConfig.value.google.clientSecret,
+        config: JSON.stringify({
+          redirectUri: oauthConfig.value.google.redirectUri
+        }),
+        status: oauthConfig.value.enabled,
+        isDefault: false
+      };
+      
+      // 查找现有配置
+      const existingGoogle = ssoConfigs.value.find(
+        item => item.type === 'OAUTH' && item.provider === 'Google'
+      );
+      
+      if (existingGoogle) {
+        // 更新
+        googleData.id = existingGoogle.id;
+        await SysIntegrationApi.ssoConfig.updateSsoConfig(googleData);
+      } else {
+        // 创建
+        await SysIntegrationApi.ssoConfig.createSsoConfig(googleData);
+      }
+    }
+    
+    // 保存GitHub OAuth配置
+    if (oauthConfig.value.github.clientId) {
+      const githubData = {
+        name: 'GitHub OAuth',
+        type: 'OAUTH',
+        provider: 'GitHub',
+        clientId: oauthConfig.value.github.clientId,
+        clientSecret: oauthConfig.value.github.clientSecret,
+        config: JSON.stringify({
+          redirectUri: oauthConfig.value.github.redirectUri
+        }),
+        status: oauthConfig.value.enabled,
+        isDefault: false
+      };
+      
+      // 查找现有配置
+      const existingGithub = ssoConfigs.value.find(
+        item => item.type === 'OAUTH' && item.provider === 'GitHub'
+      );
+      
+      if (existingGithub) {
+        // 更新
+        githubData.id = existingGithub.id;
+        await SysIntegrationApi.ssoConfig.updateSsoConfig(githubData);
+      } else {
+        // 创建
+        await SysIntegrationApi.ssoConfig.createSsoConfig(githubData);
+      }
+    }
+    
+    ElMessage.success('保存OAuth配置成功');
+    
+    // 重新加载数据
+    await loadSsoConfig();
+  } catch (error) {
+    console.error('保存OAuth配置失败:', error);
+    ElMessage.error('保存OAuth配置失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleSaveSamlConfig = () => {
-  console.log('保存SAML配置', samlConfig.value);
+const handleSaveSamlConfig = async () => {
+  loading.value = true;
+  try {
+    const data = {
+      name: `${samlConfig.value.identityProvider.charAt(0).toUpperCase() + samlConfig.value.identityProvider.slice(1)} SAML`,
+      type: 'SAML',
+      provider: samlConfig.value.identityProvider === 'custom' ? 'Custom' : 
+               samlConfig.value.identityProvider === 'azure' ? 'Azure AD' : 'Okta',
+      serverUrl: null,
+      config: JSON.stringify({
+        metadataUrl: samlConfig.value.metadataUrl,
+        entityId: samlConfig.value.entityId,
+        acsUrl: samlConfig.value.acsUrl
+      }),
+      status: samlConfig.value.enabled,
+      isDefault: false
+    };
+    
+    if (samlConfig.value.id) {
+      // 更新
+      data.id = samlConfig.value.id;
+      await SysIntegrationApi.ssoConfig.updateSsoConfig(data);
+      ElMessage.success('更新SAML配置成功');
+    } else {
+      // 创建
+      const res = await SysIntegrationApi.ssoConfig.createSsoConfig(data);
+      samlConfig.value.id = res.data;
+      ElMessage.success('创建SAML配置成功');
+    }
+    
+    // 重新加载数据
+    await loadSsoConfig();
+  } catch (error) {
+    console.error('保存SAML配置失败:', error);
+    ElMessage.error('保存SAML配置失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
 const handleDownloadMetadata = () => {
-  console.log('下载SP元数据');
+  // 创建一个包含SP元数据的XML文件
+  const metadata = `<?xml version="1.0"?>
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+                     validUntil="2099-01-01T00:00:00Z"
+                     entityID="${samlConfig.value.entityId}">
+  <md:SPSSODescriptor AuthnRequestsSigned="false" WantAssertionsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>
+    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                                 Location="${samlConfig.value.acsUrl}"
+                                 index="1" />
+  </md:SPSSODescriptor>
+</md:EntityDescriptor>`;
+  
+  const blob = new Blob([metadata], { type: 'application/xml' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'sp-metadata.xml';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+  
+  ElMessage.success('SP元数据已下载');
 };
 
 onMounted(() => {
   // 初始化加载数据
+  loadToolIntegrations();
+  loadApiManagement();
+  loadSsoConfig();
+  
+  // 监听选项卡切换，动态加载数据
+  watch(activeTab, (newVal) => {
+    if (newVal === 'tools') {
+      loadToolIntegrations();
+    } else if (newVal === 'api') {
+      loadApiManagement();
+    } else if (newVal === 'sso') {
+      loadSsoConfig();
+    }
+  });
 });
 </script>
 

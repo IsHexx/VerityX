@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysApiManagementMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.verityx.entity.SysApiManagement">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="api_key" property="apiKey"/>
+        <result column="secret" property="secret"/>
+        <result column="callback_url" property="callbackUrl"/>
+        <result column="permissions" property="permissions"/>
+        <result column="rate_limit" property="rateLimit"/>
+        <result column="expiration_date" property="expirationDate"/>
+        <result column="status" property="status"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="updater_id" property="updaterId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 自定义查询映射结果 -->
+    <resultMap id="DTOResultMap" type="com.example.verityx.dto.SysApiManagementDTO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="api_key" property="apiKey"/>
+        <result column="callback_url" property="callbackUrl"/>
+        <result column="permissions" property="permissions"/>
+        <result column="rate_limit" property="rateLimit"/>
+        <result column="expiration_date" property="expirationDate"/>
+        <result column="status" property="status"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="creator_name" property="creatorName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 基本列 -->
+    <sql id="Base_Column_List">
+        id, name, description, api_key, secret, callback_url, permissions, rate_limit, 
+        expiration_date, status, creator_id, updater_id, create_time, update_time, deleted
+    </sql>
+
+    <!-- 分页查询API管理列表 -->
+    <select id="selectApiManagementPage" resultMap="DTOResultMap">
+        SELECT a.id, a.name, a.description, a.api_key, a.callback_url, a.permissions,
+               a.rate_limit, a.expiration_date, a.status, a.creator_id, u.username as creator_name,
+               a.create_time, a.update_time
+        FROM sys_api_management a
+        LEFT JOIN sys_user u ON a.creator_id = u.id
+        WHERE a.deleted = 0
+        <if test="name != null and name != ''">
+            AND a.name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        <if test="status != null">
+            AND a.status = #{status}
+        </if>
+        ORDER BY a.create_time DESC
+    </select>
+
+    <!-- 根据ID查询API管理详情 -->
+    <select id="selectApiManagementById" resultMap="DTOResultMap">
+        SELECT a.id, a.name, a.description, a.api_key, a.callback_url, a.permissions,
+               a.rate_limit, a.expiration_date, a.status, a.creator_id, u.username as creator_name,
+               a.create_time, a.update_time
+        FROM sys_api_management a
+        LEFT JOIN sys_user u ON a.creator_id = u.id
+        WHERE a.id = #{id} AND a.deleted = 0
+    </select>
+
+</mapper> 

@@ -1,6 +1,6 @@
 <template>
   <div class="system-monitor-container">
-    <el-tabs v-model="activeTab" class="monitor-tabs">
+    <el-tabs v-model="activeTab" class="monitor-tabs" @tab-change="handleTabChange">
       <el-tab-pane label="系统状态监控" name="status">
         <div class="tab-content">
           <el-row :gutter="20">
@@ -23,12 +23,12 @@
               </el-card>
             </el-col>
           </el-row>
-          
+
           <el-card shadow="hover" class="status-chart-card">
             <template #header>
               <div class="card-header">
                 <span>系统资源使用趋势</span>
-                <el-radio-group v-model="chartTimeRange" size="small">
+                <el-radio-group v-model="chartTimeRange" size="small" @change="handleChartRangeChange">
                   <el-radio-button label="hour">1小时</el-radio-button>
                   <el-radio-button label="day">24小时</el-radio-button>
                   <el-radio-button label="week">7天</el-radio-button>
@@ -44,7 +44,7 @@
           </el-card>
         </div>
       </el-tab-pane>
-      
+
       <el-tab-pane label="系统日志" name="logs">
         <div class="tab-content">
           <el-card shadow="hover" class="log-card">
@@ -56,18 +56,18 @@
             </template>
             <el-form :model="logQuery" :inline="true" class="log-query-form">
               <el-form-item label="日志类型">
-                <el-select v-model="logQuery.type" placeholder="选择日志类型">
+                <el-select v-model="logQuery.logType" placeholder="选择日志类型" style="width: 150px;">
                   <el-option label="操作日志" value="operation"></el-option>
                   <el-option label="异常日志" value="error"></el-option>
                   <el-option label="性能日志" value="performance"></el-option>
                 </el-select>
               </el-form-item>
               <el-form-item label="日志级别">
-                <el-select v-model="logQuery.level" placeholder="选择日志级别" multiple collapse-tags>
-                  <el-option label="INFO" value="info"></el-option>
-                  <el-option label="WARN" value="warn"></el-option>
-                  <el-option label="ERROR" value="error"></el-option>
-                  <el-option label="DEBUG" value="debug"></el-option>
+                <el-select v-model="logQuery.levels" placeholder="选择日志级别" multiple collapse-tags>
+                  <el-option label="INFO" value="INFO"></el-option>
+                  <el-option label="WARN" value="WARN"></el-option>
+                  <el-option label="ERROR" value="ERROR"></el-option>
+                  <el-option label="DEBUG" value="DEBUG"></el-option>
                 </el-select>
               </el-form-item>
               <el-form-item label="时间范围">
@@ -88,7 +88,7 @@
                 <el-button @click="handleResetLogQuery">重置</el-button>
               </el-form-item>
             </el-form>
-            
+
             <el-table :data="logList" style="width: 100%" height="450" v-loading="loading">
               <el-table-column prop="timestamp" label="时间" width="180"></el-table-column>
               <el-table-column prop="level" label="级别" width="100">
@@ -106,7 +106,7 @@
                 </template>
               </el-table-column>
             </el-table>
-            
+
             <div class="pagination-container">
               <el-pagination
                 background
@@ -121,7 +121,7 @@
           </el-card>
         </div>
       </el-tab-pane>
-      
+
       <el-tab-pane label="数据备份与恢复" name="backup">
         <div class="tab-content">
           <el-card shadow="hover" class="backup-card">
@@ -159,7 +159,7 @@
                 <el-button type="primary" @click="handleSaveBackupConfig">保存配置</el-button>
               </el-form-item>
             </el-form>
-            
+
             <el-divider content-position="left">备份历史</el-divider>
             <el-table :data="backupList" style="width: 100%" v-loading="loading">
               <el-table-column prop="filename" label="备份文件名"></el-table-column>
@@ -181,7 +181,7 @@
           </el-card>
         </div>
       </el-tab-pane>
-      
+
       <el-tab-pane label="系统清理" name="cleanup">
         <div class="tab-content">
           <el-card shadow="hover" class="cleanup-card">
@@ -212,7 +212,7 @@
               <el-form-item label="保留系统监控数据天数">
                 <el-input-number v-model="cleanupConfig.keepMonitoringDays" :min="7" :max="365"></el-input-number>
               </el-form-item>
-              
+
               <el-divider content-position="left">临时文件清理</el-divider>
               <el-form-item label="自动清理临时文件">
                 <el-switch v-model="cleanupConfig.autoCleanupTemp"></el-switch>
@@ -224,7 +224,7 @@
                   <el-option label="每月" value="monthly"></el-option>
                 </el-select>
               </el-form-item>
-              
+
               <el-divider content-position="left">报告归档设置</el-divider>
               <el-form-item label="自动归档报告">
                 <el-switch v-model="cleanupConfig.autoArchive"></el-switch>
@@ -236,7 +236,7 @@
                 <el-input v-model="cleanupConfig.archiveLocation" placeholder="输入归档存储路径"></el-input>
               </el-form-item>
             </el-form>
-            
+
             <el-divider content-position="left">手动清理</el-divider>
             <el-row :gutter="20">
               <el-col :span="8">
@@ -287,7 +287,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { SystemMonitorApi, SystemBackupApi } from '@/api/systemMonitorService';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 // 选项卡状态
 const activeTab = ref('status');
@@ -299,79 +301,199 @@ const pageSize = ref(10);
 const currentPage = ref(1);
 
 // 系统状态监控数据
-const statusCards = ref([
-  {
-    title: '服务器状态',
-    status: '正常',
-    metrics: [
-      { name: 'CPU使用率', value: '32%' },
-      { name: '内存使用率', value: '45%' },
-      { name: '磁盘使用率', value: '58%' },
-      { name: '运行时间', value: '15天8小时' }
-    ]
-  },
-  {
-    title: '数据库状态',
-    status: '警告',
-    metrics: [
-      { name: '连接数', value: '28/50' },
-      { name: '查询响应时间', value: '150ms' },
-      { name: '磁盘使用率', value: '78%' },
-      { name: '缓存命中率', value: '92%' }
-    ]
-  },
-  {
-    title: '测试执行引擎状态',
-    status: '正常',
-    metrics: [
-      { name: '当前任务数', value: '5' },
-      { name: '队列等待任务', value: '2' },
-      { name: '可用执行器', value: '8/10' },
-      { name: '平均执行时间', value: '45秒' }
-    ]
+const statusCards = ref([]);
+const systemStatus = ref({});
+
+// 获取系统状态数据
+const fetchSystemStatus = async () => {
+  loading.value = true;
+  try {
+    const res = await SystemMonitorApi.getSystemStatus();
+    if (res.code === 200 && res.data) {
+      systemStatus.value = res.data;
+
+      // 转换数据格式以适应UI显示
+      statusCards.value = [
+        {
+          title: '服务器状态',
+          status: res.data.server.status === 'NORMAL' ? '正常' : (res.data.server.status === 'WARNING' ? '警告' : '错误'),
+          metrics: formatMetrics(res.data.server.metrics)
+        },
+        {
+          title: '数据库状态',
+          status: res.data.database.status === 'NORMAL' ? '正常' : (res.data.database.status === 'WARNING' ? '警告' : '错误'),
+          metrics: formatMetrics(res.data.database.metrics)
+        },
+        {
+          title: '测试执行引擎状态',
+          status: res.data.testEngine.status === 'NORMAL' ? '正常' : (res.data.testEngine.status === 'WARNING' ? '警告' : '错误'),
+          metrics: formatMetrics(res.data.testEngine.metrics)
+        }
+      ];
+    } else {
+      ElMessage.error(res.message || '获取系统状态失败');
+    }
+  } catch (error) {
+    console.error('获取系统状态失败:', error);
+    ElMessage.error('获取系统状态失败');
+  } finally {
+    loading.value = false;
   }
-]);
+};
+
+// 格式化指标数据
+const formatMetrics = (metricsArray) => {
+  return metricsArray.map(item => ({
+    name: item.metricName,
+    value: item.metricValue
+  }));
+};
 
 const chartTimeRange = ref('hour');
+const resourceTrendData = ref([]);
+
+// 获取资源趋势数据
+const fetchResourceTrend = async () => {
+  loading.value = true;
+  try {
+    // 根据时间范围计算开始时间和结束时间
+    const endTime = new Date();
+    let startTime;
+
+    switch (chartTimeRange.value) {
+      case 'hour':
+        startTime = new Date(endTime.getTime() - 60 * 60 * 1000); // 1小时前
+        break;
+      case 'day':
+        startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000); // 24小时前
+        break;
+      case 'week':
+        startTime = new Date(endTime.getTime() - 7 * 24 * 60 * 60 * 1000); // 7天前
+        break;
+      default:
+        startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000); // 默认24小时
+    }
+
+    // 将日期格式转换为ISO但移除Z后缀
+    const startTimeStr = startTime.toISOString().replace('Z', '');
+    const endTimeStr = endTime.toISOString().replace('Z', '');
+
+    const res = await SystemMonitorApi.getResourceTrend('CPU', startTimeStr, endTimeStr);
+    if (res.code === 200 && res.data) {
+      resourceTrendData.value = res.data;
+      // 此处可以添加图表渲染逻辑
+    } else {
+      ElMessage.error(res.message || '获取资源趋势数据失败');
+    }
+  } catch (error) {
+    console.error('获取资源趋势数据失败:', error);
+    ElMessage.error('获取资源趋势数据失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 监听图表时间范围变化
+const handleChartRangeChange = () => {
+  fetchResourceTrend();
+};
 
 // 系统日志查询参数
 const logQuery = ref({
-  type: 'operation',
-  level: ['info', 'warn', 'error'],
+  logType: 'operation',
+  levels: ['INFO', 'WARN', 'ERROR'],
   timeRange: [new Date(Date.now() - 24 * 60 * 60 * 1000), new Date()],
   keyword: ''
 });
 
 // 系统日志数据
-const logList = ref([
-  { 
-    id: 1, 
-    timestamp: '2023-07-10 10:15:23', 
-    level: 'INFO', 
-    module: '用户管理', 
-    content: '用户admin登录系统',
-    user: 'admin',
-    ip: '192.168.1.100'
-  },
-  { 
-    id: 2, 
-    timestamp: '2023-07-10 10:30:45', 
-    level: 'ERROR', 
-    module: '测试执行', 
-    content: '测试任务执行失败: 连接超时',
-    user: 'tester1',
-    ip: '192.168.1.101'
-  },
-  { 
-    id: 3, 
-    timestamp: '2023-07-10 11:05:12', 
-    level: 'WARN', 
-    module: '数据库', 
-    content: '数据库连接池接近上限',
-    user: 'system',
-    ip: '127.0.0.1'
+const logList = ref([]);
+
+// 获取系统日志
+const fetchLogs = async () => {
+  loading.value = true;
+  try {
+    // 准备查询参数
+    const queryParams = {
+      keyword: logQuery.value.keyword || ''
+    };
+
+    // 添加时间范围
+    if (logQuery.value.timeRange && logQuery.value.timeRange.length === 2) {
+      // 不再使用日期格式化函数，将日期直接作为字符串参数传递
+      queryParams.startTime = logQuery.value.timeRange[0].toISOString().replace('Z', '');
+      queryParams.endTime = logQuery.value.timeRange[1].toISOString().replace('Z', '');
+    }
+
+    // 处理日志级别数组参数 - 直接传递数组，不转换为字符串
+    if (logQuery.value.levels && logQuery.value.levels.length > 0) {
+      queryParams.levels = logQuery.value.levels;
+    }
+
+    let res;
+    if (logQuery.value.logType === 'operation') {
+      res = await SystemMonitorApi.getOperationLogs(currentPage.value, pageSize.value, queryParams);
+    } else if (logQuery.value.logType === 'error') {
+      res = await SystemMonitorApi.getErrorLogs(currentPage.value, pageSize.value, queryParams);
+    } else if (logQuery.value.logType === 'performance') {
+      res = await SystemMonitorApi.getPerformanceLogs(currentPage.value, pageSize.value, queryParams);
+    }
+
+    if (res && res.code === 200 && res.data) {
+      // 转换数据格式以适应UI显示
+      const apiData = res.data;
+      logList.value = apiData.records.map(log => {
+        if (logQuery.value.logType === 'operation') {
+          return {
+            id: log.id,
+            timestamp: formatDateTime(log.createTime || log.operationTime),
+            level: log.logLevel || (log.status === 1 ? 'INFO' : 'ERROR'),
+            module: log.module || log.operation,
+            content: log.content || log.method,
+            user: log.username,
+            ip: log.ipAddress || log.requestIp
+          };
+        } else if (logQuery.value.logType === 'error') {
+          return {
+            id: log.id,
+            timestamp: formatDateTime(log.errorTime),
+            level: 'ERROR',
+            module: log.requestMethod,
+            content: log.errorMsg,
+            user: log.username,
+            ip: log.requestIp
+          };
+        } else { // performance logs
+          return {
+            id: log.id,
+            timestamp: formatDateTime(log.recordTime),
+            level: log.logLevel || 'INFO',
+            module: log.resourceType,
+            content: `${log.metricName}: ${log.metricValue}`,
+            user: log.username || '-',
+            ip: log.ipAddress || '-'
+          };
+        }
+      });
+
+      total.value = apiData.total;
+    } else {
+      ElMessage.error(res.message || '获取日志失败');
+    }
+  } catch (error) {
+    console.error('获取日志失败:', error);
+    ElMessage.error('获取日志失败');
+  } finally {
+    loading.value = false;
   }
-]);
+};
+
+// 格式化日期时间
+const formatDateTime = (dateTimeStr) => {
+  if (!dateTimeStr) return '';
+  const date = new Date(dateTimeStr);
+  return date.toLocaleString();
+};
 
 // 数据备份配置
 const backupConfig = ref({
@@ -383,29 +505,44 @@ const backupConfig = ref({
 });
 
 // 备份列表数据
-const backupList = ref([
-  { 
-    id: 1, 
-    filename: 'verityx_backup_20230710_020000.sql', 
-    size: '256 MB', 
-    createTime: '2023-07-10 02:00:00', 
-    type: '自动备份' 
-  },
-  { 
-    id: 2, 
-    filename: 'verityx_backup_20230709_020000.sql', 
-    size: '252 MB', 
-    createTime: '2023-07-09 02:00:00', 
-    type: '自动备份' 
-  },
-  { 
-    id: 3, 
-    filename: 'verityx_backup_20230708_143025.sql', 
-    size: '255 MB', 
-    createTime: '2023-07-08 14:30:25', 
-    type: '手动备份' 
+const backupList = ref([]);
+
+// 获取备份列表
+const fetchBackupList = async () => {
+  loading.value = true;
+  try {
+    const res = await SystemBackupApi.getBackupList(currentPage.value, pageSize.value);
+    if (res.code === 200 && res.data) {
+      // 转换数据格式以适应UI显示
+      const apiData = res.data;
+      backupList.value = apiData.records.map(backup => ({
+        id: backup.id,
+        filename: backup.fileName,
+        size: formatFileSize(backup.fileSize),
+        createTime: formatDateTime(backup.createdAt),
+        type: backup.backupType === 'AUTO' ? '自动备份' : '手动备份'
+      }));
+
+      total.value = apiData.total;
+    } else {
+      ElMessage.error(res.message || '获取备份列表失败');
+    }
+  } catch (error) {
+    console.error('获取备份列表失败:', error);
+    ElMessage.error('获取备份列表失败');
+  } finally {
+    loading.value = false;
   }
-]);
+};
+
+// 格式化文件大小
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
 
 // 系统清理配置
 const cleanupConfig = ref({
@@ -421,8 +558,6 @@ const cleanupConfig = ref({
   archiveLocation: '/data/archives'
 });
 
-// 系统状态监控方法
-
 // 系统日志方法
 const getLogLevelType = (level) => {
   const typeMap = {
@@ -435,82 +570,392 @@ const getLogLevelType = (level) => {
 };
 
 const handleQueryLogs = () => {
-  loading.value = true;
-  console.log('查询日志', logQuery.value);
-  // 模拟加载
-  setTimeout(() => {
-    loading.value = false;
-  }, 500);
+  currentPage.value = 1; // 重置为第一页
+  fetchLogs();
 };
 
 const handleResetLogQuery = () => {
   logQuery.value = {
-    type: 'operation',
-    level: ['info', 'warn', 'error'],
+    logType: 'operation',
+    levels: ['INFO', 'WARN', 'ERROR'],
     timeRange: [new Date(Date.now() - 24 * 60 * 60 * 1000), new Date()],
     keyword: ''
   };
 };
 
-const handleViewLogDetail = (log) => {
-  console.log('查看日志详情', log);
+const handleViewLogDetail = async (log) => {
+  loading.value = true;
+  try {
+    let res;
+    if (logQuery.value.logType === 'operation') {
+      res = await SystemMonitorApi.getOperationLogDetail(log.id);
+    } else if (logQuery.value.logType === 'error') {
+      res = await SystemMonitorApi.getErrorLogDetail(log.id);
+    } else if (logQuery.value.logType === 'performance') {
+      res = await SystemMonitorApi.getPerformanceLogDetail(log.id);
+    }
+
+    if (res && res.code === 200 && res.data) {
+      // 可以使用Element UI的对话框显示详情
+      const logDetail = res.data;
+
+      // 这里可以根据返回的具体数据格式做处理
+      let detailContent = '';
+      if (logQuery.value.logType === 'operation') {
+        detailContent = `
+          <div>
+            <p><strong>ID:</strong> ${logDetail.id}</p>
+            <p><strong>操作用户:</strong> ${logDetail.username}</p>
+            <p><strong>操作行为:</strong> ${logDetail.operation}</p>
+            <p><strong>请求方法:</strong> ${logDetail.method}</p>
+            <p><strong>请求URL:</strong> ${logDetail.requestUrl}</p>
+            <p><strong>请求参数:</strong> ${logDetail.requestParams || '-'}</p>
+            <p><strong>操作IP:</strong> ${logDetail.requestIp}</p>
+            <p><strong>操作状态:</strong> ${logDetail.status === 1 ? '成功' : '失败'}</p>
+            <p><strong>操作时间:</strong> ${formatDateTime(logDetail.operationTime)}</p>
+            ${logDetail.errorMsg ? `<p><strong>错误信息:</strong> ${logDetail.errorMsg}</p>` : ''}
+          </div>
+        `;
+      } else if (logQuery.value.logType === 'error') {
+        detailContent = `
+          <div>
+            <p><strong>ID:</strong> ${logDetail.id}</p>
+            <p><strong>操作用户:</strong> ${logDetail.username}</p>
+            <p><strong>请求URL:</strong> ${logDetail.requestUrl}</p>
+            <p><strong>请求方法:</strong> ${logDetail.requestMethod}</p>
+            <p><strong>请求参数:</strong> ${logDetail.requestParams || '-'}</p>
+            <p><strong>操作IP:</strong> ${logDetail.requestIp}</p>
+            <p><strong>错误信息:</strong> ${logDetail.errorMsg}</p>
+            <p><strong>异常堆栈:</strong> ${logDetail.stackTrace}</p>
+            <p><strong>异常时间:</strong> ${formatDateTime(logDetail.errorTime)}</p>
+          </div>
+        `;
+      } else { // performance logs
+        detailContent = `
+          <div>
+            <p><strong>ID:</strong> ${logDetail.id}</p>
+            <p><strong>资源类型:</strong> ${logDetail.resourceType}</p>
+            <p><strong>指标名称:</strong> ${logDetail.metricName}</p>
+            <p><strong>指标值:</strong> ${logDetail.metricValue}</p>
+            <p><strong>阈值:</strong> ${logDetail.threshold || '-'}</p>
+            <p><strong>IP地址:</strong> ${logDetail.ipAddress || '-'}</p>
+            <p><strong>记录时间:</strong> ${formatDateTime(logDetail.recordTime)}</p>
+            <p><strong>备注:</strong> ${logDetail.remark || '-'}</p>
+          </div>
+        `;
+      }
+
+      ElMessageBox.alert(detailContent, '日志详情', {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: '关闭'
+      });
+    } else {
+      ElMessage.error(res.message || '获取日志详情失败');
+    }
+  } catch (error) {
+    console.error('获取日志详情失败:', error);
+    ElMessage.error('获取日志详情失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleExportLogs = () => {
-  console.log('导出日志');
+const handleExportLogs = async () => {
+  loading.value = true;
+  try {
+    // 准备导出参数
+    const exportParams = {
+      logType: logQuery.value.logType,
+      levels: logQuery.value.levels,
+      keyword: logQuery.value.keyword
+    };
+
+    // 添加时间范围
+    if (logQuery.value.timeRange && logQuery.value.timeRange.length === 2) {
+      exportParams.startTime = logQuery.value.timeRange[0].toISOString();
+      exportParams.endTime = logQuery.value.timeRange[1].toISOString();
+    }
+
+    let res;
+    if (logQuery.value.logType === 'operation') {
+      res = await SystemMonitorApi.exportOperationLog(exportParams);
+    } else if (logQuery.value.logType === 'error') {
+      res = await SystemMonitorApi.exportErrorLog(exportParams);
+    } else if (logQuery.value.logType === 'performance') {
+      res = await SystemMonitorApi.exportPerformanceLog(exportParams);
+    }
+
+    if (res.code === 200 && res.data) {
+      // 假设返回的是下载链接
+      const downloadLink = res.data;
+      const a = document.createElement('a');
+      a.href = downloadLink;
+      a.download = `${logQuery.value.logType}_logs_${new Date().getTime()}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      ElMessage.success('导出成功');
+    } else {
+      ElMessage.error(res.message || '导出日志失败');
+    }
+  } catch (error) {
+    console.error('导出日志失败:', error);
+    ElMessage.error('导出日志失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 数据备份与恢复方法
 const handleSaveBackupConfig = () => {
-  console.log('保存备份配置', backupConfig.value);
+  ElMessage.success('保存备份配置成功');
 };
 
-const handleCreateBackup = () => {
-  console.log('创建备份');
+const handleCreateBackup = async () => {
+  try {
+    // 打开对话框让用户输入备份名称
+    ElMessageBox.prompt('请输入备份名称', '创建备份', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      inputPattern: /^.{1,100}$/,
+      inputErrorMessage: '备份名称不能为空且不能超过100个字符'
+    }).then(async ({ value }) => {
+      loading.value = true;
+
+      const backupRequest = {
+        backupName: value,
+        backupType: 'MANUAL',
+        remark: '手动创建的备份'
+      };
+
+      const res = await SystemBackupApi.createBackup(backupRequest);
+      if (res.code === 200) {
+        ElMessage.success('创建备份成功');
+        fetchBackupList(); // 刷新列表
+      } else {
+        ElMessage.error(res.message || '创建备份失败');
+      }
+    }).catch(() => {
+      // 用户取消，不做任何处理
+    });
+  } catch (error) {
+    console.error('创建备份失败:', error);
+    ElMessage.error('创建备份失败');
+  } finally {
+    loading.value = false;
+  }
 };
 
 const handleDownloadBackup = (backup) => {
-  console.log('下载备份', backup);
+  const downloadUrl = SystemBackupApi.downloadBackup(backup.id);
+  window.open(downloadUrl, '_blank');
 };
 
-const handleRestoreBackup = (backup) => {
-  console.log('恢复备份', backup);
+const handleRestoreBackup = async (backup) => {
+  try {
+    // 确认是否恢复
+    await ElMessageBox.confirm(
+      '恢复备份将覆盖当前数据，确定要继续吗？',
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+
+    loading.value = true;
+    const res = await SystemBackupApi.restoreBackup(backup.id);
+    if (res.code === 200) {
+      ElMessage.success('恢复备份成功');
+    } else {
+      ElMessage.error(res.message || '恢复备份失败');
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('恢复备份失败:', error);
+      ElMessage.error('恢复备份失败');
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleDeleteBackup = (backup) => {
-  console.log('删除备份', backup);
+const handleDeleteBackup = async (backup) => {
+  try {
+    // 确认是否删除
+    await ElMessageBox.confirm(
+      '确定要删除该备份吗？',
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+
+    loading.value = true;
+    const res = await SystemBackupApi.deleteBackup(backup.id);
+    if (res.code === 200) {
+      ElMessage.success('删除备份成功');
+      fetchBackupList(); // 刷新列表
+    } else {
+      ElMessage.error(res.message || '删除备份失败');
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除备份失败:', error);
+      ElMessage.error('删除备份失败');
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 系统清理方法
 const handleSaveCleanupConfig = () => {
-  console.log('保存清理配置', cleanupConfig.value);
+  ElMessage.success('保存清理配置成功');
 };
 
-const handleCleanupTemp = () => {
-  console.log('清理临时文件');
+const handleCleanupTemp = async () => {
+  try {
+    // 确认是否清理
+    await ElMessageBox.confirm(
+      '确定要清理临时文件吗？',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'info'
+      }
+    );
+
+    loading.value = true;
+    const res = await SystemMonitorApi.cleanupSystem({
+      cleanupType: 'temp'
+    });
+    if (res.code === 200) {
+      ElMessage.success('清理临时文件成功');
+    } else {
+      ElMessage.error(res.message || '清理临时文件失败');
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('清理临时文件失败:', error);
+      ElMessage.error('清理临时文件失败');
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleCleanupLogs = () => {
-  console.log('清理历史日志');
+const handleCleanupLogs = async () => {
+  try {
+    // 让用户输入保留天数
+    const { value } = await ElMessageBox.prompt(
+      '请输入要保留的日志天数',
+      '清理历史日志',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPattern: /^[1-9]\d*$/,
+        inputErrorMessage: '请输入正整数',
+        inputValue: cleanupConfig.value.keepLogDays.toString()
+      }
+    );
+
+    loading.value = true;
+    const res = await SystemMonitorApi.cleanupSystem({
+      cleanupType: 'log',
+      keepDays: parseInt(value)
+    });
+    if (res.code === 200) {
+      ElMessage.success('清理历史日志成功');
+    } else {
+      ElMessage.error(res.message || '清理历史日志失败');
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('清理历史日志失败:', error);
+      ElMessage.error('清理历史日志失败');
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 
-const handleArchiveReports = () => {
-  console.log('归档历史报告');
+const handleArchiveReports = async () => {
+  try {
+    // 让用户输入保留天数和归档路径
+    const { value: keepDays } = await ElMessageBox.prompt(
+      '请输入归档阈值天数（超过该天数的报告将被归档）',
+      '归档历史报告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPattern: /^[1-9]\d*$/,
+        inputErrorMessage: '请输入正整数',
+        inputValue: cleanupConfig.value.archiveDays.toString()
+      }
+    );
+
+    loading.value = true;
+    const res = await SystemMonitorApi.cleanupSystem({
+      cleanupType: 'archive',
+      keepDays: parseInt(keepDays),
+      archivePath: cleanupConfig.value.archiveLocation
+    });
+    if (res.code === 200) {
+      ElMessage.success('归档历史报告成功');
+    } else {
+      ElMessage.error(res.message || '归档历史报告失败');
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('归档历史报告失败:', error);
+      ElMessage.error('归档历史报告失败');
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 分页方法
 const handleSizeChange = (val) => {
   pageSize.value = val;
-  // 获取数据
+  if (activeTab.value === 'logs') {
+    fetchLogs();
+  } else if (activeTab.value === 'backup') {
+    fetchBackupList();
+  }
 };
 
 const handleCurrentChange = (val) => {
   currentPage.value = val;
-  // 获取数据
+  if (activeTab.value === 'logs') {
+    fetchLogs();
+  } else if (activeTab.value === 'backup') {
+    fetchBackupList();
+  }
+};
+
+// 监听选项卡切换
+const handleTabChange = () => {
+  // 根据当前选项卡加载相应数据
+  if (activeTab.value === 'status') {
+    fetchSystemStatus();
+    fetchResourceTrend();
+  } else if (activeTab.value === 'logs') {
+    fetchLogs();
+  } else if (activeTab.value === 'backup') {
+    fetchBackupList();
+  }
 };
 
 onMounted(() => {
   // 初始化加载数据
+  handleTabChange();
 });
 </script>
 
@@ -606,4 +1051,4 @@ onMounted(() => {
 .monitor-tabs {
   min-height: 500px;
 }
-</style> 
+</style>

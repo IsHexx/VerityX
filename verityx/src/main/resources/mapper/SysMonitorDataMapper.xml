@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysMonitorDataMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="MonitorDataResultMap" type="com.example.verityx.entity.SysMonitorData">
+        <id property="id" column="id"/>
+        <result property="monitorType" column="monitor_type"/>
+        <result property="metricName" column="metric_name"/>
+        <result property="metricValue" column="metric_value"/>
+        <result property="status" column="status"/>
+        <result property="collectTime" column="timestamp"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+    
+    <resultMap id="MonitorDataDTOResultMap" type="com.example.verityx.dto.SysMonitorDataDTO">
+        <id property="id" column="id"/>
+        <result property="monitorType" column="monitor_type"/>
+        <result property="metricName" column="metric_name"/>
+        <result property="metricValue" column="metric_value"/>
+        <result property="status" column="status"/>
+        <result property="collectTime" column="timestamp"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+    
+    <!-- 分页查询监控数据 -->
+    <select id="selectMonitorDataPage" resultMap="MonitorDataDTOResultMap">
+        SELECT * FROM sys_monitor_data
+        <where>
+            <if test="monitorType != null and monitorType != ''">
+                AND monitor_type = #{monitorType}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="startTime != null">
+                AND timestamp &gt;= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND timestamp &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY timestamp DESC
+    </select>
+    
+    <!-- 根据监控类型查询最新的监控数据 -->
+    <select id="selectLatestMonitorDataByType" resultMap="MonitorDataDTOResultMap">
+        SELECT t.* FROM (
+            SELECT 
+                t1.*,
+                ROW_NUMBER() OVER(PARTITION BY t1.metric_name ORDER BY t1.timestamp DESC) AS rn
+            FROM sys_monitor_data t1
+            WHERE t1.monitor_type = #{monitorType}
+        ) t
+        WHERE t.rn = 1
+    </select>
+    
+    <!-- 根据监控类型和时间范围查询监控数据，用于趋势图 -->
+    <select id="selectMonitorDataTrend" resultMap="MonitorDataDTOResultMap">
+        SELECT * FROM sys_monitor_data
+        <where>
+            <if test="monitorType != null and monitorType != ''">
+                AND monitor_type = #{monitorType}
+            </if>
+            <if test="metricName != null and metricName != ''">
+                AND metric_name = #{metricName}
+            </if>
+            <if test="startTime != null">
+                AND timestamp &gt;= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND timestamp &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY timestamp ASC
+    </select>
+    
+    <!-- 清理指定时间之前的监控数据 -->
+    <delete id="deleteMonitorDataBefore">
+        DELETE FROM sys_monitor_data WHERE timestamp &lt; #{beforeTime}
+    </delete>
+    
+</mapper> 

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysVersionInfoMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="VersionInfoResultMap" type="com.example.verityx.entity.SysVersionInfo">
+        <id property="id" column="id"/>
+        <result property="version" column="version"/>
+        <result property="releaseDate" column="release_date"/>
+        <result property="releaseNotes" column="release_notes"/>
+        <result property="isCurrent" column="is_current"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+    
+    <!-- 获取当前版本信息 -->
+    <select id="selectCurrentVersion" resultMap="VersionInfoResultMap">
+        SELECT * FROM sys_version_info WHERE is_current = 1 LIMIT 1
+    </select>
+    
+    <!-- 将所有版本设置为非当前版本 -->
+    <update id="resetCurrentVersion">
+        UPDATE sys_version_info SET is_current = 0
+    </update>
+    
+    <!-- 设置指定版本为当前版本 -->
+    <update id="setCurrentVersion">
+        UPDATE sys_version_info SET is_current = 1 WHERE id = #{id}
+    </update>
+    
+</mapper> 

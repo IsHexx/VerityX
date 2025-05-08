@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysUpgradeRecordMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="UpgradeRecordResultMap" type="com.example.verityx.entity.SysUpgradeRecord">
+        <id property="id" column="id"/>
+        <result property="fromVersion" column="from_version"/>
+        <result property="toVersion" column="to_version"/>
+        <result property="upgradeTime" column="upgrade_time"/>
+        <result property="upgradeUser" column="upgrade_user"/>
+        <result property="status" column="status"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="backupId" column="backup_id"/>
+        <result property="duration" column="duration"/>
+        <result property="remarks" column="remarks"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+    
+    <!-- 分页查询升级记录 -->
+    <select id="selectUpgradeRecordPage" resultMap="UpgradeRecordResultMap">
+        SELECT * FROM sys_upgrade_record
+        <where>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY upgrade_time DESC
+    </select>
+    
+    <!-- 获取最近一次升级记录 -->
+    <select id="selectLatestUpgradeRecord" resultMap="UpgradeRecordResultMap">
+        SELECT * FROM sys_upgrade_record 
+        ORDER BY upgrade_time DESC 
+        LIMIT 1
+    </select>
+    
+</mapper> 

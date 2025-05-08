@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysLicenseMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="LicenseResultMap" type="com.example.verityx.entity.SysLicense">
+        <id property="id" column="id"/>
+        <result property="licenseKey" column="license_key"/>
+        <result property="licenseType" column="license_type"/>
+        <result property="issuedTo" column="issued_to"/>
+        <result property="issuedBy" column="issued_by"/>
+        <result property="issueDate" column="issue_date"/>
+        <result property="expirationDate" column="expiration_date"/>
+        <result property="maxUsers" column="max_users"/>
+        <result property="features" column="features"/>
+        <result property="status" column="status"/>
+        <result property="remarks" column="remarks"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+    
+    <!-- 获取当前生效的许可证信息 -->
+    <select id="selectActiveLicense" resultMap="LicenseResultMap">
+        SELECT * FROM sys_license 
+        WHERE status = '有效' 
+        AND (expiration_date IS NULL OR expiration_date > NOW()) 
+        ORDER BY id DESC 
+        LIMIT 1
+    </select>
+    
+</mapper> 

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.SysDeptSubscriptionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.verityx.entity.SysDeptSubscription">
+        <id column="id" property="id"/>
+        <result column="dept_id" property="deptId"/>
+        <result column="rule_id" property="ruleId"/>
+        <result column="notify_type" property="notifyType"/>
+        <result column="status" property="status"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="updater_id" property="updaterId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 自定义查询映射结果 -->
+    <resultMap id="DTOResultMap" type="com.example.verityx.dto.SysDeptSubscriptionDTO">
+        <id column="id" property="id"/>
+        <result column="dept_id" property="deptId"/>
+        <result column="dept_name" property="deptName"/>
+        <result column="rule_id" property="ruleId"/>
+        <result column="rule_name" property="ruleName"/>
+        <result column="notify_type" property="notifyType"/>
+        <result column="status" property="status"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="creator_name" property="creatorName"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 基本列 -->
+    <sql id="Base_Column_List">
+        id, dept_id, rule_id, notify_type, status,
+        creator_id, updater_id, create_time, update_time, deleted
+    </sql>
+
+    <!-- 分页查询部门订阅列表 -->
+    <select id="selectDeptSubscriptionPage" resultMap="DTOResultMap">
+        SELECT s.id, s.dept_id, d.name as dept_name, s.rule_id, r.name as rule_name,
+               s.notify_type, s.status, s.creator_id, u.username as creator_name,
+               s.create_time, s.update_time
+        FROM sys_dept_subscription s
+        LEFT JOIN sys_dept d ON s.dept_id = d.id
+        LEFT JOIN sys_notification_rule r ON s.rule_id = r.id
+        LEFT JOIN sys_user u ON s.creator_id = u.id
+        WHERE s.deleted = 0
+        <if test="deptId != null">
+            AND s.dept_id = #{deptId}
+        </if>
+        <if test="ruleId != null">
+            AND s.rule_id = #{ruleId}
+        </if>
+        <if test="status != null">
+            AND s.status = #{status}
+        </if>
+        ORDER BY s.create_time DESC
+    </select>
+
+    <!-- 根据ID查询部门订阅详情 -->
+    <select id="selectDeptSubscriptionById" resultMap="DTOResultMap">
+        SELECT s.id, s.dept_id, d.name as dept_name, s.rule_id, r.name as rule_name,
+               s.notify_type, s.status, s.creator_id, u.username as creator_name,
+               s.create_time, s.update_time
+        FROM sys_dept_subscription s
+        LEFT JOIN sys_dept d ON s.dept_id = d.id
+        LEFT JOIN sys_notification_rule r ON s.rule_id = r.id
+        LEFT JOIN sys_user u ON s.creator_id = u.id
+        WHERE s.id = #{id} AND s.deleted = 0
+    </select>
+
+    <!-- 根据部门ID查询订阅列表 -->
+    <select id="selectDeptSubscriptionByDeptId" resultMap="DTOResultMap">
+        SELECT s.id, s.dept_id, d.name as dept_name, s.rule_id, r.name as rule_name,
+               s.notify_type, s.status, s.creator_id, u.username as creator_name,
+               s.create_time, s.update_time
+        FROM sys_dept_subscription s
+        LEFT JOIN sys_dept d ON s.dept_id = d.id
+        LEFT JOIN sys_notification_rule r ON s.rule_id = r.id
+        LEFT JOIN sys_user u ON s.creator_id = u.id
+        WHERE s.dept_id = #{deptId} AND s.deleted = 0
+        ORDER BY s.create_time DESC
+    </select>
+
+    <!-- 根据规则ID查询订阅的部门列表 -->
+    <select id="selectDeptSubscriptionByRuleId" resultMap="DTOResultMap">
+        SELECT s.id, s.dept_id, d.name as dept_name, s.rule_id, r.name as rule_name,
+               s.notify_type, s.status, s.creator_id, u.username as creator_name,
+               s.create_time, s.update_time
+        FROM sys_dept_subscription s
+        LEFT JOIN sys_dept d ON s.dept_id = d.id
+        LEFT JOIN sys_notification_rule r ON s.rule_id = r.id
+        LEFT JOIN sys_user u ON s.creator_id = u.id
+        WHERE s.rule_id = #{ruleId} AND s.deleted = 0
+        ORDER BY s.create_time DESC
+    </select>
+
+    <!-- 根据部门ID和规则ID查询订阅 -->
+    <select id="selectDeptSubscriptionByDeptIdAndRuleId" resultMap="DTOResultMap">
+        SELECT s.id, s.dept_id, d.name as dept_name, s.rule_id, r.name as rule_name,
+               s.notify_type, s.status, s.creator_id, u.username as creator_name,
+               s.create_time, s.update_time
+        FROM sys_dept_subscription s
+        LEFT JOIN sys_dept d ON s.dept_id = d.id
+        LEFT JOIN sys_notification_rule r ON s.rule_id = r.id
+        LEFT JOIN sys_user u ON s.creator_id = u.id
+        WHERE s.dept_id = #{deptId} AND s.rule_id = #{ruleId} AND s.deleted = 0
+    </select>
+
+</mapper> 
