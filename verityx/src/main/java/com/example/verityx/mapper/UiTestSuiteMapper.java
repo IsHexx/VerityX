@@ -16,9 +16,10 @@ public interface UiTestSuiteMapper {
      * 根据ID查询测试套件
      *
      * @param id 测试套件ID
+     * @param projectId 项目ID
      * @return 测试套件信息
      */
-    UiTestSuite selectById(@Param("id") Long id);
+    UiTestSuite selectById(@Param("id") Long id, @Param("projectId") Long projectId);
     
     /**
      * 分页查询测试套件列表
@@ -27,21 +28,26 @@ public interface UiTestSuiteMapper {
      * @param status 套件状态
      * @param offset 偏移量
      * @param pageSize 页大小
+     * @param projectId 项目ID
      * @return 测试套件列表
      */
     List<UiTestSuite> selectByPage(@Param("keyword") String keyword, 
                                   @Param("status") String status,
                                   @Param("offset") Integer offset, 
-                                  @Param("pageSize") Integer pageSize);
+                                  @Param("pageSize") Integer pageSize,
+                                  @Param("projectId") Long projectId);
     
     /**
      * 统计符合条件的测试套件数量
      *
      * @param keyword 搜索关键词
      * @param status 套件状态
+     * @param projectId 项目ID
      * @return 测试套件数量
      */
-    Integer countTestSuites(@Param("keyword") String keyword, @Param("status") String status);
+    Integer countTestSuites(@Param("keyword") String keyword, 
+                           @Param("status") String status,
+                           @Param("projectId") Long projectId);
     
     /**
      * 插入测试套件
@@ -63,7 +69,8 @@ public interface UiTestSuiteMapper {
      * 删除测试套件
      *
      * @param id 测试套件ID
+     * @param projectId 项目ID
      * @return 影响行数
      */
-    int deleteById(@Param("id") Long id);
+    int deleteById(@Param("id") Long id, @Param("projectId") Long projectId);
 } 

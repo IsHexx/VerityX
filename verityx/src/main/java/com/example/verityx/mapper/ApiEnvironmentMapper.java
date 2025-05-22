@@ -13,13 +13,15 @@ public interface ApiEnvironmentMapper {
     
     ApiEnvironment selectEnvironmentById(Integer id);
     
-    List<ApiEnvironment> selectAllEnvironments();
+    List<ApiEnvironment> selectAllEnvironments(@Param("projectId") String projectId);
     
     List<ApiEnvironment> selectEnvironmentsByPage(@Param("keyword") String keyword, 
+                                                 @Param("projectId") String projectId,
                                                  @Param("offset") int offset, 
                                                  @Param("pageSize") int pageSize);
     
-    int countEnvironments(@Param("keyword") String keyword);
+    int countEnvironments(@Param("keyword") String keyword, 
+                          @Param("projectId") String projectId);
     
     int updateEnvironment(ApiEnvironment environment);
     
@@ -27,9 +29,9 @@ public interface ApiEnvironmentMapper {
     
     int batchDeleteEnvironments(@Param("ids") List<Integer> ids);
     
-    ApiEnvironment selectDefaultEnvironment();
+    ApiEnvironment selectDefaultEnvironment(@Param("projectId") String projectId);
     
-    int clearDefaultStatus();
+    int clearDefaultStatus(@Param("projectId") String projectId);
     
     int setDefaultEnvironment(Integer id);
 } 

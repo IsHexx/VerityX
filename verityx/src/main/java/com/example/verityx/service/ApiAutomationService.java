@@ -9,7 +9,7 @@ public interface ApiAutomationService {
 
     ApiAutomation getSceneById(int sceneId);
 
-    List<ApiAutomation> getAllScenes();
+    List<ApiAutomation> getAllScenes(String projectId);
 
     boolean updateScene(ApiAutomation scene);
 

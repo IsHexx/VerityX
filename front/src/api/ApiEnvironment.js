@@ -1,4 +1,5 @@
 import { http } from '@/utils/request'
+import { useProjectStore } from '@/store/projectStore';
 
 // API环境配置相关接口
 export const ApiEnvironmentApi = {
@@ -12,48 +13,82 @@ export const ApiEnvironmentApi = {
     if (params.pageSize) cleanParams.pageSize = params.pageSize;
     if (params.keyword) cleanParams.keyword = params.keyword;
     
+    // 添加项目ID
+    const projectStore = useProjectStore();
+    if (projectStore.currentProjectId) {
+      cleanParams.projectId = projectStore.currentProjectId;
+    }
+    
     console.log("环境配置API调用参数:", cleanParams);
     return http.get('/api/environments/list', cleanParams);
   },
 
   // 获取所有环境配置
   getAllEnvironments() {
-    return http.get('/api/environments')
+    // 添加项目ID参数
+    const projectStore = useProjectStore();
+    const params = {};
+    if (projectStore.currentProjectId) {
+      params.projectId = projectStore.currentProjectId;
+    }
+    return http.get('/api/environments', params);
   },
 
   // 获取单个环境配置详情
   getEnvironmentById(id) {
-    return http.get(`/api/environments/${id}`)
+    return http.get(`/api/environments/${id}`);
   },
 
   // 获取默认环境配置
   getDefaultEnvironment() {
-    return http.get('/api/environments/default')
+    // 添加项目ID参数
+    const projectStore = useProjectStore();
+    const params = {};
+    if (projectStore.currentProjectId) {
+      params.projectId = projectStore.currentProjectId;
+    }
+    return http.get('/api/environments/default', params);
   },
 
   // 创建环境配置
   createEnvironment(data) {
-    return http.post('/api/environments', data)
+    // 添加项目ID
+    const projectStore = useProjectStore();
+    if (projectStore.currentProjectId) {
+      data.projectId = projectStore.currentProjectId;
+    }
+    return http.post('/api/environments', data);
   },
 
   // 更新环境配置
   updateEnvironment(id, data) {
-    return http.put(`/api/environments/${id}`, data)
+    // 添加项目ID
+    const projectStore = useProjectStore();
+    if (projectStore.currentProjectId) {
+      data.projectId = projectStore.currentProjectId;
+    }
+    return http.put(`/api/environments/${id}`, data);
   },
 
   // 设置默认环境
   setDefaultEnvironment(id) {
-    return http.put(`/api/environments/${id}/default`)
+    // 添加项目ID参数
+    const projectStore = useProjectStore();
+    const params = {};
+    if (projectStore.currentProjectId) {
+      params.projectId = projectStore.currentProjectId;
+    }
+    return http.put(`/api/environments/${id}/default`, null, { params });
   },
 
   // 删除环境配置
   deleteEnvironment(id) {
-    return http.delete(`/api/environments/${id}`)
+    return http.delete(`/api/environments/${id}`);
   },
 
   // 批量删除环境配置
   batchDeleteEnvironments(ids) {
-    return http.post('/api/environments/batch-delete', { ids })
+    return http.post('/api/environments/batch-delete', { ids });
   }
 }
 

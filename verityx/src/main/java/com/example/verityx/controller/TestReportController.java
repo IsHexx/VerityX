@@ -51,13 +51,19 @@ public class TestReportController {
     // 分页获取测试报告
     @Operation(summary = "分页查询测试报告", description = "根据分页参数查询测试报告")
     @GetMapping("/list")
-    public ApiResponse<Map<String, Object>> getTestPlansWithPagination(@RequestParam int page, @RequestParam int pageSize) {
+    public ApiResponse<Map<String, Object>> getTestPlansWithPagination(
+            @RequestParam int page, 
+            @RequestParam int pageSize,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String projectId) {
 
         int offset = (page - 1) * pageSize;
         System.out.println("pageSize是:" + pageSize);
         System.out.println("offset:" + offset);
-        List<TestReport> testReports = testReportService.getTestReportsWithPagination(pageSize, offset);
-        int total = testReportService.getTestReportCount(); // 获取总记录数
+        System.out.println("projectId:" + projectId);
+        
+        List<TestReport> testReports = testReportService.getTestReportsWithPagination(pageSize, offset, keyword, projectId);
+        int total = testReportService.getTestReportCount(keyword, projectId); // 获取总记录数
         Map<String, Object> response = new HashMap<>();
         response.put("data", testReports);
         response.put("total", total);

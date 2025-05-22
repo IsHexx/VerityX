@@ -19,7 +19,7 @@ public interface ApiTestReportService {
     /**
      * 分页查询API测试报告
      */
-    Map<String, Object> getReportsByPage(String keyword, String status, int page, int pageSize);
+    Map<String, Object> getReportsByPage(String keyword, String status, String projectId, int page, int pageSize);
 
     /**
      * 更新API测试报告

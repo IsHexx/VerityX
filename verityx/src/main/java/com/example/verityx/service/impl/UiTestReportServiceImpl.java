@@ -35,21 +35,21 @@ import com.example.verityx.service.UiTestReportService;
  */
 @Service
 public class UiTestReportServiceImpl implements UiTestReportService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(UiTestReportServiceImpl.class);
-    
+
     @Autowired
     private UiTestReportMapper reportMapper;
-    
+
     @Autowired
     private UiTestReportDetailMapper detailMapper;
-    
+
     @Autowired
     private UiTestReportStepMapper stepMapper;
-    
+
     @Autowired
     private UiTestExecutionService executionService;
-    
+
     @Override
     @Transactional
     public Long createReport(UiTestReportCreateRequest request) {
@@ -67,7 +67,7 @@ public class UiTestReportServiceImpl implements UiTestReportService {
         report.setPassedCases(request.getPassedCases());
         report.setFailedCases(request.getFailedCases());
         report.setSkippedCases(request.getSkippedCases());
-        
+
         // 计算通过率
         if (report.getTotalCases() != null && report.getTotalCases() > 0) {
             Double passRate = (double) report.getPassedCases() / report.getTotalCases() * 100;
@@ -75,19 +75,19 @@ public class UiTestReportServiceImpl implements UiTestReportService {
         } else {
             report.setPassRate(0.0);
         }
-        
+
         report.setExecutor(request.getExecutor());
         report.setReportContent(request.getReportContent());
         report.setReportStatus("已生成");
         report.setGeneratedTime(new Date());
         report.setCreatedAt(new Date());
         report.setUpdatedAt(new Date());
-        
+
         reportMapper.insert(report);
-        
+
         return report.getId();
     }
-    
+
     @Override
     @Transactional
     public boolean updateReport(Long id, UiTestReportCreateRequest request) {
@@ -95,7 +95,7 @@ public class UiTestReportServiceImpl implements UiTestReportService {
         if (report == null) {
             return false;
         }
-        
+
         // 更新报告基本信息
         if (request.getReportName() != null) {
             report.setReportName(request.getReportName());
@@ -130,49 +130,52 @@ public class UiTestReportServiceImpl implements UiTestReportService {
         if (request.getSkippedCases() != null) {
             report.setSkippedCases(request.getSkippedCases());
         }
-        
+
         // 重新计算通过率
         if (report.getTotalCases() != null && report.getTotalCases() > 0) {
             Double passRate = (double) report.getPassedCases() / report.getTotalCases() * 100;
             report.setPassRate(passRate);
         }
-        
+
         if (request.getExecutor() != null) {
             report.setExecutor(request.getExecutor());
         }
         if (request.getReportContent() != null) {
             report.setReportContent(request.getReportContent());
         }
-        
+
         report.setUpdatedAt(new Date());
-        
+
         return reportMapper.update(report) > 0;
     }
-    
+
     @Override
     public UiTestReportDTO getReportById(Long id) {
         UiTestReport report = reportMapper.selectById(id);
         if (report == null) {
             return null;
         }
-        
+
         return convertToDTO(report);
     }
-    
+
     @Override
     public UiTestReportDTO getReportByExecutionId(Long executionId) {
         UiTestReport report = reportMapper.selectByExecutionId(executionId);
         if (report == null) {
             return null;
         }
-        
+
         return convertToDTO(report);
     }
-    
+
     @Override
-    public PageResult<UiTestReportDTO> getReportList(int page, int pageSize, String keyword, String reportType, String startDate, String endDate, String status) {
+    public PageResult<UiTestReportDTO> getReportList(int page, int pageSize, String keyword, String reportType, String startDate, String endDate, String status, Long projectId) {
         int offset = (page - 1) * pageSize;
-        
+
+        logger.info("[Service] getReportList params: page={}, pageSize={}, keyword={}, reportType={}, startDate={}, endDate={}, status={}, projectId={}",
+            page, pageSize, keyword, reportType, startDate, endDate, status, projectId);
+
         // 添加状态过滤逻辑
         String passRateCondition = null;
         if (status != null && !status.isEmpty()) {
@@ -184,45 +187,45 @@ public class UiTestReportServiceImpl implements UiTestReportService {
                 passRateCondition = "pass_rate < 100";
             }
         }
-        
-        List<UiTestReport> reports = reportMapper.selectByPage(keyword, reportType, startDate, endDate, passRateCondition, offset, pageSize);
-        int total = reportMapper.countByCondition(keyword, reportType, startDate, endDate, passRateCondition);
-        
+
+        List<UiTestReport> reports = reportMapper.selectByPage(keyword, reportType, startDate, endDate, passRateCondition, offset, pageSize, projectId);
+        int total = reportMapper.countByCondition(keyword, reportType, startDate, endDate, passRateCondition, projectId);
+
         List<UiTestReportDTO> reportDTOs = reports.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
-        
+
         return new PageResult<>(reportDTOs, total, page, pageSize);
     }
-    
+
     @Override
     @Transactional
     public boolean deleteReport(Long id) {
         // 先删除报告步骤
         stepMapper.deleteByReportId(id);
-        
+
         // 删除报告详情
         detailMapper.deleteByReportId(id);
-        
+
         // 删除报告
         return reportMapper.deleteById(id) > 0;
     }
-    
+
     @Override
     @Transactional
     public boolean batchDeleteReports(List<Long> ids) {
         for (Long id : ids) {
             // 删除报告步骤
             stepMapper.deleteByReportId(id);
-            
+
             // 删除报告详情
             detailMapper.deleteByReportId(id);
         }
-        
+
         // 批量删除报告
         return reportMapper.batchDelete(ids) > 0;
     }
-    
+
     @Override
     @Transactional
     public boolean deleteReportByExecutionId(Long executionId) {
@@ -230,43 +233,43 @@ public class UiTestReportServiceImpl implements UiTestReportService {
         if (report == null) {
             return false;
         }
-        
+
         return deleteReport(report.getId());
     }
-    
+
     @Override
     public PageResult<UiTestReportDetailDTO> getReportDetails(Long reportId, int page, int pageSize, String result) {
         int offset = (page - 1) * pageSize;
-        
+
         List<UiTestReportDetail> details = detailMapper.selectByPage(reportId, result, offset, pageSize);
         int total = detailMapper.countByCondition(reportId, result);
-        
+
         List<UiTestReportDetailDTO> detailDTOs = details.stream()
                 .map(this::convertToDetailDTO)
                 .collect(Collectors.toList());
-        
+
         return new PageResult<>(detailDTOs, total, page, pageSize);
     }
-    
+
     @Override
     public UiTestReportDetailDTO getReportDetail(Long detailId) {
         UiTestReportDetail detail = detailMapper.selectById(detailId);
         if (detail == null) {
             return null;
         }
-        
+
         return convertToDetailDTO(detail);
     }
-    
+
     @Override
     public List<UiTestStepResultDTO> getReportSteps(Long detailId) {
         List<UiTestReportStep> steps = stepMapper.selectByReportDetailId(detailId);
-        
+
         return steps.stream()
                 .map(this::convertToStepDTO)
                 .collect(Collectors.toList());
     }
-    
+
     @Override
     @Transactional
     public Long generateReportFromExecution(Long executionId) {
@@ -276,20 +279,20 @@ public class UiTestReportServiceImpl implements UiTestReportService {
             logger.error("生成报告失败：执行ID不存在 {}", executionId);
             return null;
         }
-        
+
         // 检查执行状态，只有已完成或失败的执行才能生成报告
         if (!"completed".equals(execution.getStatus()) && !"failed".equals(execution.getStatus())) {
             logger.error("生成报告失败：执行未完成 {}, 状态: {}", executionId, execution.getStatus());
             return null;
         }
-        
+
         // 检查是否已存在报告
         UiTestReport existingReport = reportMapper.selectByExecutionId(executionId);
         if (existingReport != null) {
             logger.info("执行 {} 的报告已存在，ID: {}", executionId, existingReport.getId());
             return existingReport.getId();
         }
-        
+
         try {
             // 创建报告请求
             UiTestReportCreateRequest request = new UiTestReportCreateRequest();
@@ -301,16 +304,16 @@ public class UiTestReportServiceImpl implements UiTestReportService {
             request.setStartTime(execution.getStartTime());
             request.setEndTime(execution.getEndTime());
             request.setDuration(execution.getDuration());
-            
+
             // 获取执行详情列表，用于统计结果
             List<UiTestExecutionDetailDTO> executionDetails = executionService.getExecutionDetails(executionId);
-            
+
             // 统计测试结果
             int totalCases = executionDetails.size();
             int passedCases = 0;
             int failedCases = 0;
             int skippedCases = 0;
-            
+
             for (UiTestExecutionDetailDTO detail : executionDetails) {
                 if ("passed".equals(detail.getStatus())) {
                     passedCases++;
@@ -320,16 +323,16 @@ public class UiTestReportServiceImpl implements UiTestReportService {
                     skippedCases++;
                 }
             }
-            
+
             request.setTotalCases(totalCases);
             request.setPassedCases(passedCases);
             request.setFailedCases(failedCases);
             request.setSkippedCases(skippedCases);
             request.setExecutor(execution.getExecutor());
-            
+
             // 创建报告
             Long reportId = createReport(request);
-            
+
             // 创建报告详情
             for (UiTestExecutionDetailDTO executionDetail : executionDetails) {
                 UiTestReportDetail reportDetail = new UiTestReportDetail();
@@ -341,16 +344,16 @@ public class UiTestReportServiceImpl implements UiTestReportService {
                 reportDetail.setDuration(executionDetail.getDuration());
                 reportDetail.setStartTime(executionDetail.getStartTime());
                 reportDetail.setEndTime(executionDetail.getEndTime());
-                
+
                 // 获取执行步骤列表，用于统计步骤结果
                 List<UiTestExecutionStepDTO> executionSteps = executionService.getExecutionSteps(executionDetail.getId());
-                
+
                 int totalSteps = executionSteps.size();
                 int passedSteps = 0;
                 int failedSteps = 0;
                 int skippedSteps = 0;
                 String errorMessage = null;
-                
+
                 for (UiTestExecutionStepDTO step : executionSteps) {
                     if ("passed".equals(step.getStatus())) {
                         passedSteps++;
@@ -364,7 +367,7 @@ public class UiTestReportServiceImpl implements UiTestReportService {
                         skippedSteps++;
                     }
                 }
-                
+
                 reportDetail.setTotalSteps(totalSteps);
                 reportDetail.setPassedSteps(passedSteps);
                 reportDetail.setFailedSteps(failedSteps);
@@ -372,19 +375,19 @@ public class UiTestReportServiceImpl implements UiTestReportService {
                 reportDetail.setErrorMessage(errorMessage);
                 reportDetail.setCreatedAt(new Date());
                 reportDetail.setUpdatedAt(new Date());
-                
+
                 // 记录截图URLs
                 List<String> screenshotUrls = executionSteps.stream()
                         .filter(step -> step.getScreenshotAfter() != null)
                         .map(UiTestExecutionStepDTO::getScreenshotAfter)
                         .collect(Collectors.toList());
-                
+
                 if (!screenshotUrls.isEmpty()) {
                     reportDetail.setScreenshotUrls(String.join(",", screenshotUrls));
                 }
-                
+
                 detailMapper.insert(reportDetail);
-                
+
                 // 创建报告步骤
                 List<UiTestReportStep> reportSteps = new ArrayList<>();
                 for (UiTestExecutionStepDTO executionStep : executionSteps) {
@@ -405,15 +408,15 @@ public class UiTestReportServiceImpl implements UiTestReportService {
                     reportStep.setExecutedAt(executionStep.getTimestamp());
                     reportStep.setCreatedAt(new Date());
                     reportStep.setUpdatedAt(new Date());
-                    
+
                     reportSteps.add(reportStep);
                 }
-                
+
                 if (!reportSteps.isEmpty()) {
                     stepMapper.batchInsert(reportSteps);
                 }
             }
-            
+
             logger.info("成功为执行 {} 生成报告，ID: {}", executionId, reportId);
             return reportId;
         } catch (Exception e) {
@@ -421,7 +424,7 @@ public class UiTestReportServiceImpl implements UiTestReportService {
             throw e;
         }
     }
-    
+
     @Override
     public String exportReport(Long id, String format) {
         // TODO: 实现报告导出功能
@@ -429,14 +432,14 @@ public class UiTestReportServiceImpl implements UiTestReportService {
         if (report == null) {
             return null;
         }
-        
+
         // 这里需要根据实际需求实现导出逻辑
         return "/api/ui-test-reports/" + id + "/download?format=" + format;
     }
-    
+
     /**
      * 将实体转换为DTO
-     * 
+     *
      * @param report 测试报告实体
      * @return 测试报告DTO
      */
@@ -461,14 +464,14 @@ public class UiTestReportServiceImpl implements UiTestReportService {
         dto.setReportStatus(report.getReportStatus());
         dto.setGeneratedTime(report.getGeneratedTime());
         dto.setCreatedAt(report.getCreatedAt());
-        
+
         // 设置前端展示用的附加字段
         dto.setDurationText(formatDuration(report.getDuration()));
-        
+
         // 设置状态文本
         String status = report.getReportStatus();
         dto.setStatusText(status);
-        
+
         // 设置状态类型
         String statusType = "info"; // 默认
         if ("已生成".equals(status)) {
@@ -479,13 +482,13 @@ public class UiTestReportServiceImpl implements UiTestReportService {
             statusType = "danger";
         }
         dto.setStatusType(statusType);
-        
+
         return dto;
     }
-    
+
     /**
      * 将详情实体转换为DTO
-     * 
+     *
      * @param detail 测试报告详情实体
      * @return 测试报告详情DTO
      */
@@ -503,20 +506,20 @@ public class UiTestReportServiceImpl implements UiTestReportService {
         dto.setFailedSteps(detail.getFailedSteps());
         dto.setSkippedSteps(detail.getSkippedSteps());
         dto.setErrorMessage(detail.getErrorMessage());
-        
+
         // 处理截图URLs
         if (detail.getScreenshotUrls() != null && !detail.getScreenshotUrls().isEmpty()) {
             dto.setScreenshotUrls(Arrays.asList(detail.getScreenshotUrls().split(",")));
         } else {
             dto.setScreenshotUrls(new ArrayList<>());
         }
-        
+
         dto.setStartTime(detail.getStartTime());
         dto.setEndTime(detail.getEndTime());
-        
+
         // 设置前端展示用的附加字段
         dto.setDurationText(formatDuration(detail.getDuration()));
-        
+
         // 设置结果类型
         String resultType = "info"; // 默认
         if ("passed".equals(detail.getCaseResult())) {
@@ -527,13 +530,13 @@ public class UiTestReportServiceImpl implements UiTestReportService {
             resultType = "warning";
         }
         dto.setResultType(resultType);
-        
+
         return dto;
     }
-    
+
     /**
      * 将步骤实体转换为DTO
-     * 
+     *
      * @param step 测试报告步骤实体
      * @return 测试步骤结果DTO
      */
@@ -554,10 +557,10 @@ public class UiTestReportServiceImpl implements UiTestReportService {
         dto.setScreenshotAfter(step.getScreenshotAfter());
         dto.setErrorMessage(step.getErrorMessage());
         dto.setExecutedAt(step.getExecutedAt());
-        
+
         // 设置前端展示用的附加字段
         dto.setDurationText(formatDuration(step.getDuration()));
-        
+
         // 设置状态类型
         String statusType = "info"; // 默认
         if ("passed".equals(step.getStatus())) {
@@ -568,13 +571,13 @@ public class UiTestReportServiceImpl implements UiTestReportService {
             statusType = "warning";
         }
         dto.setStatusType(statusType);
-        
+
         return dto;
     }
-    
+
     /**
      * 格式化持续时间，转换为可读文本
-     * 
+     *
      * @param durationInMillis 毫秒数
      * @return 格式化的持续时间文本
      */
@@ -582,18 +585,18 @@ public class UiTestReportServiceImpl implements UiTestReportService {
         if (durationInMillis == null) {
             return "0毫秒";
         }
-        
+
         if (durationInMillis < 1000) {
             return durationInMillis + "毫秒";
         }
-        
+
         long minutes = TimeUnit.MILLISECONDS.toMinutes(durationInMillis);
         long seconds = TimeUnit.MILLISECONDS.toSeconds(durationInMillis) % 60;
-        
+
         if (minutes > 0) {
             return minutes + "分钟" + seconds + "秒";
         } else {
             return seconds + "秒";
         }
     }
-} 
+}

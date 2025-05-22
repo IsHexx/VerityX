@@ -21,13 +21,21 @@ export const UiElementLocatorApi = {
     if (params.locatorType) {
       cleanParams.locatorType = params.locatorType;
     }
+    
+    // 添加项目ID参数（如果提供了的话）
+    if (params.projectId) {
+      cleanParams.projectId = params.projectId;
+    }
   
-    return http.get('/api/ui-elements/list', cleanParams);
+    return http.get('/api/ui-elements/list', { params: cleanParams });
   },
   
   // 获取元素详情
-  getElementById: (id) => {
-    return http.get(`/api/ui-elements/${id}`);
+  getElementById: (id, projectId) => {
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
+    return http.get(`/api/ui-elements/${id}`, { params });
   },
   
   // 创建元素
@@ -41,13 +49,19 @@ export const UiElementLocatorApi = {
   },
   
   // 删除元素
-  deleteElement: (id) => {
-    return http.delete(`/api/ui-elements/delete/${id}`);
+  deleteElement: (id, projectId) => {
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
+    return http.delete(`/api/ui-elements/delete/${id}`, { params });
   },
   
   // 获取元素分组列表
-  getElementGroups: () => {
-    return http.get('/api/ui-elements/groups');
+  getElementGroups: (projectId) => {
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
+    return http.get('/api/ui-elements/groups', { params });
   },
   
   // 创建元素分组
@@ -61,8 +75,11 @@ export const UiElementLocatorApi = {
   },
   
   // 删除元素分组
-  deleteElementGroup: (id) => {
-    return http.delete(`/api/ui-elements/groups/delete/${id}`);
+  deleteElementGroup: (id, projectId) => {
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
+    return http.delete(`/api/ui-elements/groups/delete/${id}`, { params });
   },
   
   // 验证元素定位器
@@ -76,11 +93,15 @@ export const UiElementLocatorApi = {
   },
   
   // 上传元素截图
-  uploadElementScreenshot: (elementId, formData) => {
+  uploadElementScreenshot: (elementId, formData, projectId) => {
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
     return http.post(`/api/ui-elements/${elementId}/screenshot`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
-      }
+      },
+      params
     });
   }
 }; 

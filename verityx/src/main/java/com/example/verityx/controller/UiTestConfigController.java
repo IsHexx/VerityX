@@ -54,13 +54,13 @@ public class UiTestConfigController {
         try {
             configDTO.setId(id);
             UiTestConfigDTO updatedConfig = uiTestConfigService.updateConfig(configDTO);
-            
+
             if (updatedConfig == null) {
                 response.put("success", false);
                 response.put("message", "配置不存在");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-            
+
             response.put("success", true);
             response.put("message", "配置更新成功");
             response.put("data", updatedConfig);
@@ -82,13 +82,13 @@ public class UiTestConfigController {
         Map<String, Object> response = new HashMap<>();
         try {
             UiTestConfigDTO config = uiTestConfigService.getConfigById(id);
-            
+
             if (config == null) {
                 response.put("success", false);
                 response.put("message", "配置不存在");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-            
+
             response.put("success", true);
             response.put("data", config);
             return ResponseEntity.ok(response);
@@ -103,15 +103,17 @@ public class UiTestConfigController {
      * 获取UI测试配置列表
      * @param configType 配置类型
      * @param configName 配置名称
+     * @param projectId 项目ID
      * @return 配置列表
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getConfigList(
             @RequestParam(required = false) String configType,
-            @RequestParam(required = false) String configName) {
+            @RequestParam(required = false) String configName,
+            @RequestParam(required = false) Integer projectId) {
         Map<String, Object> response = new HashMap<>();
         try {
-            List<UiTestConfigDTO> configs = uiTestConfigService.getConfigList(configType, configName);
+            List<UiTestConfigDTO> configs = uiTestConfigService.getConfigList(configType, configName, projectId);
             response.put("success", true);
             response.put("data", configs);
             return ResponseEntity.ok(response);
@@ -132,13 +134,13 @@ public class UiTestConfigController {
         Map<String, Object> response = new HashMap<>();
         try {
             boolean success = uiTestConfigService.deleteConfig(id);
-            
+
             if (!success) {
                 response.put("success", false);
                 response.put("message", "配置不存在或删除失败");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-            
+
             response.put("success", true);
             response.put("message", "配置删除成功");
             return ResponseEntity.ok(response);
@@ -159,13 +161,13 @@ public class UiTestConfigController {
         Map<String, Object> response = new HashMap<>();
         try {
             UiTestConfigDTO config = uiTestConfigService.setDefaultConfig(id);
-            
+
             if (config == null) {
                 response.put("success", false);
                 response.put("message", "配置不存在");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-            
+
             response.put("success", true);
             response.put("message", "设置默认配置成功");
             response.put("data", config);
@@ -180,20 +182,45 @@ public class UiTestConfigController {
     /**
      * 获取默认配置
      * @param configType 配置类型
+     * @param projectId 项目ID（可选）
      * @return 默认配置信息
      */
     @GetMapping("/default")
-    public ResponseEntity<Map<String, Object>> getDefaultConfig(@RequestParam String configType) {
+    public ResponseEntity<Map<String, Object>> getDefaultConfig(
+            @RequestParam(required = true) String configType,
+            @RequestParam(required = false) Integer projectId) {
         Map<String, Object> response = new HashMap<>();
         try {
-            UiTestConfigDTO config = uiTestConfigService.getDefaultConfig(configType);
-            
-            if (config == null) {
+            if (configType == null || configType.isEmpty()) {
                 response.put("success", false);
-                response.put("message", "未找到默认配置");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                response.put("message", "配置类型不能为空");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
-            
+
+            UiTestConfigDTO config = uiTestConfigService.getDefaultConfig(configType, projectId);
+
+            if (config == null) {
+                // 找不到默认配置时，返回成功但数据为null，而不是404错误
+                response.put("success", true);
+                response.put("message", "尚未设置默认配置，请在配置列表中选择一个配置并设为默认");
+                response.put("data", null);
+                return ResponseEntity.ok(response);
+            }
+
+            // 如果提供了项目ID，检查配置是否属于该项目
+            if (projectId != null && config.getProjectId() != null && !config.getProjectId().equals(projectId)) {
+                // 如果配置不属于当前项目，尝试查找当前项目的默认配置
+                List<UiTestConfigDTO> projectConfigs = uiTestConfigService.getConfigList(configType, null, projectId);
+                UiTestConfigDTO projectDefaultConfig = projectConfigs.stream()
+                        .filter(c -> Boolean.TRUE.equals(c.getIsDefault()))
+                        .findFirst()
+                        .orElse(null);
+
+                if (projectDefaultConfig != null) {
+                    config = projectDefaultConfig;
+                }
+            }
+
             response.put("success", true);
             response.put("data", config);
             return ResponseEntity.ok(response);
@@ -217,13 +244,13 @@ public class UiTestConfigController {
         Map<String, Object> response = new HashMap<>();
         try {
             UiTestConfigDTO config = uiTestConfigService.toggleConfigStatus(id, active);
-            
+
             if (config == null) {
                 response.put("success", false);
                 response.put("message", "配置不存在");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-            
+
             response.put("success", true);
             response.put("message", active ? "配置已启用" : "配置已禁用");
             response.put("data", config);
@@ -253,4 +280,4 @@ public class UiTestConfigController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
-} 
+}

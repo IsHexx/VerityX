@@ -20,12 +20,12 @@ public interface ApiEnvironmentService {
     /**
      * 获取所有环境配置
      */
-    List<ApiEnvironment> getAllEnvironments();
+    List<ApiEnvironment> getAllEnvironments(String projectId);
     
     /**
      * 分页获取环境配置
      */
-    Map<String, Object> getEnvironmentsByPage(String keyword, int page, int pageSize);
+    Map<String, Object> getEnvironmentsByPage(String keyword, String projectId, int page, int pageSize);
     
     /**
      * 更新环境配置
@@ -45,10 +45,10 @@ public interface ApiEnvironmentService {
     /**
      * 获取默认环境配置
      */
-    ApiEnvironment getDefaultEnvironment();
+    ApiEnvironment getDefaultEnvironment(String projectId);
     
     /**
      * 设置默认环境配置
      */
-    boolean setDefaultEnvironment(Integer id);
+    boolean setDefaultEnvironment(Integer id, String projectId);
 } 

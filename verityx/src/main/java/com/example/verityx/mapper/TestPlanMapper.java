@@ -15,13 +15,24 @@ public interface TestPlanMapper {
 
     List<TestPlan> selectAllTestPlans();
 
+    // 按项目ID查询测试计划
+    List<TestPlan> selectTestPlansByProjectId(@Param("projectId") Integer projectId);
+
     int updateTestPlan(TestPlan testPlan);
 
     int deleteTestPlan(int planId);
 
-    // 新增分页查询方法
-    List<TestPlan> selectTestPlansWithPagination(@Param("pageSize") int limit, @Param("offset") int offset, @Param("status") String  status);
+    // 分页查询方法，添加projectId参数
+    List<TestPlan> selectTestPlansWithPagination(
+        @Param("pageSize") int limit, 
+        @Param("offset") int offset, 
+        @Param("status") String status,
+        @Param("projectId") Integer projectId
+    );
 
-    // 新增获取总记录数方法
-    int selectTestPlanCount(String  status);
+    // 获取总记录数方法，添加projectId参数
+    int selectTestPlanCount(
+        @Param("status") String status,
+        @Param("projectId") Integer projectId
+    );
 }

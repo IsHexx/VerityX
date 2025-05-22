@@ -32,24 +32,27 @@ public interface UiElementGroupMapper {
      * 根据ID删除UI元素分组
      *
      * @param id UI元素分组ID
+     * @param projectId 项目ID
      * @return 影响的行数
      */
-    int deleteById(@Param("id") Long id);
+    int deleteById(@Param("id") Long id, @Param("projectId") Integer projectId);
     
     /**
      * 根据ID查询UI元素分组
      *
      * @param id UI元素分组ID
+     * @param projectId 项目ID
      * @return UI元素分组对象
      */
-    UiElementGroup selectById(@Param("id") Long id);
+    UiElementGroup selectById(@Param("id") Long id, @Param("projectId") Integer projectId);
     
     /**
      * 查询所有UI元素分组
      *
+     * @param projectId 项目ID
      * @return UI元素分组列表
      */
-    List<UiElementGroup> selectAll();
+    List<UiElementGroup> selectAll(@Param("projectId") Integer projectId);
     
     /**
      * 更新元素数量

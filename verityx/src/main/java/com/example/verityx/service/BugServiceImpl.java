@@ -32,14 +32,14 @@ public class BugServiceImpl implements BugService {
     }
 
     @Override
-    public List<Bug> getBugsWithPagination(int pageSize, int offset, String status) {
+    public List<Bug> getBugsWithPagination(int pageSize, int offset, String status, String keyword, String projectId) {
         System.out.println("====== 分页查询缺陷 ======");
-        return bugMapper.selectBugsWithPagination(pageSize, offset, status);
+        return bugMapper.selectBugsWithPagination(pageSize, offset, status, keyword, projectId);
     }
 
     @Override
-    public int getBugCount(String status) {
-        return bugMapper.selectBugCount(status);
+    public int getBugCount(String status, String keyword, String projectId) {
+        return bugMapper.selectBugCount(status, keyword, projectId);
     }
 
     @Override

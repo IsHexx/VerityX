@@ -2,6 +2,7 @@
 import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import router from '@/router'
+import { useProjectStore } from '@/store/projectStore'
 
 // 创建axios实例
 const service = axios.create({
@@ -9,15 +10,52 @@ const service = axios.create({
   timeout: 15000
 })
 
+// 从localStorage获取当前项目ID
+const getCurrentProjectId = () => {
+  try {
+    const storedProject = localStorage.getItem('currentProject');
+    if (storedProject) {
+      const projectData = JSON.parse(storedProject);
+      return projectData.id || projectData.projectId || null;
+    }
+  } catch (error) {
+    console.error('获取项目ID失败:', error);
+  }
+  return null;
+};
+
 // 请求拦截器
 service.interceptors.request.use(
   config => {
     // 可以在这里添加loading
     // store.commit('SET_LOADING', true)
-    
+
+    // 获取当前项目ID
+    // 注意：不能在拦截器中直接使用组合式API(如useProjectStore)，因为它们需要在Vue组件上下文中使用
+    // 改为直接从localStorage中获取
+    const currentProjectId = getCurrentProjectId();
+
     // 添加调试信息
-    console.log(`请求URL: ${config.url}`, config);
-    
+    console.log(`请求URL: ${config.url}, 当前项目ID: ${currentProjectId}`, config);
+
+    // 仅为GET请求添加项目ID参数
+    if (config.method === 'get') {
+      config.params = config.params || {};
+      // 如果没有明确设置projectId且当前有选中项目，则添加项目ID
+      if ((!config.params.projectId || config.params.projectId === null) && currentProjectId) {
+        config.params.projectId = currentProjectId;
+        console.log(`自动添加项目ID: ${currentProjectId} 到GET请求参数`);
+      }
+    }
+    // 为POST、PUT请求的请求体添加项目ID
+    else if (['post', 'put'].includes(config.method) && config.data && typeof config.data === 'object') {
+      // 如果请求数据是对象且没有明确设置projectId且当前有选中项目，则添加项目ID
+      if ((!config.data.projectId || config.data.projectId === null) && currentProjectId) {
+        config.data.projectId = currentProjectId;
+        console.log(`自动添加项目ID: ${currentProjectId} 到请求体`);
+      }
+    }
+
     // 从localStorage获取token
     const token = localStorage.getItem('token')
     if (token) {
@@ -38,23 +76,23 @@ service.interceptors.response.use(
   response => {
     // 关闭loading
     // store.commit('SET_LOADING', false)
-    
+
     const res = response.data;
     console.log('Response data:', res);
-    
-    // 检查响应状态码
-    if (res.code === 200) {
+
+    // 检查响应状态 - 支持两种格式：code=200 或 success=true
+    if (res.code === 200 || res.success === true) {
       // 请求成功，直接返回数据
       return res;
     }
-    
+
     // 请求失败，显示错误信息
     ElMessage({
       message: res.message || '请求失败',
       type: 'error',
       duration: 5 * 1000
     });
-    
+
     // 处理token过期
     if (res.code === 401) {
       ElMessageBox.confirm(
@@ -70,16 +108,16 @@ service.interceptors.response.use(
         router.push('/login');
       });
     }
-    
+
     return Promise.reject(new Error(res.message || '请求失败'));
   },
   error => {
     // 关闭loading
     // store.commit('SET_LOADING', false)
-    
+
     console.error('Response error:', error);
     const { response } = error;
-    
+
     if (response) {
       // 处理http状态码错误
       switch (response.status) {
@@ -138,24 +176,24 @@ const http = {
   get(url, config = {}) {
     return service.get(url, config);
   },
-  
+
   post(url, data, config = {}) {
     return service.post(url, data, config)
   },
-  
+
   put(url, data, config = {}) {
     return service.put(url, data, config)
   },
-  
+
   delete(url, config = {}) {
     return service.delete(url, config)
   },
-  
+
   // 上传文件方法
   upload(url, file, onUploadProgress = null) {
     const formData = new FormData()
     formData.append('file', file)
-    
+
     return service.post(url, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
@@ -166,7 +204,7 @@ const http = {
       } : null
     })
   },
-  
+
   // 下载文件方法
   download(url, params, fileName) {
     return service.get(url, {

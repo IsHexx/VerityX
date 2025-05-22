@@ -92,15 +92,16 @@ public class UiTestCaseServiceImpl implements UiTestCaseService {
         return caseId;
     }
 
-    @Override
+        @Override
     @Transactional
     public boolean updateUiTestCase(UiTestCaseDTO uiTestCaseDTO) {
         String caseId = uiTestCaseDTO.getCaseId();
+        Integer projectId = uiTestCaseDTO.getProjectId();
         
         // 检查用例是否存在
-        UiTestCase existingCase = uiTestCaseMapper.selectByCaseId(caseId);
+        UiTestCase existingCase = uiTestCaseMapper.selectByCaseId(caseId, projectId);
         if (existingCase == null) {
-            log.error("UI测试用例不存在: {}", caseId);
+            log.error("UI测试用例不存在: {}, projectId: {}", caseId, projectId);
             return false;
         }
         
@@ -145,13 +146,13 @@ public class UiTestCaseServiceImpl implements UiTestCaseService {
         return true;
     }
 
-    @Override
+        @Override
     @Transactional
-    public boolean deleteUiTestCase(String caseId) {
+    public boolean deleteUiTestCase(String caseId, Integer projectId) {
         // 检查用例是否存在
-        UiTestCase existingCase = uiTestCaseMapper.selectByCaseId(caseId);
+        UiTestCase existingCase = uiTestCaseMapper.selectByCaseId(caseId, projectId);
         if (existingCase == null) {
-            log.error("UI测试用例不存在: {}", caseId);
+            log.error("UI测试用例不存在: {}, projectId: {}", caseId, projectId);
             return false;
         }
         
@@ -162,17 +163,17 @@ public class UiTestCaseServiceImpl implements UiTestCaseService {
         uiTestStepMapper.deleteByCaseId(caseId);
         
         // 删除用例
-        uiTestCaseMapper.delete(caseId);
+        uiTestCaseMapper.delete(caseId, projectId);
         
         return true;
     }
 
-    @Override
-    public UiTestCaseDTO getUiTestCaseDetail(String caseId) {
+        @Override
+    public UiTestCaseDTO getUiTestCaseDetail(String caseId, Integer projectId) {
         // 获取用例基本信息
-        UiTestCase uiTestCase = uiTestCaseMapper.selectByCaseId(caseId);
+        UiTestCase uiTestCase = uiTestCaseMapper.selectByCaseId(caseId, projectId);
         if (uiTestCase == null) {
-            log.error("UI测试用例不存在: {}", caseId);
+            log.error("UI测试用例不存在: {}, projectId: {}", caseId, projectId);
             return null;
         }
         
@@ -210,16 +211,16 @@ public class UiTestCaseServiceImpl implements UiTestCaseService {
         return uiTestCaseDTO;
     }
 
-    @Override
-    public Map<String, Object> getUiTestCaseList(String keyword, String status, int page, int pageSize) {
+        @Override
+    public Map<String, Object> getUiTestCaseList(String keyword, String status, Integer projectId, int page, int pageSize) {
         // 计算偏移量
         int offset = (page - 1) * pageSize;
         
         // 查询列表
-        List<UiTestCase> uiTestCases = uiTestCaseMapper.selectByPage(keyword, status, offset, pageSize);
+        List<UiTestCase> uiTestCases = uiTestCaseMapper.selectByPage(keyword, status, projectId, offset, pageSize);
         
         // 查询总数
-        int total = uiTestCaseMapper.countTotal(keyword, status);
+        int total = uiTestCaseMapper.countTotal(keyword, status, projectId);
         
         // 转换为DTO
         List<UiTestCaseDTO> uiTestCaseDTOs = new ArrayList<>();
@@ -243,11 +244,11 @@ public class UiTestCaseServiceImpl implements UiTestCaseService {
         return result;
     }
 
-    @Override
+        @Override
     @Transactional
-    public String executeUiTestCase(String caseId) {
+    public String executeUiTestCase(String caseId, Integer projectId) {
         // 检查用例是否存在
-        UiTestCase existingCase = uiTestCaseMapper.selectByCaseId(caseId);
+        UiTestCase existingCase = uiTestCaseMapper.selectByCaseId(caseId, projectId);
         if (existingCase == null) {
             log.error("UI测试用例不存在: {}", caseId);
             return null;

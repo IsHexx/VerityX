@@ -1,5 +1,5 @@
 <template>
-  <div class="api-environment-container">
+    <div class="api-environment-container">    <!-- Removed duplicate header -->        
     <el-card class="box-card">
       <div slot="header" class="clearfix">
         <span>API环境配置管理</span>
@@ -149,9 +149,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import ApiEnvironmentApi from '@/api/ApiEnvironment'
+import { ref, reactive, onMounted, watch } from 'vue';import { ElMessage } from 'element-plus';import ApiEnvironmentApi from '@/api/ApiEnvironment';import { useProjectStore } from '@/store/projectStore';
 
 // 状态定义
 const loading = ref(false)
@@ -195,6 +193,17 @@ const rules = {
     { max: 200, message: '描述长度不能超过 200 个字符', trigger: 'blur' }
   ]
 }
+
+// 获取项目存储
+const projectStore = useProjectStore();
+
+// 监听项目ID变化
+watch(() => projectStore.currentProjectId, (newProjectId, oldProjectId) => {
+  if (newProjectId !== oldProjectId) {
+    console.log("项目ID变化, 重新加载API环境配置数据");
+    fetchEnvironmentList();
+  }
+});
 
 // 获取环境配置列表
 const fetchEnvironmentList = async () => {

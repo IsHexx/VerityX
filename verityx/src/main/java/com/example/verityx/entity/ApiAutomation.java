@@ -11,6 +11,7 @@ public class ApiAutomation {
     private String stepMethod;     // 步骤方法
     private String stepName;       // 步骤名称
     private String remark;         // 备注
+    private String projectId;      // 项目ID
 
     // Getters and Setters
     public Integer getSceneId() {
@@ -59,5 +60,13 @@ public class ApiAutomation {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+    
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
     }
 }

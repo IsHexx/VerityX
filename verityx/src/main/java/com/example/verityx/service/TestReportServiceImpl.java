@@ -32,13 +32,14 @@ public class TestReportServiceImpl implements TestReportService {
     }
 
     @Override
-    public List<TestReport> getTestReportsWithPagination(int pageSize, int offset) {
+    public List<TestReport> getTestReportsWithPagination(int pageSize, int offset, String keyword, String projectId) {
         System.out.println("====== 分页查询测试报告 ======");
-        return testReportMapper.selectTestReportsWithPagination(pageSize, offset);
+        return testReportMapper.selectTestReportsWithPagination(pageSize, offset, keyword, projectId);
     }
+    
     @Override
-    public int getTestReportCount() {
-        return testReportMapper.selectTestReportCount();
+    public int getTestReportCount(String keyword, String projectId) {
+        return testReportMapper.selectTestReportCount(keyword, projectId);
     }
 
     @Override

@@ -54,21 +54,28 @@
             <if test="lastRunAt != null">last_run_at = #{lastRunAt}</if>
         </set>
         WHERE case_id = #{caseId}
+        <if test="projectId != null">AND project_id = #{projectId}</if>
     </update>
     
     <!-- 删除UI测试用例 -->
     <delete id="delete">
-        DELETE FROM ui_test_case WHERE case_id = #{caseId}
+        DELETE FROM ui_test_case 
+        WHERE case_id = #{caseId}
+        <if test="projectId != null">AND project_id = #{projectId}</if>
     </delete>
     
     <!-- 根据ID查询UI测试用例 -->
     <select id="selectByCaseId" resultMap="UiTestCaseResultMap">
-        SELECT * FROM ui_test_case WHERE case_id = #{caseId}
+        SELECT * FROM ui_test_case 
+        WHERE case_id = #{caseId}
+        <if test="projectId != null">AND project_id = #{projectId}</if>
     </select>
     
     <!-- 根据数字ID查询UI测试用例 -->
     <select id="selectById" resultMap="UiTestCaseResultMap">
-        SELECT * FROM ui_test_case WHERE id = #{id}
+        SELECT * FROM ui_test_case 
+        WHERE id = #{id}
+        <if test="projectId != null">AND project_id = #{projectId}</if>
     </select>
     
     <!-- 分页查询UI测试用例 -->
@@ -89,6 +96,9 @@
                         AND case_status = '未执行'
                     </when>
                 </choose>
+            </if>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
             </if>
         </where>
         ORDER BY id DESC
@@ -114,21 +124,24 @@
                     </when>
                 </choose>
             </if>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
         </where>
     </select>
     
     <!-- 生成新的用例ID -->
-    <select id="generateCaseId" resultType="string">
-        SELECT CONCAT('UI-', LPAD(IFNULL(MAX(SUBSTRING_INDEX(case_id, '-', -1)) + 1, 1), 3, '0'))
+    <select id="generateCaseId" resultType="java.lang.String">
+        SELECT CONCAT('UI-', LPAD(IFNULL(MAX(SUBSTRING(case_id, 4)), 0) + 1, 3, '0'))
         FROM ui_test_case
         WHERE case_id LIKE 'UI-%'
     </select>
     
-    <!-- 更新执行状态 -->
+    <!-- 更新用例执行状态 -->
     <update id="updateExecutionStatus">
         UPDATE ui_test_case
-        SET case_status = #{status},
-            last_result = #{result},
+        SET case_status = #{caseStatus}, 
+            last_result = #{lastResult},
             last_run_at = NOW()
         WHERE case_id = #{caseId}
     </update>

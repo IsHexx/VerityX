@@ -31,31 +31,35 @@ public interface UiTestCaseMapper {
      * 删除UI测试用例
      *
      * @param caseId 用例ID
+     * @param projectId 项目ID (可选)
      * @return 影响行数
      */
-    int delete(@Param("caseId") String caseId);
+    int delete(@Param("caseId") String caseId, @Param("projectId") Integer projectId);
     
     /**
      * 根据ID查询UI测试用例
      *
      * @param caseId 用例ID
+     * @param projectId 项目ID (可选)
      * @return UI测试用例对象
      */
-    UiTestCase selectByCaseId(@Param("caseId") String caseId);
+    UiTestCase selectByCaseId(@Param("caseId") String caseId, @Param("projectId") Integer projectId);
     
     /**
      * 根据ID查询UI测试用例
      *
      * @param id 用例ID（数字ID）
+     * @param projectId 项目ID (可选)
      * @return UI测试用例对象
      */
-    UiTestCase selectById(@Param("id") Integer id);
+    UiTestCase selectById(@Param("id") Integer id, @Param("projectId") Integer projectId);
     
     /**
      * 分页查询UI测试用例
      *
      * @param keyword 搜索关键字
      * @param status 用例状态
+     * @param projectId 项目ID (可选)
      * @param offset 偏移量
      * @param pageSize 页面大小
      * @return UI测试用例列表
@@ -63,6 +67,7 @@ public interface UiTestCaseMapper {
     List<UiTestCase> selectByPage(
             @Param("keyword") String keyword,
             @Param("status") String status,
+            @Param("projectId") Integer projectId,
             @Param("offset") int offset,
             @Param("pageSize") int pageSize);
     
@@ -71,11 +76,13 @@ public interface UiTestCaseMapper {
      *
      * @param keyword 搜索关键字
      * @param status 用例状态
+     * @param projectId 项目ID (可选)
      * @return UI测试用例总数
      */
     int countTotal(
             @Param("keyword") String keyword,
-            @Param("status") String status);
+            @Param("status") String status,
+            @Param("projectId") Integer projectId);
     
     /**
      * 生成新的用例ID
@@ -88,14 +95,14 @@ public interface UiTestCaseMapper {
      * 更新用例执行状态
      *
      * @param caseId 用例ID
-     * @param status 执行状态
-     * @param result 执行结果
+     * @param caseStatus 用例状态
+     * @param lastResult 最后执行结果
      * @return 影响行数
      */
     int updateExecutionStatus(
-            @Param("caseId") String caseId,
-            @Param("status") String status,
-            @Param("result") String result);
+            @Param("caseId") String caseId, 
+            @Param("caseStatus") String caseStatus, 
+            @Param("lastResult") String lastResult);
 
     /**
      * 根据ID查询测试用例

@@ -23,6 +23,7 @@ public class UiTestExecutionDTO {
     private Integer totalCount;
     private String executionConfig;
     private Date createdAt;
+    private Long projectId;
 
     // 用于前端展示的附加字段
     private String statusText;
@@ -188,5 +189,13 @@ public class UiTestExecutionDTO {
 
     public void setSuccessRate(Double successRate) {
         this.successRate = successRate;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 } 

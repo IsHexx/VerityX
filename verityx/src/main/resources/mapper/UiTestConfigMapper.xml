@@ -23,6 +23,7 @@
         <result column="capabilities" property="capabilities" />
         <result column="is_default" property="isDefault" />
         <result column="is_active" property="isActive" />
+        <result column="project_id" property="projectId" />
         <result column="created_by" property="createdBy" />
         <result column="created_at" property="createdAt" />
         <result column="updated_by" property="updatedBy" />
@@ -33,7 +34,7 @@
         id, config_name, config_type, browser_type, browser_version, device_type, device_name,
         platform_name, platform_version, default_wait_timeout, page_load_timeout, script_timeout,
         screenshot_policy, retry_count, retry_interval, headless, proxy_settings, capabilities,
-        is_default, is_active, created_by, created_at, updated_by, updated_at
+        is_default, is_active, project_id, created_by, created_at, updated_by, updated_at
     </sql>
 
     <insert id="insert" parameterType="com.example.verityx.entity.UiTestConfig" useGeneratedKeys="true" keyProperty="id">
@@ -41,12 +42,12 @@
             config_name, config_type, browser_type, browser_version, device_type, device_name,
             platform_name, platform_version, default_wait_timeout, page_load_timeout, script_timeout,
             screenshot_policy, retry_count, retry_interval, headless, proxy_settings, capabilities,
-            is_default, is_active, created_by, created_at, updated_by, updated_at
+            is_default, is_active, project_id, created_by, created_at, updated_by, updated_at
         ) VALUES (
             #{configName}, #{configType}, #{browserType}, #{browserVersion}, #{deviceType}, #{deviceName},
             #{platformName}, #{platformVersion}, #{defaultWaitTimeout}, #{pageLoadTimeout}, #{scriptTimeout},
             #{screenshotPolicy}, #{retryCount}, #{retryInterval}, #{headless}, #{proxySettings}, #{capabilities},
-            #{isDefault}, #{isActive}, #{createdBy}, #{createdAt}, #{updatedBy}, #{updatedAt}
+            #{isDefault}, #{isActive}, #{projectId}, #{createdBy}, #{createdAt}, #{updatedBy}, #{updatedAt}
         )
     </insert>
 
@@ -72,6 +73,7 @@
             <if test="capabilities != null">capabilities = #{capabilities},</if>
             <if test="isDefault != null">is_default = #{isDefault},</if>
             <if test="isActive != null">is_active = #{isActive},</if>
+            <if test="projectId != null">project_id = #{projectId},</if>
             <if test="updatedBy != null">updated_by = #{updatedBy},</if>
             <if test="updatedAt != null">updated_at = #{updatedAt}</if>
         </set>
@@ -94,6 +96,9 @@
             <if test="configName != null and configName != ''">
                 AND config_name LIKE CONCAT('%', #{configName}, '%')
             </if>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
         </where>
         ORDER BY created_at DESC
     </select>
@@ -106,6 +111,9 @@
         SELECT <include refid="Base_Column_List" />
         FROM ui_test_config
         WHERE config_type = #{configType} AND is_default = 1 AND is_active = 1
+        <if test="projectId != null">
+            AND project_id = #{projectId}
+        </if>
         LIMIT 1
     </select>
 
@@ -120,4 +128,4 @@
         SET is_default = 0
         WHERE config_type = #{configType}
     </update>
-</mapper> 
+</mapper>

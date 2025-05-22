@@ -1451,9 +1451,7 @@ Content-Type: application/json
   "title": "新测试计划已创建",
   "content": "您好 {userName}，\n\n新的测试计划 {testPlanName} 已创建。\n\n详情请查看：{testPlanUrl}",
   "params": "{\"userName\":\"用户名\",\"testPlanName\":\"测试计划名称\",\"testPlanUrl\":\"测试计划链接\"}",
-  "status": true,
-  "createTime": "2023-05-08 11:30:00",
-  "updateTime": "2023-05-08 11:30:00"
+  "status": true
 }
 
 ### 6. 更新通知模板

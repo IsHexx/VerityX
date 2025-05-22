@@ -26,8 +26,8 @@ public class ApiAutomationServiceImpl implements ApiAutomationService {
     }
 
     @Override
-    public List<ApiAutomation> getAllScenes() {
-        return apiAutomationMapper.selectAllScenes();
+    public List<ApiAutomation> getAllScenes(String projectId) {
+        return apiAutomationMapper.selectAllScenes(projectId);
     }
 
     @Override

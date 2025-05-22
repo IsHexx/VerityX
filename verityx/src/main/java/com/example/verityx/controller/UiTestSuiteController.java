@@ -31,19 +31,23 @@ public class UiTestSuiteController {
             @Parameter(description = "页码") @RequestParam(value = "page", defaultValue = "1") Integer page,
             @Parameter(description = "每页大小") @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
             @Parameter(description = "搜索关键词") @RequestParam(value = "keyword", required = false) String keyword,
-            @Parameter(description = "套件状态") @RequestParam(value = "status", required = false) String status) {
+            @Parameter(description = "套件状态") @RequestParam(value = "status", required = false) String status,
+            @Parameter(description = "项目ID") @RequestParam(value = "projectId", required = false) Long projectId) {
         
-        logger.info("接收到获取UI测试套件列表请求, 参数: page={}, pageSize={}, keyword={}, status={}", page, pageSize, keyword, status);
-        PageResult<UiTestSuiteDTO> result = uiTestSuiteService.getUiTestSuiteList(page, pageSize, keyword, status);
+        logger.info("接收到获取UI测试套件列表请求, 参数: page={}, pageSize={}, keyword={}, status={}, projectId={}", 
+                   page, pageSize, keyword, status, projectId);
+        PageResult<UiTestSuiteDTO> result = uiTestSuiteService.getUiTestSuiteList(page, pageSize, keyword, status, projectId);
         logger.info("UI测试套件列表查询结果: 总数={}, 当前页={}, 每页条数={}", result.getTotal(), result.getPage(), result.getPageSize());
         return Result.success(result);
     }
 
     @Operation(summary = "获取UI测试套件详情", description = "根据ID获取UI测试套件详情")
     @GetMapping("/{id}")
-    public Result<UiTestSuiteDTO> getUiTestSuiteDetail(@PathVariable("id") Long id) {
-        logger.info("接收到获取UI测试套件详情请求, ID: {}", id);
-        UiTestSuiteDTO uiTestSuite = uiTestSuiteService.getUiTestSuiteById(id);
+    public Result<UiTestSuiteDTO> getUiTestSuiteDetail(
+            @PathVariable("id") Long id,
+            @Parameter(description = "项目ID") @RequestParam(value = "projectId", required = false) Long projectId) {
+        logger.info("接收到获取UI测试套件详情请求, ID: {}, projectId: {}", id, projectId);
+        UiTestSuiteDTO uiTestSuite = uiTestSuiteService.getUiTestSuiteById(id, projectId);
         logger.info("UI测试套件详情查询成功, ID: {}, 套件名称: {}", id, uiTestSuite.getSuiteName());
         return Result.success(uiTestSuite);
     }
@@ -71,9 +75,11 @@ public class UiTestSuiteController {
 
     @Operation(summary = "删除UI测试套件", description = "删除UI测试套件")
     @DeleteMapping("/delete/{id}")
-    public Result<Void> deleteUiTestSuite(@PathVariable("id") Long id) {
-        logger.info("接收到删除UI测试套件请求, ID: {}", id);
-        uiTestSuiteService.deleteUiTestSuite(id);
+    public Result<Void> deleteUiTestSuite(
+            @PathVariable("id") Long id,
+            @Parameter(description = "项目ID") @RequestParam(value = "projectId", required = false) Long projectId) {
+        logger.info("接收到删除UI测试套件请求, ID: {}, projectId: {}", id, projectId);
+        uiTestSuiteService.deleteUiTestSuite(id, projectId);
         logger.info("UI测试套件删除成功, ID: {}", id);
         return Result.success();
     }

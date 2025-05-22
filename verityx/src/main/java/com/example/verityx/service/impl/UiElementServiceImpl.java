@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -51,46 +52,56 @@ public class UiElementServiceImpl implements UiElementService {
     private String screenshotPath;
 
     @Override
-    public PageResult<UiElementDTO> getElementList(Integer page, Integer pageSize, String keyword, Long groupId, String locatorType) {
-        // 计算分页参数
-        Integer offset = (page - 1) * pageSize;
+    public PageResult<UiElementDTO> getElementList(Integer page, Integer pageSize, String keyword, Long groupId, String locatorType, Integer projectId) {
+        // 参数校验
+        if (page == null || page < 1) {
+            page = 1;
+        }
+        if (pageSize == null || pageSize < 1) {
+            pageSize = 10;
+        }
         
-        // 获取元素总数
-        int total = uiElementMapper.countElements(keyword, groupId, locatorType);
+        // 计算偏移量
+        int offset = (page - 1) * pageSize;
         
-        // 获取分页数据
-        List<UiElement> uiElements = uiElementMapper.selectByPage(keyword, groupId, locatorType, offset, pageSize);
+        // 查询数据
+        List<UiElement> uiElements = uiElementMapper.selectByPage(offset, pageSize, keyword, groupId, locatorType, projectId);
         
         // 转换为DTO
-        List<UiElementDTO> uiElementDTOs = uiElements.stream()
+        List<UiElementDTO> elementDTOs = uiElements.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
         
-        // 如果有元素，填充分组名称
-        if (!uiElementDTOs.isEmpty()) {
-            fillGroupNames(uiElementDTOs);
-        }
+        // 填充分组名称
+        fillGroupNames(elementDTOs);
         
-        return new PageResult<>(uiElementDTOs, total, page, pageSize);
+        // 获取总记录数
+        int total = uiElementMapper.countTotal(keyword, groupId, locatorType, projectId);
+        
+        // 构建结果
+        PageResult<UiElementDTO> result = new PageResult<>();
+        result.setList(elementDTOs);
+        result.setTotal(total);
+        result.setPage(page);
+        result.setPageSize(pageSize);
+        
+        return result;
     }
 
     @Override
-    public UiElementDTO getElementById(Long id) {
-        UiElement uiElement = uiElementMapper.selectById(id);
+    public UiElementDTO getElementById(Long id, Integer projectId) {
+        UiElement uiElement = uiElementMapper.selectById(id, projectId);
         if (uiElement == null) {
-            logger.error("UI元素不存在, ID: {}", id);
+            logger.error("UI元素不存在, ID: {}, projectId: {}", id, projectId);
             throw new RuntimeException("UI元素不存在: " + id);
         }
         
         UiElementDTO dto = convertToDTO(uiElement);
         
         // 填充分组名称
-        if (dto.getGroupId() != null) {
-            UiElementGroup group = uiElementGroupMapper.selectById(dto.getGroupId());
-            if (group != null) {
-                dto.setGroupName(group.getGroupName());
-            }
-        }
+        List<UiElementDTO> dtos = new ArrayList<>();
+        dtos.add(dto);
+        fillGroupNames(dtos);
         
         return dto;
     }
@@ -121,9 +132,10 @@ public class UiElementServiceImpl implements UiElementService {
     @Override
     @Transactional
     public void updateElement(Long id, UiElementDTO uiElementDTO) {
-        UiElement existingElement = uiElementMapper.selectById(id);
+        Integer projectId = uiElementDTO.getProjectId();
+        UiElement existingElement = uiElementMapper.selectById(id, projectId);
         if (existingElement == null) {
-            logger.error("UI元素不存在, ID: {}", id);
+            logger.error("UI元素不存在, ID: {}, projectId: {}", id, projectId);
             throw new RuntimeException("UI元素不存在: " + id);
         }
         
@@ -157,10 +169,10 @@ public class UiElementServiceImpl implements UiElementService {
 
     @Override
     @Transactional
-    public void deleteElement(Long id) {
-        UiElement uiElement = uiElementMapper.selectById(id);
+    public void deleteElement(Long id, Integer projectId) {
+        UiElement uiElement = uiElementMapper.selectById(id, projectId);
         if (uiElement == null) {
-            logger.error("UI元素不存在, ID: {}", id);
+            logger.error("UI元素不存在, ID: {}, projectId: {}", id, projectId);
             throw new RuntimeException("UI元素不存在: " + id);
         }
         
@@ -168,7 +180,7 @@ public class UiElementServiceImpl implements UiElementService {
         Long groupId = uiElement.getGroupId();
         
         // 删除元素
-        uiElementMapper.deleteById(id);
+        uiElementMapper.deleteById(id, projectId);
         
         // 删除截图文件
         if (StringUtils.hasText(uiElement.getScreenshotPath())) {
@@ -200,7 +212,7 @@ public class UiElementServiceImpl implements UiElementService {
         if (isValid) {
             response.setMessage("定位器验证成功");
             // 模拟返回一个Base64编码的截图数据
-            response.setScreenshotData("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."); // 实际应返回真实截图
+            response.setScreenshotBase64("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."); // 实际应返回真实截图
         } else {
             response.setMessage("定位器验证失败：值不能为空");
         }
@@ -209,14 +221,14 @@ public class UiElementServiceImpl implements UiElementService {
     }
 
     @Override
-    public String uploadElementScreenshot(Long id, MultipartFile file) {
+    public String uploadElementScreenshot(Long id, MultipartFile file, Integer projectId) {
         if (file.isEmpty()) {
             throw new RuntimeException("上传的文件为空");
         }
         
-        UiElement uiElement = uiElementMapper.selectById(id);
+        UiElement uiElement = uiElementMapper.selectById(id, projectId);
         if (uiElement == null) {
-            logger.error("UI元素不存在, ID: {}", id);
+            logger.error("UI元素不存在, ID: {}, projectId: {}", id, projectId);
             throw new RuntimeException("UI元素不存在: " + id);
         }
         
@@ -235,7 +247,7 @@ public class UiElementServiceImpl implements UiElementService {
             file.transferTo(new File(filePath));
             
             // 更新数据库
-            uiElementMapper.updateScreenshotPath(id, filePath);
+            uiElementMapper.updateScreenshotPath(id, filePath, projectId);
             
             return filePath;
         } catch (IOException e) {
@@ -265,8 +277,15 @@ public class UiElementServiceImpl implements UiElementService {
      * 为元素DTO列表填充分组名称
      */
     private void fillGroupNames(List<UiElementDTO> elementDTOs) {
+        if (elementDTOs == null || elementDTOs.isEmpty()) {
+            return;
+        }
+        
+        // 从第一个元素获取projectId
+        Integer projectId = elementDTOs.get(0).getProjectId();
+        
         // 获取所有分组
-        List<UiElementGroup> groups = uiElementGroupMapper.selectAll();
+        List<UiElementGroup> groups = uiElementGroupMapper.selectAll(projectId);
         
         // 创建分组ID到名称的映射
         java.util.Map<Long, String> groupMap = groups.stream()

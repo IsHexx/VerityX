@@ -12,9 +12,9 @@ public interface TestReportService {
 
     List<TestReport> getAllTestReports();
 
-    List<TestReport> getTestReportsWithPagination(int pageSize, int offset);
+    List<TestReport> getTestReportsWithPagination(int pageSize, int offset, String keyword, String projectId);
 
-    int getTestReportCount();
+    int getTestReportCount(String keyword, String projectId);
 
     boolean updateTestReport(TestReport report);
 

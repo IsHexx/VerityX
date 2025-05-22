@@ -23,8 +23,14 @@
         SELECT * FROM bug_management
          <where>
          1=1
-             <if test="status !=null">
+             <if test="status != null and status != ''">
                  AND status = #{status}
+             </if>
+             <if test="keyword != null and keyword != ''">
+                 AND (bug_title LIKE CONCAT('%', #{keyword}, '%') OR reproduction_steps LIKE CONCAT('%', #{keyword}, '%'))
+             </if>
+             <if test="projectId != null and projectId != ''">
+                 AND project_id = #{projectId}
              </if>
          </where>
         ORDER BY bug_id
@@ -36,8 +42,14 @@
         SELECT COUNT(*) FROM bug_management
         <where>
             1=1
-            <if test="status != null">
+            <if test="status != null and status != ''">
                 AND status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (bug_title LIKE CONCAT('%', #{keyword}, '%') OR reproduction_steps LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
             </if>
         </where>
     </select>

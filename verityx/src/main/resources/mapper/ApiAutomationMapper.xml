@@ -4,8 +4,8 @@
 
     <!-- 插入自动化场景 -->
     <insert id="insertScene" parameterType="com.example.verityx.entity.ApiAutomation">
-        INSERT INTO api_automation (directory, scene_name, step_method, step_name, remark)
-        VALUES (#{directory}, #{sceneName}, #{stepMethod}, #{stepName}, #{remark})
+        INSERT INTO api_automation (directory, scene_name, step_method, step_name, remark, project_id)
+        VALUES (#{directory}, #{sceneName}, #{stepMethod}, #{stepName}, #{remark}, #{projectId})
     </insert>
 
     <!-- 根据ID查询自动化场景 -->
@@ -16,6 +16,11 @@
     <!-- 查询所有自动化场景 -->
     <select id="selectAllScenes" resultType="com.example.verityx.entity.ApiAutomation">
         SELECT * FROM api_automation
+        <where>
+            <if test="projectId != null and projectId != ''">
+                project_id = #{projectId}
+            </if>
+        </where>
     </select>
 
     <!-- 更新自动化场景 -->
@@ -26,7 +31,8 @@
         scene_name = #{sceneName},
         step_method = #{stepMethod},
         step_name = #{stepName},
-        remark = #{remark}
+        remark = #{remark},
+        project_id = #{projectId}
         WHERE scene_id = #{sceneId}
     </update>
 

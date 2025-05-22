@@ -26,8 +26,19 @@ public class ApiManagementServiceImpl implements ApiManagementService {
     }
 
     @Override
-    public List<ApiManagement> getAllApis() {
-        return apiManagementMapper.selectAllApis();
+    public List<ApiManagement> getAllApis(String projectId) {
+        return apiManagementMapper.selectAllApis(projectId);
+    }
+    
+    @Override
+    public List<ApiManagement> getApisWithPagination(int pageSize, int offset, String keyword, String projectId) {
+        System.out.println("====== 分页查询接口 ======");
+        return apiManagementMapper.selectApisWithPagination(pageSize, offset, keyword, projectId);
+    }
+
+    @Override
+    public int getApiCount(String keyword, String projectId) {
+        return apiManagementMapper.selectApiCount(keyword, projectId);
     }
 
     @Override

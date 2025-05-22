@@ -36,18 +36,7 @@ public class UiElementController {
     private UiElementGroupService uiElementGroupService;
 
     @Operation(summary = "获取UI元素列表", description = "分页获取UI元素列表，支持按关键词、分组和定位器类型筛选")
-    @GetMapping("/list")
-    public Result<PageResult<UiElementDTO>> getElementList(
-            @Parameter(description = "页码") @RequestParam(value = "page", defaultValue = "1") Integer page,
-            @Parameter(description = "每页大小") @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
-            @Parameter(description = "搜索关键词") @RequestParam(value = "keyword", required = false) String keyword,
-            @Parameter(description = "分组ID") @RequestParam(value = "groupId", required = false) Long groupId,
-            @Parameter(description = "定位器类型") @RequestParam(value = "locatorType", required = false) String locatorType) {
-        
-        logger.info("接收到获取UI元素列表请求, 参数: page={}, pageSize={}, keyword={}, groupId={}, locatorType={}", 
-                     page, pageSize, keyword, groupId, locatorType);
-        
-        PageResult<UiElementDTO> result = uiElementService.getElementList(page, pageSize, keyword, groupId, locatorType);
+        @GetMapping("/list")    public Result<PageResult<UiElementDTO>> getElementList(            @Parameter(description = "页码") @RequestParam(value = "page", defaultValue = "1") Integer page,            @Parameter(description = "每页大小") @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,            @Parameter(description = "搜索关键词") @RequestParam(value = "keyword", required = false) String keyword,            @Parameter(description = "分组ID") @RequestParam(value = "groupId", required = false) Long groupId,            @Parameter(description = "定位器类型") @RequestParam(value = "locatorType", required = false) String locatorType,            @Parameter(description = "项目ID") @RequestParam(value = "projectId", required = false) Integer projectId) {                logger.info("接收到获取UI元素列表请求, 参数: page={}, pageSize={}, keyword={}, groupId={}, locatorType={}, projectId={}",                      page, pageSize, keyword, groupId, locatorType, projectId);                PageResult<UiElementDTO> result = uiElementService.getElementList(page, pageSize, keyword, groupId, locatorType, projectId);
         
         logger.info("UI元素列表查询结果: 总数={}, 当前页={}, 每页条数={}", 
                     result.getTotal(), result.getPage(), result.getPageSize());
@@ -56,11 +45,7 @@ public class UiElementController {
     }
     
     @Operation(summary = "获取UI元素详情", description = "根据ID获取UI元素详情")
-    @GetMapping("/{id}")
-    public Result<UiElementDTO> getElementById(@PathVariable("id") Long id) {
-        logger.info("接收到获取UI元素详情请求, ID: {}", id);
-        
-        UiElementDTO element = uiElementService.getElementById(id);
+        @GetMapping("/{id}")    public Result<UiElementDTO> getElementById(            @PathVariable("id") Long id,            @Parameter(description = "项目ID") @RequestParam(value = "projectId", required = false) Integer projectId) {        logger.info("接收到获取UI元素详情请求, ID: {}, projectId: {}", id, projectId);                UiElementDTO element = uiElementService.getElementById(id, projectId);
         
         logger.info("UI元素详情查询成功, ID: {}, 元素名称: {}", id, element.getElementName());
         
@@ -93,11 +78,7 @@ public class UiElementController {
     }
     
     @Operation(summary = "删除UI元素", description = "删除UI元素")
-    @DeleteMapping("/delete/{id}")
-    public Result<Void> deleteElement(@PathVariable("id") Long id) {
-        logger.info("接收到删除UI元素请求, ID: {}", id);
-        
-        uiElementService.deleteElement(id);
+        @DeleteMapping("/delete/{id}")    public Result<Void> deleteElement(            @PathVariable("id") Long id,            @Parameter(description = "项目ID") @RequestParam(value = "projectId", required = false) Integer projectId) {        logger.info("接收到删除UI元素请求, ID: {}, projectId: {}", id, projectId);                uiElementService.deleteElement(id, projectId);
         
         logger.info("UI元素删除成功, ID: {}", id);
         
@@ -120,14 +101,7 @@ public class UiElementController {
     }
     
     @Operation(summary = "上传元素截图", description = "上传元素截图")
-    @PostMapping("/{id}/screenshot")
-    public Result<String> uploadElementScreenshot(
-            @PathVariable("id") Long id, 
-            @RequestParam("file") MultipartFile file) {
-        
-        logger.info("接收到上传元素截图请求, 元素ID: {}, 文件名: {}", id, file.getOriginalFilename());
-        
-        String path = uiElementService.uploadElementScreenshot(id, file);
+        @PostMapping("/{id}/screenshot")    public Result<String> uploadElementScreenshot(            @PathVariable("id") Long id,             @RequestParam("file") MultipartFile file,            @Parameter(description = "项目ID") @RequestParam(value = "projectId", required = false) Integer projectId) {                logger.info("接收到上传元素截图请求, 元素ID: {}, 文件名: {}, projectId: {}",                      id, file.getOriginalFilename(), projectId);                String path = uiElementService.uploadElementScreenshot(id, file, projectId);
         
         logger.info("元素截图上传成功, 元素ID: {}, 保存路径: {}", id, path);
         
@@ -135,11 +109,7 @@ public class UiElementController {
     }
     
     @Operation(summary = "获取元素分组列表", description = "获取所有元素分组")
-    @GetMapping("/groups")
-    public Result<List<UiElementGroupDTO>> getElementGroups() {
-        logger.info("接收到获取元素分组列表请求");
-        
-        List<UiElementGroupDTO> groups = uiElementGroupService.getElementGroups();
+        @GetMapping("/groups")    public Result<List<UiElementGroupDTO>> getElementGroups(            @Parameter(description = "项目ID") @RequestParam(value = "projectId", required = false) Integer projectId) {        logger.info("接收到获取元素分组列表请求, projectId: {}", projectId);                List<UiElementGroupDTO> groups = uiElementGroupService.getElementGroups(projectId);
         
         logger.info("元素分组列表查询成功, 数量: {}", groups.size());
         
@@ -172,10 +142,12 @@ public class UiElementController {
     
     @Operation(summary = "删除元素分组", description = "删除元素分组")
     @DeleteMapping("/groups/delete/{id}")
-    public Result<Boolean> deleteElementGroup(@PathVariable("id") Long id) {
-        logger.info("接收到删除元素分组请求, ID: {}", id);
+    public Result<Boolean> deleteElementGroup(
+            @PathVariable("id") Long id,
+            @Parameter(description = "项目ID") @RequestParam(value = "projectId", required = false) Integer projectId) {
+        logger.info("接收到删除元素分组请求, ID: {}, projectId: {}", id, projectId);
         
-        boolean success = uiElementGroupService.deleteElementGroup(id);
+        boolean success = uiElementGroupService.deleteElementGroup(id, projectId);
         
         if (success) {
             logger.info("元素分组删除成功, ID: {}", id);

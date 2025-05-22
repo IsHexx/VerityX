@@ -18,11 +18,18 @@ public interface TestReportMapper {
     List<TestReport> selectAllTestReports();
 
     // 新增分页查询方法
-    List<TestReport> selectTestReportsWithPagination(@Param("pageSize") int limit, @Param("offset") int offset);
-
+    List<TestReport> selectTestReportsWithPagination(
+        @Param("pageSize") int limit, 
+        @Param("offset") int offset,
+        @Param("keyword") String keyword,
+        @Param("projectId") String projectId
+    );
 
     // 新增获取总记录数方法
-    int selectTestReportCount();
+    int selectTestReportCount(
+        @Param("keyword") String keyword,
+        @Param("projectId") String projectId
+    );
 
     // 更新测试报告
     int updateTestReport(TestReport report);

@@ -110,13 +110,22 @@
 
 <script setup>
 import PaginationPage from "@/components/PaginationPage.vue";
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed, watch } from "vue";
 import { Search } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
 import { TestReportApi } from "@/api/testReportService";
+import { useProjectStore } from '@/store/projectStore';
 
 const router = useRouter();
+
+// 使用项目Store
+const projectStore = useProjectStore();
+// 确保初始化项目状态
+projectStore.initProjectState();
+
+// 计算当前项目ID
+const currentProjectId = computed(() => projectStore.getCurrentProjectId());
 
 // 状态管理
 const loading = ref(false);
@@ -143,6 +152,7 @@ const form = reactive({
   createdAt: "",
   planId: "",
   testVersion: "",
+  projectId: currentProjectId.value || "", // 默认使用当前项目ID
 });
 
 // 重置表单
@@ -154,6 +164,7 @@ const resetForm = () => {
     createdAt: "",
     planId: "",
     testVersion: "",
+    projectId: currentProjectId.value || "", // 默认使用当前项目ID
   });
 };
 
@@ -165,6 +176,7 @@ const fetchTestReportList = async () => {
       page: pagination.page,
       pageSize: pagination.pageSize,
       keyword: searchKeyword.value,
+      projectId: currentProjectId.value // 添加项目ID过滤
     });
     tableData.value = res.data.data;
     total.value = res.data.total;
@@ -222,7 +234,10 @@ const handleDeleteReport = async (row) => {
 // 提交表单（创建/更新）
 const onSubmit = async () => {
   try {
-    const data = { ...form };
+    const data = { 
+      ...form,
+      projectId: form.projectId || currentProjectId.value || ''
+    };
     if (form.reportId) {
       // 更新
       await TestReportApi.updateTestreport(form.reportId, data);
@@ -270,6 +285,12 @@ const handlePaginationChange = ({ page, pageSize }) => {
 const handleCreateWorkflow = () => {
   router.push("/testreport/workflow");
 };
+
+// 监听项目变化，刷新数据
+watch(currentProjectId, () => {
+  pagination.page = 1;
+  fetchTestReportList();
+});
 
 // 组件挂载时获取数据
 onMounted(() => {

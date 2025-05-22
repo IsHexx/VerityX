@@ -197,7 +197,7 @@
   </div>
 </template>
   
-  <script setup>
+<script setup>
 import { ref, reactive, onMounted, watch } from "vue";
 import {
   Edit,
@@ -210,10 +210,13 @@ import {
 } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
-import { projectApi } from "@/api/projectService";
+import { ProjectApi } from "@/api/projectService";
 import axios from "axios";
+import { useProjectStore } from "@/store/projectStore"; // 导入项目存储
 
 const router = useRouter();
+// 使用项目存储
+const { setCurrentProject } = useProjectStore();
 // 表单相关
 const dialogVisible = ref(false);
 const dialogTitle = ref("");
@@ -246,7 +249,7 @@ const projects = ref([]);
 
 const fetchProjects = async () => {
   try {
-    const res = await projectApi.getProjects();
+    const res = await ProjectApi.getProjectList();
     // const res = await axios.get("/api/projects");
 
     projects.value = res.data;
@@ -272,20 +275,20 @@ const rules = {
   image: [{ required: false, message: "请上传项目图片", trigger: "change" }],
 };
 
-// 下拉菜单命令处理
+// 处理项目操作命令
 const handleCommand = (command, project) => {
   switch (command) {
     case "edit":
-      handleEditProject(project);
+      editProject(project);
       break;
     case "enter":
-      handleEnterProject(project);
+      enterProject(project);
       break;
     case "members":
-      handleManageMembers(project);
+      openMemberDialog(project);
       break;
     case "delete":
-      handleDeleteProject(project.projectId);
+      deleteProject(project);
       break;
   }
 };
@@ -308,7 +311,7 @@ const handleAddProject = () => {
 };
 
 // 编辑项目
-const handleEditProject = (project) => {
+const editProject = (project) => {
   console.log("正在编辑的project", project);
   dialogTitle.value = "编辑项目";
   projectForm.projectId = project.projectId; 
@@ -321,12 +324,18 @@ const handleEditProject = (project) => {
 };
 
 // 进入项目
-const handleEnterProject = (project) => {
-  router.push(`/overview`);
+const enterProject = (project) => {
+  // 打印项目对象，查看其结构
+  console.log("进入项目:", project);
+  
+  // 设置当前项目
+  setCurrentProject(project);
+  // 导航到概览页面
+  router.push("/overview");
 };
 
 // 删除项目
-const handleDeleteProject = async (projectId) => {
+const deleteProject = async (projectId) => {
   try {
     await projectApi.deleteProject(projectId);
     ElMessage.success("项目删除成功");
@@ -339,7 +348,7 @@ const handleDeleteProject = async (projectId) => {
 };
 
 // 处理成员管理
-const handleManageMembers = (project) => {
+const openMemberDialog = (project) => {
   currentProject.value = project;
   projectMembers.value = [
     { name: "张三", role: "管理员" },
@@ -440,7 +449,7 @@ const showAddMemberForm = () => {
 
 
   
-  <style>
+<style>
 .project-list-container {
   padding: 20px;
 }

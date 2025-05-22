@@ -24,6 +24,7 @@ public class UiTestExecution {
     private String executionConfig;
     private Date createdAt;
     private Date updatedAt;
+    private Long projectId;
 
     public Long getId() {
         return id;
@@ -159,5 +160,13 @@ public class UiTestExecution {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 } 

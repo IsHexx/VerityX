@@ -11,12 +11,28 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from "vue";
+import { ref, onMounted, nextTick, watch, computed } from "vue";
 import * as echarts from "echarts";
 import CaseStatisticsCard from "@/components/CaseStatisticsCard.vue";
 import BugStatisticsCard from "@/components/BugStatisticsCard.vue";
 import AutocaseStatisticsChart from "@/components/AutocaseStatisticsChart.vue";
+import { useProjectStore } from "@/store/projectStore";
 
+// 使用项目Store
+const projectStore = useProjectStore();
+// 确保初始化项目状态
+projectStore.initProjectState();
+
+// 计算当前项目ID
+const currentProjectId = computed(() => projectStore.getCurrentProjectId());
+
+// 监听项目变化，刷新数据
+watch(currentProjectId, (newProjectId) => {
+  if (newProjectId) {
+    console.log('概览页面检测到项目变更:', newProjectId);
+    // 这里可以添加刷新概览数据的逻辑
+  }
+});
 
 </script>
 

@@ -23,6 +23,9 @@
         SELECT <include refid="Base_Column_List"/>
         FROM ui_test_suite
         WHERE id = #{id}
+        <if test="projectId != null">
+            AND project_id = #{projectId}
+        </if>
     </select>
     
     <select id="selectByPage" resultMap="BaseResultMap">
@@ -31,6 +34,9 @@
         <where>
             <if test="keyword != null and keyword != ''">
                 AND (suite_name LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
             </if>
         </where>
         ORDER BY created_at DESC
@@ -43,6 +49,9 @@
         <where>
             <if test="keyword != null and keyword != ''">
                 AND (suite_name LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
             </if>
         </where>
     </select>
@@ -73,5 +82,8 @@
     <delete id="deleteById">
         DELETE FROM ui_test_suite
         WHERE id = #{id}
+        <if test="projectId != null">
+            AND project_id = #{projectId}
+        </if>
     </delete>
 </mapper> 

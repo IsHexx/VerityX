@@ -19,6 +19,7 @@
           :props="defaultProps"
           default-expand-all
           :filter-node-method="filterNode"
+          v-loading="loading"
         >
           <template #default="{ node, data }">
             <div 
@@ -105,51 +106,134 @@
     </div>
   </template>
   <script setup>
-  import { ref, watch } from 'vue';
+  import { ref, watch, inject, onMounted } from 'vue';
   import { Folder, Link, Plus, More, Postcard } from "@element-plus/icons-vue";
   import { ElMessage, ElMessageBox } from 'element-plus';
+  import ApiAutomationApi from '@/api/apiAutomationService';
   
   const treeRef = ref(null);
   const mouseLeaveTimer = ref(null);
   const isDropdownOpen = ref(false);
   const filterText = ref("");
+  const loading = ref(false);
+  
+  // 获取项目存储
+  const projectStore = inject('projectStore');
   
   // 事件监听
   const handleClick = (tab, event) => {
     console.log(tab, event);
   };
   
-  //
-  const data = [
-    {
-      id: 1,
-      label: "根目录",
-      children: [
+  // 数据结构
+  const data = ref([]);
+  
+  // 加载场景数据
+  const loadScenes = () => {
+    loading.value = true;
+    console.log("加载场景数据, 项目ID:", projectStore.currentProjectId);
+    
+    ApiAutomationApi.getAllScenes()
+      .then(response => {
+        console.log("场景数据加载成功:", response);
+        
+        if (response && response.data) {
+          // 将API数据转换为树形结构
+          transformApiDataToTree(response.data);
+        } else {
+          // 如果没有数据，显示默认空结构
+          data.value = [
+            {
+              id: 1,
+              label: "默认目录",
+              children: []
+            }
+          ];
+        }
+      })
+      .catch(error => {
+        console.error("场景数据加载失败:", error);
+        ElMessage.error("场景数据加载失败");
+        // 加载失败时显示默认结构
+        data.value = [
+          {
+            id: 1,
+            label: "默认目录",
+            children: []
+          }
+        ];
+      })
+      .finally(() => {
+        loading.value = false;
+      });
+  };
+  
+  // 转换API数据为树形结构
+  const transformApiDataToTree = (apiData) => {
+    // 如果没有数据，使用默认结构
+    if (!apiData || apiData.length === 0) {
+      data.value = [
         {
-          id: 4,
-          label: "获取用户列表",
-        },
+          id: 1,
+          label: "默认目录",
+          children: []
+        }
+      ];
+      return;
+    }
+    
+    // 简单实现 - 可以根据实际数据结构调整
+    const folders = {};
+    
+    // 第一遍遍历，创建所有目录
+    apiData.forEach(scene => {
+      if (scene.parentId === 0 || !scene.parentId) {
+        // 这是顶级场景，作为文件夹
+        folders[scene.sceneId] = {
+          id: scene.sceneId,
+          label: scene.sceneName,
+          children: []
+        };
+      }
+    });
+    
+    // 第二遍遍历，将场景添加到对应的目录中
+    apiData.forEach(scene => {
+      if (scene.parentId && scene.parentId !== 0 && folders[scene.parentId]) {
+        // 这是子场景，添加到对应的父场景下
+        folders[scene.parentId].children.push({
+          id: scene.sceneId,
+          label: scene.sceneName
+        });
+      }
+    });
+    
+    // 转换为数组
+    data.value = Object.values(folders);
+    
+    // 如果没有数据，添加默认文件夹
+    if (data.value.length === 0) {
+      data.value = [
         {
-          id: 5,
-          label: "创建用户",
-        },
-      ],
-    },
-    {
-      id: 2,
-      label: "用户接口",
-      children: [
-        {
-          id: 6,
-          label: "更新订单",
-        },
-        {
-          id: 7,
-          label: "删除订单",
-        },
-      ],
-    },
-  ];
+          id: 1,
+          label: "默认目录",
+          children: []
+        }
+      ];
+    }
+  };
+  
+  // 组件挂载时加载数据
+  onMounted(() => {
+    loadScenes();
+  });
+  
+  // 监听项目ID变化，重新加载数据
+  watch(() => projectStore.currentProjectId, (newVal, oldVal) => {
+    if (newVal !== oldVal) {
+      loadScenes();
+    }
+  });
   
   const defaultProps = {
     children: "children",
@@ -185,8 +269,27 @@
           id: Date.now(),
           label: value,
         };
-        data.children.push(newCase);
-        ElMessage.success('用例添加成功');
+        
+        // 创建场景
+        const sceneData = {
+          sceneName: value,
+          parentId: data.id,
+          projectId: projectStore.currentProjectId
+        };
+        
+        ApiAutomationApi.createScene(sceneData)
+          .then(response => {
+            console.log("用例创建成功:", response);
+            if (response && response.data) {
+              newCase.id = response.data.sceneId;
+              data.children.push(newCase);
+              ElMessage.success('用例添加成功');
+            }
+          })
+          .catch(error => {
+            console.error("用例创建失败:", error);
+            ElMessage.error('用例添加失败');
+          });
       }
     });
   };
@@ -203,8 +306,27 @@
           label: value,
           children: [],
         };
-        data.children = [...(data.children || []), newFolder];
-        ElMessage.success('目录添加成功');
+        
+        // 创建场景
+        const sceneData = {
+          sceneName: value,
+          parentId: 0, // 顶级目录
+          projectId: projectStore.currentProjectId
+        };
+        
+        ApiAutomationApi.createScene(sceneData)
+          .then(response => {
+            console.log("目录创建成功:", response);
+            if (response && response.data) {
+              newFolder.id = response.data.sceneId;
+              data.children = [...(data.children || []), newFolder];
+              ElMessage.success('目录添加成功');
+            }
+          })
+          .catch(error => {
+            console.error("目录创建失败:", error);
+            ElMessage.error('目录添加失败');
+          });
       }
     });
   };
@@ -218,8 +340,22 @@
       inputValue: data.label,
     }).then(({ value }) => {
       if (value) {
-        data.label = value;
-        ElMessage.success('重命名成功');
+        // 更新场景
+        const sceneData = {
+          sceneId: data.id,
+          sceneName: value,
+          projectId: projectStore.currentProjectId
+        };
+        
+        ApiAutomationApi.updateScene(data.id, sceneData)
+          .then(() => {
+            data.label = value;
+            ElMessage.success('重命名成功');
+          })
+          .catch(error => {
+            console.error("重命名失败:", error);
+            ElMessage.error('重命名失败');
+          });
       }
     });
   };
@@ -238,11 +374,18 @@
       cancelButtonText: '取消',
       type: 'warning',
     }).then(() => {
-      const parent = node.parent;
-      const children = parent.data.children || parent.data;
-      const index = children.findIndex(d => d.id === data.id);
-      children.splice(index, 1);
-      ElMessage.success('删除成功');
+      ApiAutomationApi.deleteScene(data.id)
+        .then(() => {
+          const parent = node.parent;
+          const children = parent.data.children || parent.data;
+          const index = children.findIndex(d => d.id === data.id);
+          children.splice(index, 1);
+          ElMessage.success('删除成功');
+        })
+        .catch(error => {
+          console.error("删除失败:", error);
+          ElMessage.error('删除失败');
+        });
     });
   };
   // // 鼠标进入处理函数
@@ -297,58 +440,29 @@
           method: 'GET',
           children: [{ id: Date.now() + 1, label: '接口详情' }],
         };
-        data.children.push(newInterface);
-        ElMessage.success('接口添加成功');
+        
+        // 创建场景
+        const sceneData = {
+          sceneName: value,
+          parentId: data.id,
+          projectId: projectStore.currentProjectId
+        };
+        
+        ApiAutomationApi.createScene(sceneData)
+          .then(response => {
+            console.log("接口添加成功:", response);
+            if (response && response.data) {
+              newInterface.id = response.data.sceneId;
+              data.children.push(newInterface);
+              ElMessage.success('接口添加成功');
+            }
+          })
+          .catch(error => {
+            console.error("接口添加失败:", error);
+            ElMessage.error('接口添加失败');
+          });
       }
     });
-  };
-  
-  // 文件夹操作
-  const handleFolderCommand = (command, node, data) => {
-    event?.stopPropagation();
-    switch (command) {
-      case 'addFolder':
-        ElMessageBox.prompt('请输入目录名称', '新增目录', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-        }).then(({ value }) => {
-          if (value) {
-            const newFolder = {
-              id: Date.now(),
-              label: value,
-              children: [],
-            };
-            data.children = [...(data.children || []), newFolder];
-            ElMessage.success('目录添加成功');
-          }
-        });
-        break;
-      case 'rename':
-        ElMessageBox.prompt('请输入新的目录名称', '重命名目录', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          inputValue: data.label,
-        }).then(({ value }) => {
-          if (value) {
-            data.label = value;
-            ElMessage.success('重命名成功');
-          }
-        });
-        break;
-      case 'delete':
-        ElMessageBox.confirm('确认删除该目录吗？', '删除确认', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning',
-        }).then(() => {
-          const parent = node.parent;
-          const children = parent.data.children || parent.data;
-          const index = children.findIndex(d => d.id === data.id);
-          children.splice(index, 1);
-          ElMessage.success('删除成功');
-        });
-        break;
-    }
   };
   
   // 获取文件夹颜色

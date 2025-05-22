@@ -39,20 +39,21 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
     private UiTestSuiteCaseRelMapper uiTestSuiteCaseRelMapper;
 
     @Override
-    public PageResult<UiTestSuiteDTO> getUiTestSuiteList(Integer page, Integer pageSize, String keyword, String status) {
-        logger.info("开始查询UI测试套件列表, 参数: page={}, pageSize={}, keyword={}, status={}", page, pageSize, keyword, status);
+    public PageResult<UiTestSuiteDTO> getUiTestSuiteList(Integer page, Integer pageSize, String keyword, String status, Long projectId) {
+        logger.info("开始查询UI测试套件列表, 参数: page={}, pageSize={}, keyword={}, status={}, projectId={}", 
+                   page, pageSize, keyword, status, projectId);
         
         // 计算分页参数
         Integer offset = (page - 1) * pageSize;
         
         // 获取总数
-        Integer total = uiTestSuiteMapper.countTestSuites(keyword, status);
+        Integer total = uiTestSuiteMapper.countTestSuites(keyword, status, projectId);
         logger.info("查询到UI测试套件总数: {}", total);
         
         // 获取分页数据
-        List<UiTestSuite> uiTestSuites = uiTestSuiteMapper.selectByPage(keyword, status, offset, pageSize);
-        logger.info("分页查询UI测试套件数据, SQL条件: keyword={}, status={}, offset={}, pageSize={}, 结果条数: {}", 
-                    keyword, status, offset, pageSize, uiTestSuites.size());
+        List<UiTestSuite> uiTestSuites = uiTestSuiteMapper.selectByPage(keyword, status, offset, pageSize, projectId);
+        logger.info("分页查询UI测试套件数据, SQL条件: keyword={}, status={}, offset={}, pageSize={}, projectId={}, 结果条数: {}", 
+                    keyword, status, offset, pageSize, projectId, uiTestSuites.size());
         
         // 转换为DTO
         List<UiTestSuiteDTO> uiTestSuiteDTOs = uiTestSuites.stream()
@@ -63,11 +64,11 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
     }
 
     @Override
-    public UiTestSuiteDTO getUiTestSuiteById(Long id) {
-        logger.info("开始查询UI测试套件详情, ID: {}", id);
-        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(id);
+    public UiTestSuiteDTO getUiTestSuiteById(Long id, Long projectId) {
+        logger.info("开始查询UI测试套件详情, ID: {}, projectId: {}", id, projectId);
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(id, projectId);
         if (uiTestSuite == null) {
-            logger.error("UI测试套件不存在, ID: {}", id);
+            logger.error("UI测试套件不存在, ID: {}, projectId: {}", id, projectId);
             throw new RuntimeException("测试套件不存在: " + id);
         }
         logger.info("成功查询到UI测试套件详情, ID: {}, 套件名称: {}", id, uiTestSuite.getSuiteName());
@@ -104,7 +105,7 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
     @Transactional
     public void updateUiTestSuite(Long id, UiTestSuiteDTO uiTestSuiteDTO) {
         logger.info("开始更新UI测试套件, ID: {}, 套件名称: {}", id, uiTestSuiteDTO.getSuiteName());
-        UiTestSuite existingSuite = uiTestSuiteMapper.selectById(id);
+        UiTestSuite existingSuite = uiTestSuiteMapper.selectById(id, uiTestSuiteDTO.getProjectId());
         if (existingSuite == null) {
             logger.error("UI测试套件不存在, ID: {}", id);
             throw new RuntimeException("测试套件不存在: " + id);
@@ -132,12 +133,12 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
 
     @Override
     @Transactional
-    public void deleteUiTestSuite(Long id) {
-        logger.info("开始删除UI测试套件, ID: {}", id);
+    public void deleteUiTestSuite(Long id, Long projectId) {
+        logger.info("开始删除UI测试套件, ID: {}, projectId: {}", id, projectId);
         // 查询套件是否存在
-        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(id);
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(id, projectId);
         if (uiTestSuite == null) {
-            logger.error("UI测试套件不存在, ID: {}", id);
+            logger.error("UI测试套件不存在, ID: {}, projectId: {}", id, projectId);
             throw new RuntimeException("测试套件不存在: " + id);
         }
         
@@ -147,7 +148,7 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
             logger.info("删除UI测试套件关联关系, 套件ID: {}, 删除的关联关系数量: {}", id, relCount);
             
             // 删除套件
-            int result = uiTestSuiteMapper.deleteById(id);
+            int result = uiTestSuiteMapper.deleteById(id, projectId);
             logger.info("UI测试套件删除结果, ID: {}, 影响行数: {}", id, result);
         } catch (Exception e) {
             logger.error("UI测试套件删除失败, ID: {}, 错误信息: {}", id, e.getMessage(), e);
@@ -159,11 +160,21 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
     @Transactional
     public void executeUiTestSuite(Long id) {
         logger.info("开始执行UI测试套件, ID: {}", id);
-        // 查询套件是否存在
-        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(id);
+        // 先查询套件是否存在(不使用projectId过滤)，以获取projectId
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(id, null);
         if (uiTestSuite == null) {
             logger.error("UI测试套件不存在, ID: {}", id);
             throw new RuntimeException("测试套件不存在: " + id);
+        }
+        
+        // 获取projectId
+        Long projectId = uiTestSuite.getProjectId();
+        
+        // 用获取到的projectId再次查询，确保在正确的项目下操作
+        uiTestSuite = uiTestSuiteMapper.selectById(id, projectId);
+        if (uiTestSuite == null) {
+            logger.error("UI测试套件在指定项目中不存在, ID: {}, 项目ID: {}", id, projectId);
+            throw new RuntimeException("在项目 " + projectId + " 中未找到测试套件: " + id);
         }
         
         // 设置更新时间
@@ -171,13 +182,13 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
         
         try {
             uiTestSuiteMapper.updateById(uiTestSuite);
-            logger.info("UI测试套件执行前状态更新成功, ID: {}", id);
+            logger.info("UI测试套件执行前状态更新成功, ID: {}, 项目ID: {}", id, projectId);
             
             // 实际执行逻辑应该在这里启动一个异步任务
-            logger.info("UI测试套件开始异步执行, ID: {}", id);
+            logger.info("UI测试套件开始异步执行, ID: {}, 项目ID: {}", id, projectId);
             // 这里省略执行实现...
         } catch (Exception e) {
-            logger.error("UI测试套件执行失败, ID: {}, 错误信息: {}", id, e.getMessage(), e);
+            logger.error("UI测试套件执行失败, ID: {}, 项目ID: {}, 错误信息: {}", id, projectId, e.getMessage(), e);
             throw e;
         }
     }
@@ -186,10 +197,20 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
     public List<UiTestSuiteDTO.CaseInfo> getSuiteCases(Long suiteId) {
         logger.info("开始获取UI测试套件关联的用例, 套件ID: {}", suiteId);
         // 查询套件是否存在
-        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId);
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId, null);
         if (uiTestSuite == null) {
             logger.error("UI测试套件不存在, ID: {}", suiteId);
             throw new RuntimeException("测试套件不存在: " + suiteId);
+        }
+        
+        // 获取projectId
+        Long projectId = uiTestSuite.getProjectId();
+        
+        // 用获取到的projectId再次查询，确保在正确的项目下操作
+        uiTestSuite = uiTestSuiteMapper.selectById(suiteId, projectId);
+        if (uiTestSuite == null) {
+            logger.error("UI测试套件在指定项目中不存在, ID: {}, 项目ID: {}", suiteId, projectId);
+            throw new RuntimeException("在项目 " + projectId + " 中未找到测试套件: " + suiteId);
         }
         
         // 获取套件关联的用例ID及排序信息
@@ -236,10 +257,20 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
     @Transactional
     public void updateSuiteCases(Long suiteId, List<Long> caseIds) {
         // 验证测试套件是否存在
-        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId);
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId, null);
         if (uiTestSuite == null) {
             logger.error("更新用例关联失败: 测试套件不存在, ID: {}", suiteId);
             throw new IllegalArgumentException("测试套件不存在, ID: " + suiteId);
+        }
+        
+        // 获取projectId
+        Long projectId = uiTestSuite.getProjectId();
+        
+        // 用获取到的projectId再次查询，确保在正确的项目下操作
+        uiTestSuite = uiTestSuiteMapper.selectById(suiteId, projectId);
+        if (uiTestSuite == null) {
+            logger.error("UI测试套件在指定项目中不存在, ID: {}, 项目ID: {}", suiteId, projectId);
+            throw new RuntimeException("在项目 " + projectId + " 中未找到测试套件: " + suiteId);
         }
         
         // 先删除该套件下所有用例关联
@@ -275,10 +306,20 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
     @Override
     public void updateConcurrencyConfig(Long suiteId, UiTestSuiteDTO.ConcurrencyConfig concurrencyConfig) {
         // 验证测试套件是否存在
-        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId);
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId, null);
         if (uiTestSuite == null) {
             logger.error("更新并发配置失败: 测试套件不存在, ID: {}", suiteId);
             throw new IllegalArgumentException("测试套件不存在, ID: " + suiteId);
+        }
+        
+        // 获取projectId
+        Long projectId = uiTestSuite.getProjectId();
+        
+        // 用获取到的projectId再次查询，确保在正确的项目下操作
+        uiTestSuite = uiTestSuiteMapper.selectById(suiteId, projectId);
+        if (uiTestSuite == null) {
+            logger.error("UI测试套件在指定项目中不存在, ID: {}, 项目ID: {}", suiteId, projectId);
+            throw new RuntimeException("在项目 " + projectId + " 中未找到测试套件: " + suiteId);
         }
         
         // 更新并发执行相关字段
@@ -295,13 +336,13 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
     @Override
     public UiTestSuiteDTO.ScheduleConfig getScheduleConfig(Long suiteId) {
         // 验证测试套件是否存在
-        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId);
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId, null);
         if (uiTestSuite == null) {
             logger.error("获取定时任务配置失败: 测试套件不存在, ID: {}", suiteId);
             throw new IllegalArgumentException("测试套件不存在, ID: " + suiteId);
         }
         
-        // 这里应该从数据库中获取定时任务配置
+                        // 获取projectId        Long projectId = uiTestSuite.getProjectId();                // 用获取到的projectId再次查询，确保在正确的项目下操作        uiTestSuite = uiTestSuiteMapper.selectById(suiteId, projectId);        if (uiTestSuite == null) {            logger.error("UI测试套件在指定项目中不存在, ID: {}, 项目ID: {}", suiteId, projectId);            throw new RuntimeException("在项目 " + projectId + " 中未找到测试套件: " + suiteId);        }                // 这里应该从数据库中获取定时任务配置
         // 由于示例中没有定时任务配置表，先返回一个空配置
         UiTestSuiteDTO.ScheduleConfig config = new UiTestSuiteDTO.ScheduleConfig();
         config.setEnabled(false);
@@ -317,10 +358,20 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
     @Transactional
     public void saveScheduleConfig(Long suiteId, UiTestSuiteDTO.ScheduleConfig scheduleConfig) {
         // 验证测试套件是否存在
-        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId);
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId, null);
         if (uiTestSuite == null) {
             logger.error("保存定时任务配置失败: 测试套件不存在, ID: {}", suiteId);
             throw new IllegalArgumentException("测试套件不存在, ID: " + suiteId);
+        }
+        
+        // 获取projectId
+        Long projectId = uiTestSuite.getProjectId();
+        
+        // 用获取到的projectId再次查询，确保在正确的项目下操作
+        uiTestSuite = uiTestSuiteMapper.selectById(suiteId, projectId);
+        if (uiTestSuite == null) {
+            logger.error("UI测试套件在指定项目中不存在, ID: {}, 项目ID: {}", suiteId, projectId);
+            throw new RuntimeException("在项目 " + projectId + " 中未找到测试套件: " + suiteId);
         }
         
         // 这里应该保存定时任务配置到数据库
@@ -338,10 +389,20 @@ public class UiTestSuiteServiceImpl implements UiTestSuiteService {
     @Transactional
     public void deleteScheduleConfig(Long suiteId) {
         // 验证测试套件是否存在
-        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId);
+        UiTestSuite uiTestSuite = uiTestSuiteMapper.selectById(suiteId, null);
         if (uiTestSuite == null) {
             logger.error("删除定时任务配置失败: 测试套件不存在, ID: {}", suiteId);
             throw new IllegalArgumentException("测试套件不存在, ID: " + suiteId);
+        }
+        
+        // 获取projectId
+        Long projectId = uiTestSuite.getProjectId();
+        
+        // 用获取到的projectId再次查询，确保在正确的项目下操作
+        uiTestSuite = uiTestSuiteMapper.selectById(suiteId, projectId);
+        if (uiTestSuite == null) {
+            logger.error("UI测试套件在指定项目中不存在, ID: {}, 项目ID: {}", suiteId, projectId);
+            throw new RuntimeException("在项目 " + projectId + " 中未找到测试套件: " + suiteId);
         }
         
         // 这里应该从数据库中删除定时任务配置

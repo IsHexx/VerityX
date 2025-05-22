@@ -18,17 +18,19 @@ public interface UiElementService {
      * @param keyword 关键词
      * @param groupId 分组ID
      * @param locatorType 定位器类型
+     * @param projectId 项目ID
      * @return 分页UI元素列表
      */
-    PageResult<UiElementDTO> getElementList(Integer page, Integer pageSize, String keyword, Long groupId, String locatorType);
+    PageResult<UiElementDTO> getElementList(Integer page, Integer pageSize, String keyword, Long groupId, String locatorType, Integer projectId);
     
     /**
      * 根据ID获取UI元素
      *
      * @param id UI元素ID
+     * @param projectId 项目ID
      * @return UI元素DTO
      */
-    UiElementDTO getElementById(Long id);
+    UiElementDTO getElementById(Long id, Integer projectId);
     
     /**
      * 创建UI元素
@@ -50,8 +52,9 @@ public interface UiElementService {
      * 删除UI元素
      *
      * @param id UI元素ID
+     * @param projectId 项目ID
      */
-    void deleteElement(Long id);
+    void deleteElement(Long id, Integer projectId);
     
     /**
      * 验证元素定位器
@@ -66,7 +69,8 @@ public interface UiElementService {
      *
      * @param id 元素ID
      * @param file 截图文件
+     * @param projectId 项目ID
      * @return 截图路径
      */
-    String uploadElementScreenshot(Long id, MultipartFile file);
+    String uploadElementScreenshot(Long id, MultipartFile file, Integer projectId);
 } 

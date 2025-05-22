@@ -10,6 +10,7 @@ public class UiElementGroup {
     private String groupName;
     private String description;
     private Integer elementCount;
+    private Integer projectId;
     private String createdBy;
     private Date createdAt;
     private Date updatedAt;
@@ -45,6 +46,14 @@ public class UiElementGroup {
 
     public void setElementCount(Integer elementCount) {
         this.elementCount = elementCount;
+    }
+
+    public Integer getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Integer projectId) {
+        this.projectId = projectId;
     }
 
     public String getCreatedBy() {

@@ -13,9 +13,9 @@ public interface BugService {
 
     List<Bug> getAllBugs();
 
-    List<Bug> getBugsWithPagination(int pageSize, int offset, String status);
+    List<Bug> getBugsWithPagination(int pageSize, int offset, String status, String keyword, String projectId);
 
-    int getBugCount(String status);
+    int getBugCount(String status, String keyword, String projectId);
 
     boolean updateBug(Bug bug);
 

@@ -6,10 +6,10 @@
     <insert id="insertTestReport" parameterType="com.example.verityx.entity.TestReport">
         INSERT INTO test_report (
         report_title, created_by, created_at, plan_id, test_version, participants,
-        responsible_person, summary, conclusion, attachments, related_cases, remaining_bugs
+        responsible_person, summary, conclusion, attachments, related_cases, remaining_bugs, project_id
         ) VALUES (
         #{reportTitle}, #{createdBy}, #{createdAt}, #{planId}, #{testVersion}, #{participants},
-        #{responsiblePerson}, #{summary}, #{conclusion}, #{attachments}, #{relatedCases}, #{remainingBugs}
+        #{responsiblePerson}, #{summary}, #{conclusion}, #{attachments}, #{relatedCases}, #{remainingBugs}, #{projectId}
         )
     </insert>
 
@@ -21,13 +21,31 @@
     <!-- 查询所有测试报告 -->
     <select id="selectTestReportsWithPagination" resultType="com.example.verityx.entity.TestReport">
         SELECT * FROM test_report
+        <where>
+            1=1
+            <if test="keyword != null and keyword != ''">
+                AND (report_title LIKE CONCAT('%', #{keyword}, '%') OR summary LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
+            </if>
+        </where>
         ORDER BY report_id
-            LIMIT #{pageSize} OFFSET #{offset}
+        LIMIT #{pageSize} OFFSET #{offset}
     </select>
 
     <!-- 统计所有测试报告  -->
     <select id="selectTestReportCount" resultType="int">
         SELECT COUNT(*) FROM test_report
+        <where>
+            1=1
+            <if test="keyword != null and keyword != ''">
+                AND (report_title LIKE CONCAT('%', #{keyword}, '%') OR summary LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
+            </if>
+        </where>
     </select>
 
     <!-- 更新测试报告 -->
@@ -43,7 +61,8 @@
         conclusion = #{conclusion},
         attachments = #{attachments},
         related_cases = #{relatedCases},
-        remaining_bugs = #{remainingBugs}
+        remaining_bugs = #{remainingBugs},
+        project_id = #{projectId}
         WHERE report_id = #{reportId}
     </update>
 

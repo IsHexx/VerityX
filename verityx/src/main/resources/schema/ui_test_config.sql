@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS `ui_test_config` (
   `capabilities` text DEFAULT NULL COMMENT '自定义功能，JSON格式',
   `is_default` tinyint(1) DEFAULT 0 COMMENT '是否为默认配置',
   `is_active` tinyint(1) DEFAULT 1 COMMENT '是否激活',
+  `project_id` int(11) DEFAULT NULL COMMENT '所属项目ID',
   `created_by` bigint(20) DEFAULT NULL COMMENT '创建人ID',
   `created_at` datetime DEFAULT NULL COMMENT '创建时间',
   `updated_by` bigint(20) DEFAULT NULL COMMENT '更新人ID',
@@ -27,7 +28,8 @@ CREATE TABLE IF NOT EXISTS `ui_test_config` (
   PRIMARY KEY (`id`),
   KEY `idx_config_type` (`config_type`),
   KEY `idx_is_default` (`is_default`),
-  KEY `idx_is_active` (`is_active`)
+  KEY `idx_is_active` (`is_active`),
+  KEY `idx_project_id` (`project_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='UI测试配置表';
 
 -- 创建默认配置数据
@@ -62,11 +64,11 @@ INSERT INTO `ui_test_config` (
 );
 
 -- 更新默认截图策略
-UPDATE `ui_test_config` 
+UPDATE `ui_test_config`
 SET `screenshot_policy` = 'ON_FAILURE'
 WHERE `config_type` = 'SCREENSHOT' AND `is_default` = 1;
 
 -- 更新默认重试配置
-UPDATE `ui_test_config` 
+UPDATE `ui_test_config`
 SET `retry_count` = 2, `retry_interval` = 5
-WHERE `config_type` = 'RETRY' AND `is_default` = 1; 
+WHERE `config_type` = 'RETRY' AND `is_default` = 1;

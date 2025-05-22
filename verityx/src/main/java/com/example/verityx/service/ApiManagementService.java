@@ -9,7 +9,11 @@ public interface ApiManagementService {
 
     ApiManagement getApiById(int apiId);
 
-    List<ApiManagement> getAllApis();
+    List<ApiManagement> getAllApis(String projectId);
+
+    List<ApiManagement> getApisWithPagination(int pageSize, int offset, String keyword, String projectId);
+
+    int getApiCount(String keyword, String projectId);
 
     boolean updateApi(ApiManagement api);
 

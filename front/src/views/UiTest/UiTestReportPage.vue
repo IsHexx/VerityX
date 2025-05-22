@@ -173,7 +173,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { Search, ArrowDown } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import PaginationPage from '@/components/PaginationPage.vue';
@@ -182,6 +182,15 @@ import ReportStepDetails from '@/components/UiTestReport/ReportStepDetails.vue';
 import FailureAnalysis from '@/components/UiTestReport/FailureAnalysis.vue';
 import ScreenshotComparison from '@/components/UiTestReport/ScreenshotComparison.vue';
 import { UiTestReportApi } from '@/api/uiTestReportService';
+import { useProjectStore } from '@/store/projectStore';
+
+// 使用项目Store
+const projectStore = useProjectStore();
+// 确保初始化项目状态
+projectStore.initProjectState();
+
+// 计算当前项目ID
+const currentProjectId = computed(() => projectStore.getCurrentProjectId());
 
 // 状态管理
 const loading = ref(false);

@@ -27,13 +27,13 @@ import com.example.verityx.service.UiTestReportService;
 @RestController
 @RequestMapping("/api/ui-test-reports")
 public class UiTestReportController {
-    
+
     @Autowired
     private UiTestReportService uiTestReportService;
-    
+
     /**
      * 创建测试报告
-     * 
+     *
      * @param request 创建请求
      * @return 报告ID
      */
@@ -42,10 +42,10 @@ public class UiTestReportController {
         Long id = uiTestReportService.createReport(request);
         return Result.success(id);
     }
-    
+
     /**
      * 从执行生成报告
-     * 
+     *
      * @param executionId 执行ID
      * @return 报告ID
      */
@@ -58,10 +58,10 @@ public class UiTestReportController {
             return Result.error(500, "生成报告失败");
         }
     }
-    
+
     /**
      * 获取测试报告
-     * 
+     *
      * @param id 报告ID
      * @return 测试报告
      */
@@ -74,10 +74,10 @@ public class UiTestReportController {
             return Result.error(404, "报告不存在");
         }
     }
-    
+
     /**
      * 根据执行ID获取测试报告
-     * 
+     *
      * @param executionId 执行ID
      * @return 测试报告
      */
@@ -90,10 +90,10 @@ public class UiTestReportController {
             return Result.error(404, "报告不存在");
         }
     }
-    
+
     /**
      * 更新测试报告
-     * 
+     *
      * @param id 报告ID
      * @param request 更新请求
      * @return 成功标志
@@ -107,10 +107,10 @@ public class UiTestReportController {
             return Result.error(404, "报告不存在或更新失败");
         }
     }
-    
+
     /**
      * 删除测试报告
-     * 
+     *
      * @param id 报告ID
      * @return 成功标志
      */
@@ -123,10 +123,10 @@ public class UiTestReportController {
             return Result.error(404, "报告不存在或删除失败");
         }
     }
-    
+
     /**
      * 批量删除测试报告
-     * 
+     *
      * @param ids ID列表
      * @return 成功标志
      */
@@ -139,10 +139,10 @@ public class UiTestReportController {
             return Result.error(500, "批量删除失败");
         }
     }
-    
+
     /**
      * 获取测试报告列表
-     * 
+     *
      * @param page 页码
      * @param pageSize 页大小
      * @param keyword 关键字
@@ -150,6 +150,7 @@ public class UiTestReportController {
      * @param startDate 开始日期
      * @param endDate 结束日期
      * @param status 报告状态(passed/failed)
+     * @param projectId 项目ID
      * @return 分页结果
      */
     @GetMapping("/list")
@@ -160,17 +161,18 @@ public class UiTestReportController {
             @RequestParam(value = "reportType", required = false) String reportType,
             @RequestParam(value = "startDate", required = false) String startDate,
             @RequestParam(value = "endDate", required = false) String endDate,
-            @RequestParam(value = "status", required = false) String status) {
-        
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "projectId", required = false) Long projectId) {
+
         PageResult<UiTestReportDTO> result = uiTestReportService.getReportList(
-                page, pageSize, keyword, reportType, startDate, endDate, status);
-        
+                page, pageSize, keyword, reportType, startDate, endDate, status, projectId);
+
         return Result.success(result);
     }
-    
+
     /**
      * 获取测试报告详情列表
-     * 
+     *
      * @param reportId 报告ID
      * @param page 页码
      * @param pageSize 页大小
@@ -183,16 +185,16 @@ public class UiTestReportController {
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
             @RequestParam(value = "result", required = false) String result) {
-        
+
         PageResult<UiTestReportDetailDTO> details = uiTestReportService.getReportDetails(
                 reportId, page, pageSize, result);
-        
+
         return Result.success(details);
     }
-    
+
     /**
      * 获取测试报告详情
-     * 
+     *
      * @param detailId 详情ID
      * @return 测试报告详情
      */
@@ -205,10 +207,10 @@ public class UiTestReportController {
             return Result.error(404, "报告详情不存在");
         }
     }
-    
+
     /**
      * 获取测试步骤列表
-     * 
+     *
      * @param detailId 详情ID
      * @return 测试步骤结果列表
      */
@@ -217,10 +219,10 @@ public class UiTestReportController {
         List<UiTestStepResultDTO> steps = uiTestReportService.getReportSteps(detailId);
         return Result.success(steps);
     }
-    
+
     /**
      * 导出测试报告
-     * 
+     *
      * @param id 报告ID
      * @param format 导出格式
      * @return 导出的文件URL
@@ -229,7 +231,7 @@ public class UiTestReportController {
     public Result<String> exportReport(
             @PathVariable("id") Long id,
             @RequestParam(value = "format", defaultValue = "html") String format) {
-        
+
         String exportUrl = uiTestReportService.exportReport(id, format);
         if (exportUrl != null) {
             return Result.success(exportUrl);
@@ -237,4 +239,4 @@ public class UiTestReportController {
             return Result.error(404, "报告不存在或导出失败");
         }
     }
-} 
+}

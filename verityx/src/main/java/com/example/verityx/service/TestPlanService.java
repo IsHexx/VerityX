@@ -12,9 +12,11 @@ public interface TestPlanService {
 
     List<TestPlan> getAllTestPlans();
 
-    List<TestPlan> getTestPlansWithPagination(int pageSize, int offset, String status);
+    List<TestPlan> getTestPlansByProjectId(Integer projectId);
 
-    int getTestPlanCount(String status);
+    List<TestPlan> getTestPlansWithPagination(int pageSize, int offset, String status, Integer projectId);
+
+    int getTestPlanCount(String status, Integer projectId);
 
     boolean updateTestPlan(TestPlan testPlan);
 

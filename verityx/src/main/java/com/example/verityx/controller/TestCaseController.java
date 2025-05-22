@@ -45,13 +45,21 @@ public class TestCaseController {
     // 分页获取测试计划
     @Operation(summary = "分页查询测试用例", description = "根据分页参数查询测试用例")
     @GetMapping("/list")
-    public ApiResponse<Map<String, Object>> getTestCasesWithPagination(@RequestParam int page, @RequestParam int pageSize, @RequestParam(required = false) String caseStatus) {
+    public ApiResponse<Map<String, Object>> getTestCasesWithPagination(
+            @RequestParam int page, 
+            @RequestParam int pageSize, 
+            @RequestParam(required = false) String caseStatus,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String projectId) {
 
         int offset = (page - 1) * pageSize;
         System.out.println("pageSize是:" + pageSize);
         System.out.println("offset:" + offset);
-        List<TestCase> testCase = testCaseService.getTestCasesWithPagination(pageSize, offset, caseStatus);
-        int total = testCaseService.getTestCaseCount(caseStatus); // 获取总记录数
+        System.out.println("projectId:" + projectId);
+        
+        List<TestCase> testCase = testCaseService.getTestCasesWithPagination(pageSize, offset, caseStatus, keyword, projectId);
+        int total = testCaseService.getTestCaseCount(caseStatus, keyword, projectId); // 获取总记录数
+        
         Map<String, Object> response = new HashMap<>();
         response.put("data", testCase);
         response.put("total", total);

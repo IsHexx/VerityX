@@ -19,8 +19,18 @@ public interface TestCaseMapper {
     int deleteTestCase(int caseId);
 
     // 新增分页查询方法
-    List<TestCase> selectTestCasesWithPagination(@Param("pageSize") int limit, @Param("offset") int offset, @Param("caseStatus") String  caseStatus);
+    List<TestCase> selectTestCasesWithPagination(
+        @Param("pageSize") int limit, 
+        @Param("offset") int offset, 
+        @Param("caseStatus") String caseStatus,
+        @Param("keyword") String keyword,
+        @Param("projectId") String projectId
+    );
 
     // 新增获取总记录数方法
-    int selectTestCaseCount(String  status);
+    int selectTestCaseCount(
+        @Param("caseStatus") String caseStatus,
+        @Param("keyword") String keyword,
+        @Param("projectId") String projectId
+    );
 }

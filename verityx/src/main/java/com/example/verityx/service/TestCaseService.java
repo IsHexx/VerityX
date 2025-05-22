@@ -13,9 +13,9 @@ public interface TestCaseService {
 
     List<TestCase> getAllTestCases();
 
-    List<TestCase> getTestCasesWithPagination(int pageSize, int offset, String caseStatus);
+    List<TestCase> getTestCasesWithPagination(int pageSize, int offset, String caseStatus, String keyword, String projectId);
 
-    int getTestCaseCount(String caseStatus);
+    int getTestCaseCount(String caseStatus, String keyword, String projectId);
 
     boolean updateTestCase(TestCase testCase);
 

@@ -20,8 +20,14 @@
         SELECT COUNT(*) FROM test_case
         <where>
             1=1
-            <if test="caseStatus != null">
+            <if test="caseStatus != null and caseStatus != ''">
                 AND case_status = #{caseStatus}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (case_title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
             </if>
         </where>
     </select>
@@ -31,8 +37,14 @@
         SELECT * FROM test_case
         <where>
             1=1
-            <if test="caseStatus != null">
+            <if test="caseStatus != null and caseStatus != ''">
                 AND case_status = #{caseStatus}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (case_title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
             </if>
         </where>
         ORDER BY case_id
@@ -57,7 +69,8 @@
         case_status = #{caseStatus},
         execution_result = #{executionResult},
         remarks = #{remarks},
-        attachments = #{attachments}
+        attachments = #{attachments},
+        project_id = #{projectId}
         WHERE case_id = #{caseId}
     </update>
 

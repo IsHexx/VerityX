@@ -14,10 +14,13 @@ public interface ApiTestReportMapper {
 
     List<ApiTestReport> selectReportsByPage(@Param("keyword") String keyword, 
                                             @Param("status") String status,
+                                            @Param("projectId") String projectId,
                                             @Param("offset") int offset, 
                                             @Param("pageSize") int pageSize);
 
-    int countReports(@Param("keyword") String keyword, @Param("status") String status);
+    int countReports(@Param("keyword") String keyword, 
+                     @Param("status") String status,
+                     @Param("projectId") String projectId);
 
     int updateReport(ApiTestReport report);
 

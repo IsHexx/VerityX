@@ -33,14 +33,14 @@ public class TestCaseServiceImpl implements TestCaseService {
     }
 
     @Override
-    public List<TestCase> getTestCasesWithPagination(int pageSize, int offset, String caseStatus) {
+    public List<TestCase> getTestCasesWithPagination(int pageSize, int offset, String caseStatus, String keyword, String projectId) {
         System.out.println("====== 分页查询测试用例 ======");
-        return testCaseMapper.selectTestCasesWithPagination(pageSize, offset, caseStatus);
+        return testCaseMapper.selectTestCasesWithPagination(pageSize, offset, caseStatus, keyword, projectId);
     }
 
     @Override
-    public int getTestCaseCount(String caseStatus) {
-        return testCaseMapper.selectTestCaseCount(caseStatus);
+    public int getTestCaseCount(String caseStatus, String keyword, String projectId) {
+        return testCaseMapper.selectTestCaseCount(caseStatus, keyword, projectId);
     }
 
     @Override

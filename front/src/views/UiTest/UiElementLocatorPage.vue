@@ -185,10 +185,19 @@ import PaginationPage from "@/components/PaginationPage.vue";
 import ElementEditDialog from "@/components/UiElementLocator/ElementEditDialog.vue";
 import ElementGroupDialog from "@/components/UiElementLocator/ElementGroupDialog.vue";
 import ElementValidateDialog from "@/components/UiElementLocator/ElementValidateDialog.vue";
-import { ref, reactive, onMounted, computed } from "vue";
+import { ref, reactive, onMounted, computed, watch } from "vue";
 import { Search, Check, Close } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { UiElementLocatorApi } from "@/api/uiElementLocatorService";
+import { useProjectStore } from '@/store/projectStore';
+
+// 使用项目Store
+const projectStore = useProjectStore();
+// 确保初始化项目状态
+projectStore.initProjectState();
+
+// 计算当前项目ID - 修正为使用正确的方法
+const currentProjectId = computed(() => projectStore.getCurrentProjectId());
 
 // 状态管理
 const loading = ref(false);
@@ -247,8 +256,19 @@ const groupOptions = computed(() => {
 const fetchElementList = async (tabName = activeTab.value, page = pagination.page, pageSize = pagination.pageSize, keyword = searchKeyword.value, groupId = currentGroupId.value) => {
   loading.value = true;
   try {
+    // 检查是否有选择项目
+    if (!currentProjectId.value) {
+      ElMessage.warning("请先选择一个项目");
+      loading.value = false;
+      return;
+    }
+    
     // 构造请求参数
-    const params = { page, pageSize };
+    const params = { 
+      page, 
+      pageSize,
+      projectId: currentProjectId.value // 添加当前项目ID
+    };
     
     if (keyword) params.keyword = keyword;
     if (groupId && groupId !== 'all') params.groupId = groupId;
@@ -272,10 +292,10 @@ const fetchElementList = async (tabName = activeTab.value, page = pagination.pag
     } else {
       ElMessage.error(res.message || '获取元素列表失败');
     }
-    loading.value = false;
   } catch (error) {
     ElMessage.error("获取元素列表失败");
     console.error("获取元素列表失败:", error);
+  } finally {
     loading.value = false;
   }
 };
@@ -283,8 +303,13 @@ const fetchElementList = async (tabName = activeTab.value, page = pagination.pag
 // 获取元素分组
 const fetchElementGroups = async () => {
   try {
-    // 调用后端API获取分组数据
-    const res = await UiElementLocatorApi.getElementGroups();
+    // 检查是否有选择项目
+    if (!currentProjectId.value) {
+      return;
+    }
+    
+    // 调用后端API获取分组数据，传入项目ID
+    const res = await UiElementLocatorApi.getElementGroups(currentProjectId.value);
     if (res.code === 200) {
       // 构建树形结构
       const groups = res.data || [];
@@ -372,7 +397,8 @@ const handleAddElement = () => {
     locatorType: "CSS",
     locatorValue: "",
     pageUrl: "",
-    hasScreenshot: false
+    hasScreenshot: false,
+    projectId: currentProjectId.value // 设置项目ID
   };
   elementDialogVisible.value = true;
 };
@@ -383,10 +409,20 @@ const handleManageGroups = () => {
 };
 
 // 编辑元素
-const handleEditElement = (row) => {
+const handleEditElement = async (row) => {
   isEditElement.value = true;
-  currentElement.value = { ...row };
-  elementDialogVisible.value = true;
+  try {
+    const res = await UiElementLocatorApi.getElementById(row.elementId, currentProjectId.value);
+    if (res.code === 200) {
+      currentElement.value = res.data;
+      elementDialogVisible.value = true;
+    } else {
+      ElMessage.error(res.message || '获取元素详情失败');
+    }
+  } catch (error) {
+    ElMessage.error("获取元素详情失败");
+    console.error(error);
+  }
 };
 
 // 验证元素
@@ -413,7 +449,7 @@ const handleViewScreenshot = (row) => {
 // 删除元素
 const handleDeleteElement = async (row) => {
   try {
-    const res = await UiElementLocatorApi.deleteElement(row.elementId);
+    const res = await UiElementLocatorApi.deleteElement(row.elementId, currentProjectId.value);
     if (res.code === 200) {
       ElMessage.success("删除成功");
       fetchElementList();
@@ -426,10 +462,32 @@ const handleDeleteElement = async (row) => {
   }
 };
 
-// 处理元素提交结果
-const handleElementSubmit = (formData) => {
-  // 表单提交后刷新列表
-  fetchElementList();
+// 元素表单提交处理
+const handleElementSubmit = async (formData) => {
+  try {
+    // 确保设置了项目ID
+    formData.projectId = currentProjectId.value;
+    
+    let res;
+    if (formData.elementId) {
+      // 更新元素
+      res = await UiElementLocatorApi.updateElement(formData.elementId, formData);
+    } else {
+      // 创建元素
+      res = await UiElementLocatorApi.createElement(formData);
+    }
+    
+    if (res.code === 200) {
+      ElMessage.success(formData.elementId ? "更新成功" : "创建成功");
+      elementDialogVisible.value = false;
+      fetchElementList();
+    } else {
+      ElMessage.error(res.message || '操作失败');
+    }
+  } catch (error) {
+    ElMessage.error("操作失败");
+    console.error(error);
+  }
 };
 
 // 处理验证结果
@@ -443,15 +501,49 @@ const handleValidationSuccess = (data) => {
 };
 
 // 处理分组更新
-const handleGroupsUpdated = (groups) => {
-  // 更新分组树
-  groupTreeData.value[0].children = groups;
+const handleGroupsUpdated = async (groups) => {
+  try {
+    // 通常后端会提供一个批量更新分组的API，这里简化处理
+    // 实际可能需要对比哪些分组是新增的，哪些是修改的，哪些是删除的
+    
+    // 这里假设我们有这样一个API可以一次性更新所有分组
+    const res = await UiElementLocatorApi.updateAllGroups({
+      groups, 
+      projectId: currentProjectId.value
+    });
+    
+    if (res.code === 200) {
+      ElMessage.success("分组更新成功");
+      await fetchElementGroups();
+    } else {
+      ElMessage.error(res.message || '更新分组失败');
+    }
+  } catch (error) {
+    ElMessage.error("更新分组失败");
+    console.error(error);
+  }
 };
 
 // 组件挂载时获取数据
-onMounted(() => {
-  fetchElementGroups();
-  fetchElementList();
+onMounted(async () => {
+  if (currentProjectId.value) {
+    await fetchElementGroups();
+    fetchElementList();
+  } else {
+    ElMessage.warning("请先选择一个项目");
+  }
+});
+
+// 监听项目ID变化，重新加载数据
+watch(() => currentProjectId.value, (newProjectId, oldProjectId) => {
+  if (newProjectId !== oldProjectId) {
+    console.log("项目ID变化, 从", oldProjectId, "变为", newProjectId);
+    pagination.page = 1; // 重置分页
+    currentGroupId.value = null; // 重置当前选中的分组
+    fetchElementGroups().then(() => {
+      fetchElementList();
+    });
+  }
 });
 </script>
 

@@ -17,16 +17,24 @@ export const UiTestSuiteApi = {
     if (params.status) {
       cleanParams.status = params.status;
     }
+
+    // 添加项目ID参数（如果提供了的话）
+    if (params.projectId) {
+      cleanParams.projectId = params.projectId;
+    }
   
-    return http.get('/api/uitestsuites/list', cleanParams);
+    return http.get('/api/uitestsuites/list', { params: cleanParams });
   },
   
   // 获取UI测试套件详情
-  getUiTestSuiteDetail: (id) => {
+  getUiTestSuiteDetail: (id, projectId) => {
     if (!id) {
       return Promise.reject(new Error('ID不能为空'));
     }
-    return http.get(`/api/uitestsuites/${id}`);
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
+    return http.get(`/api/uitestsuites/${id}`, { params });
   },
   
   // 创建UI测试套件
@@ -51,27 +59,36 @@ export const UiTestSuiteApi = {
   },
   
   // 删除UI测试套件
-  deleteUiTestSuite: (id) => {
+  deleteUiTestSuite: (id, projectId) => {
     if (!id) {
       return Promise.reject(new Error('ID不能为空'));
     }
-    return http.delete(`/api/uitestsuites/delete/${id}`);
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
+    return http.delete(`/api/uitestsuites/delete/${id}`, { params });
   },
   
   // 执行UI测试套件
-  executeUiTestSuite: (id) => {
+  executeUiTestSuite: (id, projectId) => {
     if (!id) {
       return Promise.reject(new Error('ID不能为空'));
     }
-    return http.post(`/api/uitestsuites/execute/${id}`);
+    const data = {};
+    if (projectId) data.projectId = projectId;
+    
+    return http.post(`/api/uitestsuites/execute/${id}`, data);
   },
   
   // 获取套件中的测试用例
-  getSuiteCases: (suiteId) => {
+  getSuiteCases: (suiteId, projectId) => {
     if (!suiteId) {
       return Promise.reject(new Error('套件ID不能为空'));
     }
-    return http.get(`/api/uitestsuites/${suiteId}/cases`);
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
+    return http.get(`/api/uitestsuites/${suiteId}/cases`, { params });
   },
   
   // 更新套件中的测试用例
@@ -90,6 +107,17 @@ export const UiTestSuiteApi = {
     return http.put(`/api/uitestsuites/${suiteId}/cases-order`, data);
   },
   
+  // 获取并发配置
+  getConcurrencyConfig: (suiteId, projectId) => {
+    if (!suiteId) {
+      return Promise.reject(new Error('套件ID不能为空'));
+    }
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
+    return http.get(`/api/uitestsuites/${suiteId}/concurrency`, { params });
+  },
+  
   // 更新并发配置
   updateConcurrencyConfig: (suiteId, data) => {
     if (!suiteId) {
@@ -99,11 +127,14 @@ export const UiTestSuiteApi = {
   },
   
   // 获取定时任务配置
-  getScheduleConfig: (suiteId) => {
+  getScheduleConfig: (suiteId, projectId) => {
     if (!suiteId) {
       return Promise.reject(new Error('套件ID不能为空'));
     }
-    return http.get(`/api/uitestsuites/${suiteId}/schedule`);
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
+    return http.get(`/api/uitestsuites/${suiteId}/schedule`, { params });
   },
   
   // 创建或更新定时任务配置
@@ -115,10 +146,13 @@ export const UiTestSuiteApi = {
   },
   
   // 删除定时任务配置
-  deleteScheduleConfig: (suiteId) => {
+  deleteScheduleConfig: (suiteId, projectId) => {
     if (!suiteId) {
       return Promise.reject(new Error('套件ID不能为空'));
     }
-    return http.delete(`/api/uitestsuites/${suiteId}/schedule`);
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
+    return http.delete(`/api/uitestsuites/${suiteId}/schedule`, { params });
   }
 }; 

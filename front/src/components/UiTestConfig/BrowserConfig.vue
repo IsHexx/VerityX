@@ -4,7 +4,7 @@
       <h3>浏览器配置</h3>
       <el-button type="primary" @click="showAddBrowserDialog">添加浏览器</el-button>
     </div>
-    
+
     <el-table
       v-loading="loading"
       :data="browserConfigs"
@@ -19,10 +19,10 @@
       <el-table-column label="默认" width="80">
         <template #default="scope">
           <el-tag v-if="scope.row.isDefault" type="success">默认</el-tag>
-          <el-button 
-            v-else 
-            type="text" 
-            size="small" 
+          <el-button
+            v-else
+            type="text"
+            size="small"
             @click="handleSetDefault(scope.row)"
           >
             设为默认
@@ -47,17 +47,17 @@
       </el-table-column>
       <el-table-column label="操作" width="180">
         <template #default="scope">
-          <el-button 
-            type="primary" 
-            size="small" 
+          <el-button
+            type="primary"
+            size="small"
             @click="handleEdit(scope.row)"
             :disabled="!scope.row.isActive"
           >
             编辑
           </el-button>
-          <el-button 
-            type="danger" 
-            size="small" 
+          <el-button
+            type="danger"
+            size="small"
             @click="handleDelete(scope.row)"
           >
             删除
@@ -65,7 +65,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <!-- 添加/编辑浏览器对话框 -->
     <el-dialog
       v-model="dialogVisible"
@@ -181,6 +181,7 @@ const loadData = async () => {
   loading.value = true;
   try {
     const res = await UiTestConfigApi.getBrowserConfigs();
+    console.log('浏览器配置响应:', res);
     if (res.success) {
       browserConfigs.value = res.data || [];
     } else {
@@ -197,7 +198,7 @@ const loadData = async () => {
 // 表单验证方法
 const validate = () => {
   if (!browserFormRef.value) return true;
-  
+
   let isValid = false;
   browserFormRef.value.validate((valid) => {
     isValid = valid;
@@ -217,7 +218,7 @@ const resetForm = () => {
   if (browserFormRef.value) {
     browserFormRef.value.resetFields();
   }
-  
+
   browserForm.configName = '';
   browserForm.configType = 'BROWSER';
   browserForm.browserType = '';
@@ -235,12 +236,12 @@ const resetForm = () => {
 // 处理表单提交
 const handleSubmit = async () => {
   if (!browserFormRef.value) return;
-  
+
   await browserFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
         loading.value = true;
-        
+
         if (isEdit.value && currentId.value !== null) {
           // 更新配置
           const res = await UiTestConfigApi.updateConfig(currentId.value, browserForm);
@@ -260,7 +261,7 @@ const handleSubmit = async () => {
             ElMessage.error(res.message || '添加浏览器配置失败');
           }
         }
-        
+
         dialogVisible.value = false;
         resetForm();
         emit('refresh');
@@ -280,7 +281,7 @@ const handleSubmit = async () => {
 const handleEdit = (row) => {
   isEdit.value = true;
   currentId.value = row.id;
-  
+
   browserForm.configName = row.configName;
   browserForm.configType = 'BROWSER';
   browserForm.browserType = row.browserType;
@@ -292,7 +293,7 @@ const handleEdit = (row) => {
   browserForm.isDefault = row.isDefault;
   browserForm.isActive = row.isActive;
   // 添加其他需要编辑的字段
-  
+
   dialogVisible.value = true;
 };
 
@@ -308,7 +309,7 @@ const handleDelete = async (row) => {
         type: 'warning'
       }
     );
-    
+
     loading.value = true;
     const res = await UiTestConfigApi.deleteConfig(row.id);
     if (res.success) {
@@ -423,4 +424,4 @@ defineExpose({
   display: flex;
   justify-content: flex-end;
 }
-</style> 
+</style>

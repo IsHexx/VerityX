@@ -27,15 +27,15 @@ public class ApiTestReportServiceImpl implements ApiTestReportService {
     }
 
     @Override
-    public Map<String, Object> getReportsByPage(String keyword, String status, int page, int pageSize) {
+    public Map<String, Object> getReportsByPage(String keyword, String status, String projectId, int page, int pageSize) {
         Map<String, Object> result = new HashMap<>();
         
         // 计算偏移量
         int offset = (page - 1) * pageSize;
         
         // 查询数据
-        List<ApiTestReport> reports = apiTestReportMapper.selectReportsByPage(keyword, status, offset, pageSize);
-        int total = apiTestReportMapper.countReports(keyword, status);
+        List<ApiTestReport> reports = apiTestReportMapper.selectReportsByPage(keyword, status, projectId, offset, pageSize);
+        int total = apiTestReportMapper.countReports(keyword, status, projectId);
         
         result.put("data", reports);
         result.put("total", total);

@@ -29,34 +29,38 @@ public interface UiTestCaseService {
      * 删除UI测试用例
      *
      * @param caseId 用例ID
+     * @param projectId 项目ID
      * @return 是否删除成功
      */
-    boolean deleteUiTestCase(String caseId);
+    boolean deleteUiTestCase(String caseId, Integer projectId);
     
     /**
      * 获取UI测试用例详情
      *
      * @param caseId 用例ID
+     * @param projectId 项目ID
      * @return UI测试用例数据传输对象
      */
-    UiTestCaseDTO getUiTestCaseDetail(String caseId);
+    UiTestCaseDTO getUiTestCaseDetail(String caseId, Integer projectId);
     
     /**
      * 分页查询UI测试用例
      *
      * @param keyword 搜索关键字
      * @param status 用例状态 (all_cases, executed, unexecuted)
+     * @param projectId 项目ID
      * @param page 页码
      * @param pageSize 每页大小
      * @return 包含列表和总数的Map
      */
-    Map<String, Object> getUiTestCaseList(String keyword, String status, int page, int pageSize);
+    Map<String, Object> getUiTestCaseList(String keyword, String status, Integer projectId, int page, int pageSize);
     
     /**
      * 执行UI测试用例
      *
      * @param caseId 用例ID
+     * @param projectId 项目ID
      * @return 执行结果ID
      */
-    String executeUiTestCase(String caseId);
+    String executeUiTestCase(String caseId, Integer projectId);
 } 

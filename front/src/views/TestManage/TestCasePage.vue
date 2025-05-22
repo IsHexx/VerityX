@@ -98,7 +98,7 @@
             <el-input v-model="testCaseform.caseTitle" placeholder="请输入用例标题" />
           </el-form-item>
           <el-form-item label="所属项目">
-            <el-select v-model="testCaseform.projectName" placeholder="请选择所属项目">
+            <el-select v-model="testCaseform.projectId" placeholder="请选择所属项目">
               <el-option label="项目A" value="shanghai" />
               <el-option label="项目B" value="beijing" />
             </el-select>
@@ -165,10 +165,19 @@
   
 <script setup>
 import PaginationPage from "@/components/PaginationPage.vue";
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed, watch } from "vue";
 import { Search } from '@element-plus/icons-vue';
 import { TestcaseApi } from '@/api/testcaseService'
 import { ElMessage } from 'element-plus'
+import { useProjectStore } from '@/store/projectStore'
+
+// 使用项目Store
+const projectStore = useProjectStore();
+// 确保初始化项目状态
+projectStore.initProjectState();
+
+// 计算当前项目ID
+const currentProjectId = computed(() => projectStore.getCurrentProjectId());
 
 const input2 = ref('')
 const activeTab = ref("all_case");
@@ -179,7 +188,7 @@ const placeholderText = ref('输入查询关键字⏎')
 const testCaseform = reactive({
   caseId: "",
   caseTitle: "",
-  projectName: "",
+  projectId: currentProjectId.value || "", // 默认使用当前项目ID
   caseType: "",
   importanceLevel: "",
   caseStatus: "",
@@ -236,7 +245,7 @@ const handleAddTestcase = () => {
   dialogVisible.value = true
   Object.assign(testCaseform, {
     caseTitle: "",
-    projectName: "",
+    projectId: currentProjectId.value || "", // 默认使用当前项目ID
     caseType: "",
     importanceLevel: "",
     caseStatus: "",
@@ -251,7 +260,7 @@ const handleEditTestcase = (row) => {
   Object.assign(testCaseform, {
     caseId: row.caseId,
     caseTitle: row.caseTitle,
-    projectName: row.projectName,
+    projectId: row.projectId,
     caseType: row.caseType,
     importanceLevel: row.importanceLevel,
     caseStatus: row.caseStatus,
@@ -279,7 +288,7 @@ const onSubmit = async () => {
   try {
     const data = {
       caseTitle: testCaseform.caseTitle,
-      projectId: '1',
+      projectId: testCaseform.projectId || currentProjectId.value || '1',
       caseType: testCaseform.caseType,
       importanceLevel: testCaseform.importanceLevel,
       caseStatus: testCaseform.caseStatus,
@@ -314,7 +323,8 @@ const fetchTestcase = async (caseStatus = '') => {
       page: pagination.page,
       pageSize: pagination.pageSize,
       caseStatus: caseStatus,
-      keyword: input2.value  // 添加关键字搜索
+      keyword: input2.value,
+      projectId: currentProjectId.value  // 添加项目ID过滤
     })
     testCaseData.value = res.data.data
     total.value = res.data.total
@@ -361,6 +371,12 @@ const handlePaginationChange = ({ page, pageSize }) => {
 onMounted(() => {
   fetchTestcase()
 })
+
+// 监听项目变化，刷新数据
+watch(currentProjectId, () => {
+  pagination.page = 1;
+  fetchTestcase();
+});
 </script>
   
 <style scoped>

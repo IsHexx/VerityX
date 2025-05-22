@@ -9,6 +9,7 @@ public class UiElement {
     private Long id;
     private String elementName;
     private Long groupId;
+    private Integer projectId;
     private String locatorType;
     private String locatorValue;
     private String description;
@@ -40,6 +41,14 @@ public class UiElement {
 
     public void setGroupId(Long groupId) {
         this.groupId = groupId;
+    }
+
+    public Integer getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Integer projectId) {
+        this.projectId = projectId;
     }
 
     public String getLocatorType() {

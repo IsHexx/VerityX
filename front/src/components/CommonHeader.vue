@@ -2,10 +2,14 @@
   <el-header class="header">
     <!-- 导航栏左侧内容 -->
     <div class="header-left">
-      <el-breadcrumb separator="＞">
-        <el-breadcrumb-item style="font-weight: 800;">项目</el-breadcrumb-item>
-        <el-breadcrumb-item>Dashboard</el-breadcrumb-item>
-      </el-breadcrumb>
+      <!-- 项目路径信息 -->
+      <div class="project-header">
+        <span class="project-name">项目</span>
+        <span class="project-path-separator">＞</span>
+      </div>
+      
+      <!-- 项目选择器 -->
+      <ProjectSelector />
     </div>
     <!-- 中间的水平菜单 -->
      <el-menu
@@ -46,14 +50,51 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue';
+import { ref, onMounted, watch, nextTick, computed, onBeforeMount } from 'vue';
 import { useMenuStore } from '@/store/menuStore';
+import { useProjectStore } from '@/store/projectStore'; // 导入项目存储
+import ProjectSelector from '@/components/ProjectSelector.vue'; // 导入项目选择器
 import image from '@/assets/image.png';  
 import { useRouter, useRoute } from 'vue-router'
 import { authState } from '@/auth';
 
 const route = useRoute();
 const { activeMainMenu, activeSubMenu, currentSubMenus, setActiveMenu, initializeActiveMenu, shouldUpdateMenu } = useMenuStore();
+const projectStore = useProjectStore(); // 获取项目Store
+const { currentProject } = projectStore; // 获取当前项目
+
+// 计算当前项目名称，如果没有选择项目则显示"项目"
+const currentProjectName = computed(() => {
+  console.log("当前项目信息:", currentProject.value);
+  // 尝试不同可能的属性名
+  if (currentProject.value) {
+    // 优先使用projectName，如果不存在则尝试name
+    return currentProject.value.projectName || 
+           currentProject.value.name || 
+           currentProject.value.id && `项目 ${currentProject.value.id}` || 
+           '项目';
+  }
+  return '项目';
+});
+
+// 计算当前页面名称，从路由获取
+const currentPageName = computed(() => {
+  // 找到与当前路由匹配的菜单
+  for (const mainMenu of currentSubMenus.value) {
+    if (mainMenu.route === route.path) {
+      return mainMenu.title;
+    }
+  }
+  // 如果没有匹配，默认显示Dashboard
+  return 'Dashboard';
+});
+
+// 监听项目变更事件，刷新页面内容
+const handleProjectChanged = (event) => {
+  console.log('项目已变更:', event.detail);
+  // 刷新当前页面数据
+  window.location.reload();
+};
 
 // 模拟用户名
 const username = ref('John Doe');
@@ -100,6 +141,14 @@ watch(() => route.path, () => {
   });
 }, { immediate: true });
 
+onBeforeMount(() => {
+  // 确保项目状态初始化
+  projectStore.initProjectState();
+  
+  // 添加项目变更事件监听
+  window.addEventListener('project-changed', handleProjectChanged);
+});
+
 onMounted(() => {
   // 确保组件挂载时菜单状态正确
   initializeActiveMenu();
@@ -141,6 +190,25 @@ const data = () => {
   display: flex;
   align-items: center;
   padding-left: 20px;
+  min-width: 200px;
+}
+
+.project-header {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  margin-right: 8px; /* 增加右边距，与项目选择器保持距离 */
+}
+
+.project-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.project-path-separator {
+  margin: 0 8px;
+  color: #909399;
 }
 
 .header-right{
@@ -160,5 +228,13 @@ const data = () => {
 
 .el-avatar {
   cursor: pointer;
+}
+
+:deep(.el-breadcrumb__item) {
+  color: #333 !important;
+}
+
+:deep(.el-breadcrumb__inner) {
+  color: inherit !important;
 }
 </style>

@@ -15,7 +15,7 @@ public class UiTestSuite {
     private Date updatedAt;
     private Date lastRunAt;
     private String triggerMode;
-    private String projectId;
+    private Long projectId;
     private String concurrencyLevel;
     private String environment;
     private Integer timeout;
@@ -97,11 +97,11 @@ public class UiTestSuite {
         this.triggerMode = triggerMode;
     }
 
-    public String getProjectId() {
+    public Long getProjectId() {
         return projectId;
     }
 
-    public void setProjectId(String projectId) {
+    public void setProjectId(Long projectId) {
         this.projectId = projectId;
     }
 

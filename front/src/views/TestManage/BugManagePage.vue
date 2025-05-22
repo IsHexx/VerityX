@@ -213,10 +213,19 @@
     
     <script setup>
 import PaginationPage from "@/components/PaginationPage.vue";
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed, watch } from "vue";
 import { Search } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { BugApi } from "@/api/bugService";
+import { useProjectStore } from '@/store/projectStore';
+
+// 使用项目Store
+const projectStore = useProjectStore();
+// 确保初始化项目状态
+projectStore.initProjectState();
+
+// 计算当前项目ID
+const currentProjectId = computed(() => projectStore.getCurrentProjectId());
 
 const input2 = ref("");
 const searchKeyword = ref("");
@@ -238,7 +247,7 @@ const pagination = reactive({
 // 表单数据
 const form = reactive({
   id: "",
-  projectId: "",
+  projectId: currentProjectId.value || "",
   planId: "",
   bugTitle: "",
   createdBy: "",
@@ -255,7 +264,7 @@ const form = reactive({
 const resetForm = () => {
   Object.assign(form, {
     id: "",
-    projectId: "",
+    projectId: currentProjectId.value || "",
     planId: "",
     bugTitle: "",
     createdBy: "",
@@ -332,6 +341,7 @@ const fetchBugList = async (status = "") => {
       page: pagination.page,
       pageSize: pagination.pageSize,
       status: status,
+      projectId: currentProjectId.value
     });
     bugData.value = res.data.data;
     total.value = res.data.total;
@@ -432,6 +442,12 @@ const handlePaginationChange = ({ page, pageSize }) => {
   pagination.pageSize = pageSize;
   fetchBugList();
 };
+
+// 监听项目变化，刷新数据
+watch(currentProjectId, () => {
+  pagination.page = 1;
+  fetchBugList();
+});
 </script>
     
 <style scoped>

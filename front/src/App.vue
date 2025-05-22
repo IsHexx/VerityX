@@ -16,6 +16,7 @@ import UserLogin from '@/components/UserLogin.vue';
 import HomePage from './views/HomePage.vue';
 import LoadingMask from '@/components/LoadingMask.vue';
 import { authState } from '@/auth';
+import { useProjectStore } from '@/store/projectStore'; // 导入项目存储
 
 export default {
   name: 'App',
@@ -30,6 +31,14 @@ export default {
     const isLoading = ref(false);
     // 标记是否是首次加载
     const isFirstLoad = ref(true);
+    // 初始化项目状态
+    const { initProjectState, hasSelectedProject, currentProject } = useProjectStore();
+    
+    console.log("App.vue 初始化");
+    
+    // 立即初始化项目状态
+    initProjectState();
+    console.log("App组件中的当前项目:", currentProject?.value);
 
     // 检查登录状态 - 优化为同步操作
     const checkAuthStatus = () => {
@@ -49,8 +58,16 @@ export default {
       // 显示加载遮罩
       isLoading.value = true;
       
+      // 初始化项目状态
+      initProjectState();
+      
       // 登录后跳转
-      router.push('/');
+      // 如果已选择项目，跳转到概览页；否则跳转到项目选择页面
+      if (hasSelectedProject()) {
+        router.push('/overview');
+      } else {
+        router.push('/projectmanage');
+      }
       
       // 减少延迟时间
       setTimeout(() => {
@@ -69,6 +86,9 @@ export default {
     // 在组件挂载前检查登录状态，避免延迟
     onBeforeMount(() => {
       checkAuthStatus();
+      // 初始化项目状态
+      initProjectState();
+      
       if (!authState.isAuthenticated && router.currentRoute.value.path !== '/login') {
         router.push('/login');
       }

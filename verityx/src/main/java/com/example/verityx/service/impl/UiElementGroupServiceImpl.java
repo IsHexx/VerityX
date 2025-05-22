@@ -32,8 +32,8 @@ public class UiElementGroupServiceImpl implements UiElementGroupService {
     private UiElementMapper uiElementMapper;
 
     @Override
-    public List<UiElementGroupDTO> getElementGroups() {
-        List<UiElementGroup> groups = uiElementGroupMapper.selectAll();
+    public List<UiElementGroupDTO> getElementGroups(Integer projectId) {
+        List<UiElementGroup> groups = uiElementGroupMapper.selectAll(projectId);
         
         return groups.stream()
                 .map(this::convertToDTO)
@@ -41,10 +41,10 @@ public class UiElementGroupServiceImpl implements UiElementGroupService {
     }
 
     @Override
-    public UiElementGroupDTO getElementGroupById(Long id) {
-        UiElementGroup group = uiElementGroupMapper.selectById(id);
+    public UiElementGroupDTO getElementGroupById(Long id, Integer projectId) {
+        UiElementGroup group = uiElementGroupMapper.selectById(id, projectId);
         if (group == null) {
-            logger.error("UI元素分组不存在, ID: {}", id);
+            logger.error("UI元素分组不存在, ID: {}, projectId: {}", id, projectId);
             throw new RuntimeException("UI元素分组不存在: " + id);
         }
         
@@ -72,9 +72,10 @@ public class UiElementGroupServiceImpl implements UiElementGroupService {
     @Override
     @Transactional
     public void updateElementGroup(Long id, UiElementGroupDTO uiElementGroupDTO) {
-        UiElementGroup existingGroup = uiElementGroupMapper.selectById(id);
+        Integer projectId = uiElementGroupDTO.getProjectId();
+        UiElementGroup existingGroup = uiElementGroupMapper.selectById(id, projectId);
         if (existingGroup == null) {
-            logger.error("UI元素分组不存在, ID: {}", id);
+            logger.error("UI元素分组不存在, ID: {}, projectId: {}", id, projectId);
             throw new RuntimeException("UI元素分组不存在: " + id);
         }
         
@@ -89,21 +90,21 @@ public class UiElementGroupServiceImpl implements UiElementGroupService {
 
     @Override
     @Transactional
-    public boolean deleteElementGroup(Long id) {
-        UiElementGroup group = uiElementGroupMapper.selectById(id);
+    public boolean deleteElementGroup(Long id, Integer projectId) {
+        UiElementGroup group = uiElementGroupMapper.selectById(id, projectId);
         if (group == null) {
-            logger.error("UI元素分组不存在, ID: {}", id);
+            logger.error("UI元素分组不存在, ID: {}, projectId: {}", id, projectId);
             throw new RuntimeException("UI元素分组不存在: " + id);
         }
         
         // 检查分组内是否有元素
-        int elementCount = uiElementMapper.countByGroupId(id);
+        int elementCount = uiElementMapper.countByGroupId(id, projectId);
         if (elementCount > 0) {
-            logger.warn("无法删除分组: 分组内还有{}个元素, ID: {}", elementCount, id);
+            logger.warn("无法删除分组: 分组内还有{}个元素, ID: {}, projectId: {}", elementCount, id, projectId);
             return false;
         }
         
-        uiElementGroupMapper.deleteById(id);
+        uiElementGroupMapper.deleteById(id, projectId);
         return true;
     }
 
@@ -114,14 +115,17 @@ public class UiElementGroupServiceImpl implements UiElementGroupService {
             return;
         }
         
-        UiElementGroup group = uiElementGroupMapper.selectById(groupId);
+        // 查询分组信息，为了获取projectId
+        UiElementGroup group = uiElementGroupMapper.selectById(groupId, null);
         if (group == null) {
             logger.error("UI元素分组不存在, ID: {}", groupId);
             return;
         }
         
+        Integer projectId = group.getProjectId();
+        
         // 获取分组中的元素数量
-        int count = uiElementMapper.countByGroupId(groupId);
+        int count = uiElementMapper.countByGroupId(groupId, projectId);
         
         // 更新分组中的元素数量
         uiElementGroupMapper.updateElementCount(groupId, count);

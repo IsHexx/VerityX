@@ -1,4 +1,3 @@
-
 <template>
   <div class="flex flex-wrap gap-4">
     <el-card shadow="always" class="w-full">
@@ -135,11 +134,20 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import PaginationPage from '@/components/PaginationPage.vue'
 import { testplanApi } from '@/api/testplanService'
+import { useProjectStore } from '@/store/projectStore'
 import axios from "axios";
+
+// 使用项目Store
+const projectStore = useProjectStore();
+// 确保初始化项目状态
+projectStore.initProjectState();
+
+// 计算当前项目ID
+const currentProjectId = computed(() => projectStore.getCurrentProjectId());
 
 // 状态定义
 const activeTab = ref('all_plan')
@@ -147,8 +155,9 @@ const dialogVisible = ref(false)
 const dialogTitle = ref('')
 const testplanFormRef = ref(null)
 const testplans = ref([])
+const projectOptions = ref([]) // 项目选项列表
 
-// 表单数据
+// 表单数据，默认使用当前项目ID
 const form = reactive({
   planId: '',
   planName: '',
@@ -158,7 +167,7 @@ const form = reactive({
   startDate: '',
   endDate: '',
   description: '',
-  projectId: ''
+  projectId: currentProjectId.value || '' // 默认使用当前项目ID
 })
 
 // 重置表单
@@ -172,9 +181,27 @@ const resetForm = () => {
     startDate: '',
     endDate: '',
     description: '',
-    projectId: ''
+    projectId: currentProjectId.value || '' // 默认使用当前项目ID
   })
 }
+
+// 获取项目列表
+const fetchProjects = async () => {
+  try {
+    // 设置当前项目为选项
+    if (currentProjectId.value) {
+      const currentProject = {
+        value: currentProjectId.value,
+        label: projectStore.currentProject.value?.projectName || `项目 ${currentProjectId.value}`
+      };
+      projectOptions.value = [currentProject];
+    } else {
+      projectOptions.value = [];
+    }
+  } catch (error) {
+    console.error('获取项目列表失败:', error);
+  }
+};
 
 // 添加计划
 const handleAddTestplan = () => {
@@ -280,8 +307,11 @@ const fetchTestplan = async (status = '') => {
       pageSize: pagination.pageSize,
       status: status, // 根据状态动态加载数据
     });
-    testplans.value = res.data.data; // 假设后端返回 { list: [], total: number }
-    total.value = res.data.total
+    console.log('获取到的测试计划数据:', res);
+    
+    // 修正数据绑定，使用res.data.list而不是res.data.data
+    testplans.value = res.data.list || []; 
+    total.value = res.data.total || 0;
     
   } catch (error) {
     ElMessage.error('获取计划列表失败');

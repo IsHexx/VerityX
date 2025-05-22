@@ -32,17 +32,19 @@ public interface UiElementMapper {
      * 根据ID删除UI元素
      *
      * @param id UI元素ID
+     * @param projectId 项目ID
      * @return 影响的行数
      */
-    int deleteById(@Param("id") Long id);
+    int deleteById(@Param("id") Long id, @Param("projectId") Integer projectId);
     
     /**
      * 根据ID查询UI元素
      *
      * @param id UI元素ID
+     * @param projectId 项目ID
      * @return UI元素对象
      */
-    UiElement selectById(@Param("id") Long id);
+    UiElement selectById(@Param("id") Long id, @Param("projectId") Integer projectId);
     
     /**
      * 查询UI元素总数
@@ -50,42 +52,48 @@ public interface UiElementMapper {
      * @param keyword 关键词
      * @param groupId 分组ID
      * @param locatorType 定位器类型
+     * @param projectId 项目ID
      * @return UI元素总数
      */
-    int countElements(@Param("keyword") String keyword, 
-                      @Param("groupId") Long groupId,
-                      @Param("locatorType") String locatorType);
+    int countTotal(@Param("keyword") String keyword, 
+                   @Param("groupId") Long groupId,
+                   @Param("locatorType") String locatorType,
+                   @Param("projectId") Integer projectId);
     
     /**
      * 分页查询UI元素
      *
+     * @param offset 偏移量
+     * @param pageSize 页大小
      * @param keyword 关键词
      * @param groupId 分组ID
      * @param locatorType 定位器类型
-     * @param offset 偏移量
-     * @param pageSize 页大小
+     * @param projectId 项目ID
      * @return UI元素列表
      */
-    List<UiElement> selectByPage(@Param("keyword") String keyword, 
+    List<UiElement> selectByPage(@Param("offset") int offset, 
+                                 @Param("pageSize") int pageSize,
+                                 @Param("keyword") String keyword, 
                                  @Param("groupId") Long groupId,
                                  @Param("locatorType") String locatorType,
-                                 @Param("offset") int offset, 
-                                 @Param("pageSize") int pageSize);
+                                 @Param("projectId") Integer projectId);
     
     /**
      * 根据分组ID查询元素数量
      *
      * @param groupId 分组ID
+     * @param projectId 项目ID
      * @return 元素数量
      */
-    int countByGroupId(@Param("groupId") Long groupId);
+    int countByGroupId(@Param("groupId") Long groupId, @Param("projectId") Integer projectId);
     
     /**
      * 更新元素截图路径
      *
      * @param id 元素ID
      * @param screenshotPath 截图路径
+     * @param projectId 项目ID
      * @return 影响的行数
      */
-    int updateScreenshotPath(@Param("id") Long id, @Param("screenshotPath") String screenshotPath);
+    int updateScreenshotPath(@Param("id") Long id, @Param("screenshotPath") String screenshotPath, @Param("projectId") Integer projectId);
 } 

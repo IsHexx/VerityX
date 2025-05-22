@@ -23,31 +23,42 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted, watch } from 'vue';
 import CommonHeader from "@/components/CommonHeader.vue";
 import CommonAside from "@/components/CommonAside.vue";
 import { useMenuStore } from '@/store/menuStore';
+import { useProjectStore } from '@/store/projectStore';
+import { useRoute } from 'vue-router';
 
-export default {
-  components: {
-    CommonAside,
-    CommonHeader,
-  },
-  data() {
-    return {
-      currentSubMenus: [] // 用于存储当前顶部菜单的子菜单
-    }
-  },
-  methods: {
-    updateTopMenu(mainMenuIndex) {
-      const { menuItems } = useMenuStore();
-      const mainMenu = menuItems.find(item => item.index === mainMenuIndex);
-      this.currentSubMenus = mainMenu ? mainMenu.subMenus : [];
-    }
-  }
+// 当前顶部菜单的子菜单
+const currentSubMenus = ref([]);
+const { menuItems } = useMenuStore();
+const { currentProject, initProjectState } = useProjectStore();
+const route = useRoute();
+
+// 更新顶部菜单
+const updateTopMenu = (mainMenuIndex) => {
+  console.log('更新顶部菜单:', mainMenuIndex);
+  const mainMenu = menuItems.find(item => item.index === mainMenuIndex);
+  currentSubMenus.value = mainMenu ? mainMenu.subMenus : [];
 };
-</script>
 
+// 在组件挂载时初始化项目状态
+onMounted(() => {
+  console.log('HomePage组件挂载');
+  // 初始化项目状态
+  initProjectState();
+  
+  // 打印当前项目信息
+  console.log('当前项目信息(HomePage):', currentProject.value);
+});
+
+// 监听路由变化
+watch(() => route.path, (newPath) => {
+  console.log('路由变化:', newPath);
+}, { immediate: true });
+</script>
 
 <style scoped>
 .common-layout {

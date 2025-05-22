@@ -147,11 +147,12 @@
   </div>
 </template>
 <script setup>
-import { ref, watch, onMounted,provide, inject } from 'vue';
+import { ref, watch, onMounted, provide, inject } from 'vue';
 import { Folder, Link, Plus, More } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { ApiManageApi } from "@/api/apiManageService";
-import { useStore } from 'vuex'
+import { useStore } from 'vuex';
+import { useProjectStore } from '@/store/projectStore';
 
 const treeRef = ref(null);
 const mouseLeaveTimer = ref(null);
@@ -179,6 +180,17 @@ const handleNodeClick = (api) => {
     }
   }
 };
+
+// 获取项目存储
+const projectStore = useProjectStore();
+
+// 项目ID变化时重新加载数据
+watch(() => projectStore.currentProjectId, (newProjectId, oldProjectId) => {
+  if (newProjectId !== oldProjectId) {
+    console.log("项目ID变化, 重新加载接口列表");
+    loadApiData();
+  }
+});
 
 // 树形结构数据
 const treeData = ref([]);

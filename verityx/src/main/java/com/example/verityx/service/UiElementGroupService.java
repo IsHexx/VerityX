@@ -12,17 +12,19 @@ public interface UiElementGroupService {
     /**
      * 获取所有UI元素分组
      *
+     * @param projectId 项目ID
      * @return UI元素分组列表
      */
-    List<UiElementGroupDTO> getElementGroups();
+    List<UiElementGroupDTO> getElementGroups(Integer projectId);
     
     /**
      * 根据ID获取UI元素分组
      *
      * @param id UI元素分组ID
+     * @param projectId 项目ID
      * @return UI元素分组DTO
      */
-    UiElementGroupDTO getElementGroupById(Long id);
+    UiElementGroupDTO getElementGroupById(Long id, Integer projectId);
     
     /**
      * 创建UI元素分组
@@ -44,9 +46,10 @@ public interface UiElementGroupService {
      * 删除UI元素分组
      *
      * @param id UI元素分组ID
+     * @param projectId 项目ID
      * @return 是否成功删除
      */
-    boolean deleteElementGroup(Long id);
+    boolean deleteElementGroup(Long id, Integer projectId);
     
     /**
      * 同步元素分组计数

@@ -66,25 +66,29 @@ public interface UiTestExecutionMapper {
      * @param executionType 执行类型
      * @param offset 偏移量
      * @param pageSize 页大小
+     * @param projectId 项目ID
      * @return 执行记录列表
      */
     List<UiTestExecution> selectByPage(@Param("keyword") String keyword, 
-            @Param("status") String status,
+            @Param("status") String status, 
             @Param("executionType") String executionType,
             @Param("offset") int offset, 
-            @Param("pageSize") int pageSize);
-    
+            @Param("pageSize") int pageSize,
+            @Param("projectId") Long projectId);
+            
     /**
-     * 查询记录总数
+     * 统计符合条件的执行记录总数
      * 
      * @param keyword 关键字
      * @param status 状态
      * @param executionType 执行类型
+     * @param projectId 项目ID
      * @return 记录总数
      */
     int countByCondition(@Param("keyword") String keyword, 
-            @Param("status") String status,
-            @Param("executionType") String executionType);
+            @Param("status") String status, 
+            @Param("executionType") String executionType,
+            @Param("projectId") Long projectId);
     
     /**
      * 根据执行类型和来源ID查询最近的执行记录

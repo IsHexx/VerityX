@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -14,11 +16,12 @@ import java.util.Map;
 /**
  * UI测试用例控制器
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/uitestcases")
 @Tag(name = "UI测试用例管理", description = "UI测试用例的增删改查接口")
 public class UiTestCaseController {
+    private static final Logger log = LoggerFactory.getLogger(UiTestCaseController.class);
+    
     private final UiTestCaseService uiTestCaseService;
 
     public UiTestCaseController(UiTestCaseService uiTestCaseService) {
@@ -38,15 +41,15 @@ public class UiTestCaseController {
     }
 
     @PutMapping("/{caseId}")
-    @Operation(summary = "更新UI测试用例", description = "更新现有UI测试用例")
+    @Operation(summary = "更新UI测试用例", description = "更新现有的UI测试用例")
     public JsonResult updateUiTestCase(
             @Parameter(description = "用例ID") @PathVariable String caseId,
             @RequestBody UiTestCaseDTO uiTestCaseDTO) {
         try {
             uiTestCaseDTO.setCaseId(caseId);
-            boolean success = uiTestCaseService.updateUiTestCase(uiTestCaseDTO);
+            boolean result = uiTestCaseService.updateUiTestCase(uiTestCaseDTO);
             
-            if (success) {
+            if (result) {
                 return JsonResult.success("更新成功");
             } else {
                 return JsonResult.error("更新失败: 用例不存在");
@@ -58,13 +61,14 @@ public class UiTestCaseController {
     }
 
     @DeleteMapping("/{caseId}")
-    @Operation(summary = "删除UI测试用例", description = "删除UI测试用例")
+    @Operation(summary = "删除UI测试用例", description = "删除指定的UI测试用例")
     public JsonResult deleteUiTestCase(
-            @Parameter(description = "用例ID") @PathVariable String caseId) {
+            @Parameter(description = "用例ID") @PathVariable String caseId,
+            @Parameter(description = "项目ID") @RequestParam(required = false) Integer projectId) {
         try {
-            boolean success = uiTestCaseService.deleteUiTestCase(caseId);
+            boolean result = uiTestCaseService.deleteUiTestCase(caseId, projectId);
             
-            if (success) {
+            if (result) {
                 return JsonResult.success("删除成功");
             } else {
                 return JsonResult.error("删除失败: 用例不存在");
@@ -78,9 +82,10 @@ public class UiTestCaseController {
     @GetMapping("/{caseId}")
     @Operation(summary = "获取UI测试用例详情", description = "根据ID获取UI测试用例详情")
     public JsonResult getUiTestCaseDetail(
-            @Parameter(description = "用例ID") @PathVariable String caseId) {
+            @Parameter(description = "用例ID") @PathVariable String caseId,
+            @Parameter(description = "项目ID") @RequestParam(required = false) Integer projectId) {
         try {
-            UiTestCaseDTO uiTestCaseDTO = uiTestCaseService.getUiTestCaseDetail(caseId);
+            UiTestCaseDTO uiTestCaseDTO = uiTestCaseService.getUiTestCaseDetail(caseId, projectId);
             
             if (uiTestCaseDTO != null) {
                 return JsonResult.success(uiTestCaseDTO);
@@ -98,10 +103,11 @@ public class UiTestCaseController {
     public JsonResult getUiTestCaseList(
             @Parameter(description = "搜索关键字") @RequestParam(required = false) String keyword,
             @Parameter(description = "用例状态: all_cases, executed, unexecuted") @RequestParam(required = false, defaultValue = "all_cases") String status,
+            @Parameter(description = "项目ID") @RequestParam(required = false) Integer projectId,
             @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") int pageSize) {
         try {
-            Map<String, Object> result = uiTestCaseService.getUiTestCaseList(keyword, status, page, pageSize);
+            Map<String, Object> result = uiTestCaseService.getUiTestCaseList(keyword, status, projectId, page, pageSize);
             return JsonResult.success(result);
         } catch (Exception e) {
             log.error("查询UI测试用例列表失败", e);
@@ -112,9 +118,10 @@ public class UiTestCaseController {
     @PostMapping("/{caseId}/execute")
     @Operation(summary = "执行UI测试用例", description = "执行指定的UI测试用例")
     public JsonResult executeUiTestCase(
-            @Parameter(description = "用例ID") @PathVariable String caseId) {
+            @Parameter(description = "用例ID") @PathVariable String caseId,
+            @Parameter(description = "项目ID") @RequestParam(required = false) Integer projectId) {
         try {
-            String executionId = uiTestCaseService.executeUiTestCase(caseId);
+            String executionId = uiTestCaseService.executeUiTestCase(caseId, projectId);
             
             if (executionId != null) {
                 return JsonResult.success("执行成功", executionId);

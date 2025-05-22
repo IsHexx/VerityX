@@ -5,10 +5,10 @@
     <insert id="insertEnvironment" parameterType="com.example.verityx.entity.ApiEnvironment" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO api_environment(
             env_name, base_url, description, is_default, 
-            global_headers, global_params, create_time, update_time
+            global_headers, global_params, create_time, update_time, project_id
         ) VALUES(
             #{envName}, #{baseUrl}, #{description}, #{isDefault},
-            #{globalHeaders}, #{globalParams}, NOW(), NOW()
+            #{globalHeaders}, #{globalParams}, NOW(), NOW(), #{projectId}
         )
     </insert>
     
@@ -17,7 +17,13 @@
     </select>
     
     <select id="selectAllEnvironments" resultType="com.example.verityx.entity.ApiEnvironment">
-        SELECT * FROM api_environment ORDER BY is_default DESC, create_time DESC
+        SELECT * FROM api_environment 
+        <where>
+            <if test="projectId != null and projectId != ''">
+                project_id = #{projectId}
+            </if>
+        </where>
+        ORDER BY is_default DESC, create_time DESC
     </select>
     
     <select id="selectEnvironmentsByPage" resultType="com.example.verityx.entity.ApiEnvironment">
@@ -25,6 +31,9 @@
         <where>
             <if test="keyword != null and keyword != ''">
                 AND (env_name LIKE CONCAT('%', #{keyword}, '%') OR base_url LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
             </if>
         </where>
         ORDER BY is_default DESC, create_time DESC 
@@ -37,6 +46,9 @@
             <if test="keyword != null and keyword != ''">
                 AND (env_name LIKE CONCAT('%', #{keyword}, '%') OR base_url LIKE CONCAT('%', #{keyword}, '%'))
             </if>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
+            </if>
         </where>
     </select>
     
@@ -48,7 +60,8 @@
             is_default = #{isDefault}, 
             global_headers = #{globalHeaders}, 
             global_params = #{globalParams}, 
-            update_time = NOW() 
+            update_time = NOW(),
+            project_id = #{projectId}
         WHERE id = #{id}
     </update>
     
@@ -64,11 +77,20 @@
     </delete>
     
     <select id="selectDefaultEnvironment" resultType="com.example.verityx.entity.ApiEnvironment">
-        SELECT * FROM api_environment WHERE is_default = true LIMIT 1
+        SELECT * FROM api_environment WHERE is_default = true 
+        <if test="projectId != null and projectId != ''">
+            AND project_id = #{projectId}
+        </if>
+        LIMIT 1
     </select>
     
     <update id="clearDefaultStatus">
         UPDATE api_environment SET is_default = false
+        <where>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
+            </if>
+        </where>
     </update>
     
     <update id="setDefaultEnvironment">

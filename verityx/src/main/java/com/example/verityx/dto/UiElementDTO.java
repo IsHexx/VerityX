@@ -10,6 +10,7 @@ public class UiElementDTO {
     private String elementName;
     private Long groupId;
     private String groupName;
+    private Integer projectId;
     private String locatorType;
     private String locatorValue;
     private String description;
@@ -53,7 +54,7 @@ public class UiElementDTO {
     public static class ValidateResponse {
         private boolean valid;
         private String message;
-        private String screenshotData;
+        private String screenshotBase64;
         
         public boolean isValid() {
             return valid;
@@ -71,12 +72,12 @@ public class UiElementDTO {
             this.message = message;
         }
         
-        public String getScreenshotData() {
-            return screenshotData;
+        public String getScreenshotBase64() {
+            return screenshotBase64;
         }
         
-        public void setScreenshotData(String screenshotData) {
-            this.screenshotData = screenshotData;
+        public void setScreenshotBase64(String screenshotBase64) {
+            this.screenshotBase64 = screenshotBase64;
         }
     }
 
@@ -111,6 +112,14 @@ public class UiElementDTO {
 
     public void setGroupName(String groupName) {
         this.groupName = groupName;
+    }
+
+    public Integer getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Integer projectId) {
+        this.projectId = projectId;
     }
 
     public String getLocatorType() {

@@ -18,6 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -37,9 +38,10 @@ public class ApiTestReportController {
             @RequestParam(value = "page", defaultValue = "1") Integer page,
             @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
             @RequestParam(value = "keyword", required = false) String keyword,
-            @RequestParam(value = "status", required = false) String status) {
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "projectId", required = false) String projectId) {
         
-        Map<String, Object> result = apiTestReportService.getReportsByPage(keyword, status, page, pageSize);
+        Map<String, Object> result = apiTestReportService.getReportsByPage(keyword, status, projectId, page, pageSize);
         return JsonResult.success(result);
     }
 
@@ -61,20 +63,7 @@ public class ApiTestReportController {
      */
     @PostMapping
     @Operation(summary = "创建API测试报告", description = "创建新的API测试报告")
-    public JsonResult createReport(@RequestBody ApiTestReportDTO reportDTO) {
-        ApiTestReport report = new ApiTestReport();
-        // 将DTO转换为实体
-        report.setApiName(reportDTO.getApiName());
-        report.setUrl(reportDTO.getUrl());
-        report.setMethod(reportDTO.getMethod());
-        report.setStatus(reportDTO.getStatus());
-        report.setResponseTime(reportDTO.getResponseTime());
-        report.setExecutionTime(reportDTO.getExecutionTime());
-        report.setExecutor(reportDTO.getExecutor());
-        report.setHeaders(reportDTO.getHeaders());
-        report.setParams(reportDTO.getParams());
-        report.setResponse(reportDTO.getResponse());
-        
+    public JsonResult createReport(@RequestBody ApiTestReport report) {
         ApiTestReport createdReport = apiTestReportService.createReport(report);
         return JsonResult.success(createdReport);
     }
@@ -84,27 +73,11 @@ public class ApiTestReportController {
      */
     @PutMapping("/{id}")
     @Operation(summary = "更新API测试报告", description = "根据ID更新API测试报告")
-    public JsonResult updateReport(@PathVariable("id") Integer id, @RequestBody ApiTestReportDTO reportDTO) {
-        ApiTestReport existingReport = apiTestReportService.getReportById(id);
-        if (existingReport == null) {
-            return JsonResult.error("测试报告不存在");
-        }
-
-        // 更新属性
-        existingReport.setApiName(reportDTO.getApiName());
-        existingReport.setUrl(reportDTO.getUrl());
-        existingReport.setMethod(reportDTO.getMethod());
-        existingReport.setStatus(reportDTO.getStatus());
-        existingReport.setResponseTime(reportDTO.getResponseTime());
-        existingReport.setExecutionTime(reportDTO.getExecutionTime());
-        existingReport.setExecutor(reportDTO.getExecutor());
-        existingReport.setHeaders(reportDTO.getHeaders());
-        existingReport.setParams(reportDTO.getParams());
-        existingReport.setResponse(reportDTO.getResponse());
-
-        boolean result = apiTestReportService.updateReport(existingReport);
+    public JsonResult updateReport(@PathVariable("id") Integer id, @RequestBody ApiTestReport report) {
+        report.setId(id);
+        boolean result = apiTestReportService.updateReport(report);
         if (result) {
-            return JsonResult.success(existingReport);
+            return JsonResult.success("更新成功");
         } else {
             return JsonResult.error("更新失败");
         }
@@ -128,9 +101,9 @@ public class ApiTestReportController {
      * 批量删除API测试报告
      */
     @PostMapping("/batch-delete")
-    @Operation(summary = "批量删除API测试报告", description = "批量删除多个API测试报告")
-    public JsonResult batchDeleteReports(@RequestBody ApiTestReportDTO reportDTO) {
-        boolean result = apiTestReportService.batchDeleteReports(reportDTO.getIds());
+    @Operation(summary = "批量删除API测试报告", description = "批量删除API测试报告")
+    public JsonResult batchDelete(@RequestBody List<Integer> ids) {
+        boolean result = apiTestReportService.batchDeleteReports(ids);
         if (result) {
             return JsonResult.success("批量删除成功");
         } else {

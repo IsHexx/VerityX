@@ -15,6 +15,7 @@ public class ApiEnvironmentDTO {
     private Boolean isDefault;
     private String globalHeaders;
     private String globalParams;
+    private String projectId;
     private List<Integer> ids; // 用于批量操作
 
     public Integer getId() {
@@ -71,6 +72,14 @@ public class ApiEnvironmentDTO {
 
     public void setGlobalParams(String globalParams) {
         this.globalParams = globalParams;
+    }
+    
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
     }
 
     public List<Integer> getIds() {

@@ -22,7 +22,7 @@ public class ApiEnvironmentServiceImpl implements ApiEnvironmentService {
     public ApiEnvironment createEnvironment(ApiEnvironment environment) {
         // 如果设置为默认环境，需要清除其他环境的默认状态
         if (environment.getIsDefault() != null && environment.getIsDefault()) {
-            apiEnvironmentMapper.clearDefaultStatus();
+            apiEnvironmentMapper.clearDefaultStatus(environment.getProjectId());
         }
         apiEnvironmentMapper.insertEnvironment(environment);
         return environment;
@@ -34,20 +34,20 @@ public class ApiEnvironmentServiceImpl implements ApiEnvironmentService {
     }
 
     @Override
-    public List<ApiEnvironment> getAllEnvironments() {
-        return apiEnvironmentMapper.selectAllEnvironments();
+    public List<ApiEnvironment> getAllEnvironments(String projectId) {
+        return apiEnvironmentMapper.selectAllEnvironments(projectId);
     }
 
     @Override
-    public Map<String, Object> getEnvironmentsByPage(String keyword, int page, int pageSize) {
+    public Map<String, Object> getEnvironmentsByPage(String keyword, String projectId, int page, int pageSize) {
         Map<String, Object> result = new HashMap<>();
         
         // 计算偏移量
         int offset = (page - 1) * pageSize;
         
         // 查询数据
-        List<ApiEnvironment> environments = apiEnvironmentMapper.selectEnvironmentsByPage(keyword, offset, pageSize);
-        int total = apiEnvironmentMapper.countEnvironments(keyword);
+        List<ApiEnvironment> environments = apiEnvironmentMapper.selectEnvironmentsByPage(keyword, projectId, offset, pageSize);
+        int total = apiEnvironmentMapper.countEnvironments(keyword, projectId);
         
         result.put("data", environments);
         result.put("total", total);
@@ -62,7 +62,7 @@ public class ApiEnvironmentServiceImpl implements ApiEnvironmentService {
     public boolean updateEnvironment(ApiEnvironment environment) {
         // 如果设置为默认环境，需要清除其他环境的默认状态
         if (environment.getIsDefault() != null && environment.getIsDefault()) {
-            apiEnvironmentMapper.clearDefaultStatus();
+            apiEnvironmentMapper.clearDefaultStatus(environment.getProjectId());
         }
         return apiEnvironmentMapper.updateEnvironment(environment) > 0;
     }
@@ -82,27 +82,27 @@ public class ApiEnvironmentServiceImpl implements ApiEnvironmentService {
         if (ids == null || ids.isEmpty()) {
             return false;
         }
-        
-        // 检查是否包含默认环境
-        ApiEnvironment defaultEnv = apiEnvironmentMapper.selectDefaultEnvironment();
-        if (defaultEnv != null && ids.contains(defaultEnv.getId())) {
-            return false; // 包含默认环境，不能批量删除
+        // 不允许删除默认环境，需要先检查
+        for (Integer id : ids) {
+            ApiEnvironment environment = apiEnvironmentMapper.selectEnvironmentById(id);
+            if (environment != null && environment.getIsDefault()) {
+                return false; // 默认环境不能删除
+            }
         }
-        
         return apiEnvironmentMapper.batchDeleteEnvironments(ids) > 0;
     }
-
+    
     @Override
-    public ApiEnvironment getDefaultEnvironment() {
-        return apiEnvironmentMapper.selectDefaultEnvironment();
+    public ApiEnvironment getDefaultEnvironment(String projectId) {
+        return apiEnvironmentMapper.selectDefaultEnvironment(projectId);
     }
-
+    
     @Override
     @Transactional
-    public boolean setDefaultEnvironment(Integer id) {
+    public boolean setDefaultEnvironment(Integer id, String projectId) {
         // 先清除所有默认状态
-        apiEnvironmentMapper.clearDefaultStatus();
-        // 设置新的默认环境
+        apiEnvironmentMapper.clearDefaultStatus(projectId);
+        // 再设置指定ID为默认
         return apiEnvironmentMapper.setDefaultEnvironment(id) > 0;
     }
 } 

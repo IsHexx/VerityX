@@ -6,11 +6,11 @@
         INSERT INTO api_test_report(
             api_name, url, method, status, response_time, 
             execution_time, executor, headers, params, response, 
-            create_time, update_time
+            create_time, update_time, project_id
         ) VALUES(
             #{apiName}, #{url}, #{method}, #{status}, #{responseTime}, 
             #{executionTime}, #{executor}, #{headers}, #{params}, #{response}, 
-            NOW(), NOW()
+            NOW(), NOW(), #{projectId}
         )
     </insert>
     
@@ -25,6 +25,9 @@
             <if test="keyword != null and keyword != ''">
                 AND (api_name LIKE CONCAT('%', #{keyword}, '%') OR url LIKE CONCAT('%', #{keyword}, '%'))
             </if>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
+            </if>
         </where>
         ORDER BY execution_time DESC 
         LIMIT #{offset}, #{pageSize}
@@ -36,6 +39,9 @@
             <if test="status != null and status != ''">AND status = #{status}</if>
             <if test="keyword != null and keyword != ''">
                 AND (api_name LIKE CONCAT('%', #{keyword}, '%') OR url LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
             </if>
         </where>
     </select>
@@ -52,7 +58,8 @@
             headers = #{headers}, 
             params = #{params}, 
             response = #{response}, 
-            update_time = NOW() 
+            update_time = NOW()
+            <if test="projectId != null and projectId != ''">, project_id = #{projectId}</if>
         WHERE id = #{id}
     </update>
     

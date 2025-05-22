@@ -21,7 +21,7 @@
             <el-button type="primary" @click="openExecutionDialog">+ 新建执行</el-button>
           </el-col>
         </el-row>
-        
+
         <div v-if="activeTab === 'queue'">
           <!-- 执行队列 -->
           <el-table
@@ -56,15 +56,15 @@
             <el-table-column prop="browser" label="浏览器" min-width="100" />
             <el-table-column prop="progress" label="进度" min-width="200">
               <template #default="scope">
-                <el-progress 
-                  :percentage="scope.row.progress" 
+                <el-progress
+                  :percentage="scope.row.progress"
                   :status="getProgressStatus(scope.row.status)"
                 />
               </template>
             </el-table-column>
             <el-table-column prop="queueTime" label="进入队列时间" min-width="180" />
             <el-table-column prop="startTime" label="开始执行时间" min-width="180" />
-            
+
             <el-table-column label="操作" width="220" fixed="right">
               <template #default="scope">
                 <el-button type="primary" size="small" @click="viewExecutionDetail(scope.row)" :disabled="scope.row.status === '排队中'">
@@ -76,7 +76,7 @@
               </template>
             </el-table-column>
           </el-table>
-          
+
           <!-- 队列分页组件 -->
           <div class="pagination-container" v-if="total > 0">
             <el-pagination
@@ -90,7 +90,7 @@
             />
           </div>
         </div>
-        
+
         <div v-else>
           <!-- 执行历史 -->
           <el-row style="margin: 20px 0 10px 0">
@@ -128,7 +128,7 @@
               </el-form>
             </el-col>
           </el-row>
-          
+
           <el-table
             :data="historyData"
             :border="true"
@@ -163,7 +163,7 @@
             <el-table-column prop="startTime" label="开始时间" min-width="180" />
             <el-table-column prop="endTime" label="结束时间" min-width="180" />
             <el-table-column prop="executedBy" label="执行人" min-width="100" />
-            
+
             <el-table-column fixed="right" label="操作" min-width="240">
               <template #default="{ row }">
                 <el-button link type="primary" size="small" @click="viewExecutionDetail(row)">
@@ -181,9 +181,9 @@
               </template>
             </el-table-column>
           </el-table>
-          
-          <PaginationPage 
-            :total="total" 
+
+          <PaginationPage
+            :total="total"
             @update:pagination="handlePaginationChange"
           />
         </div>
@@ -222,6 +222,19 @@ import { ref, reactive, onMounted, computed } from "vue";
 import { Search } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { UiTestExecutionApi } from "@/api/uiTestExecutionService";
+import { useProjectStore } from '@/store/projectStore';
+
+// 使用项目Store
+const projectStore = useProjectStore();
+// 确保初始化项目状态
+projectStore.initProjectState();
+
+// 计算当前项目ID
+const currentProjectId = computed(() => {
+  const id = projectStore.getCurrentProjectId();
+  console.log("UiTestExecutionPage - 当前项目ID:", id);
+  return id;
+});
 
 // 状态管理
 const loading = ref(false);
@@ -293,13 +306,14 @@ const fetchQueueData = async () => {
   try {
     const params = {
       page: pagination.page,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
+      projectId: currentProjectId.value
     };
-    
-    if (searchKeyword.value) {
-      params.keyword = searchKeyword.value;
-    }
-    
+
+    if (filters.status) params.status = filters.status;
+
+    console.log("fetchQueueData - 发送请求参数:", JSON.stringify(params));
+
     const res = await UiTestExecutionApi.getExecutionQueue(params);
     if (res.code === 200 && res.data) {
       // 处理返回的分页数据结构
@@ -349,16 +363,19 @@ const fetchHistoryData = async () => {
     const params = {
       page: pagination.page,
       pageSize: pagination.pageSize,
-      keyword: searchKeyword.value
+      keyword: searchKeyword.value,
+      projectId: currentProjectId.value
     };
-    
+
     if (filters.status) params.status = filters.status;
     if (filters.type) params.type = filters.type;
     if (filters.timeRange && filters.timeRange.length === 2) {
       params.startTime = filters.timeRange[0];
       params.endTime = filters.timeRange[1];
     }
-    
+
+    console.log("fetchHistoryData - 发送请求参数:", JSON.stringify(params));
+
     const res = await UiTestExecutionApi.getExecutionList(params);
     if (res.code === 200 && res.data) {
       // 确保返回的数据是结构化的，包含list字段
@@ -502,7 +519,10 @@ onMounted(() => {
   pagination.page = 1;
   pagination.pageSize = 10;
   searchKeyword.value = '';
-  
+
+  console.log("UiTestExecutionPage - 组件挂载时的项目ID:", currentProjectId.value);
+  console.log("UiTestExecutionPage - 项目ID类型:", typeof currentProjectId.value);
+
   // 获取队列数据
   fetchQueueData();
 });
@@ -542,4 +562,4 @@ onMounted(() => {
 :deep(.el-tag) {
   font-weight: 500;
 }
-</style> 
+</style>

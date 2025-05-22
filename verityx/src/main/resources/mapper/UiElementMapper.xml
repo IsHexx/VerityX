@@ -12,7 +12,8 @@
             description, 
             screenshot_path, 
             created_by, 
-            created_at
+            created_at,
+            project_id
         ) VALUES (
             #{elementName}, 
             #{groupId}, 
@@ -21,7 +22,8 @@
             #{description}, 
             #{screenshotPath}, 
             #{createdBy}, 
-            #{createdAt}
+            #{createdAt},
+            #{projectId}
         )
     </insert>
     
@@ -36,6 +38,9 @@
             screenshot_path = #{screenshotPath},
             updated_at = #{updatedAt}
         WHERE id = #{id}
+        <if test="projectId != null">
+            AND project_id = #{projectId}
+        </if>
     </update>
     
     <!-- 更新元素截图路径 -->
@@ -44,11 +49,18 @@
         SET screenshot_path = #{screenshotPath},
             updated_at = NOW()
         WHERE id = #{id}
+        <if test="projectId != null">
+            AND project_id = #{projectId}
+        </if>
     </update>
     
     <!-- 根据ID删除UI元素 -->
     <delete id="deleteById">
-        DELETE FROM ui_element WHERE id = #{id}
+        DELETE FROM ui_element 
+        WHERE id = #{id}
+        <if test="projectId != null">
+            AND project_id = #{projectId}
+        </if>
     </delete>
     
     <!-- 根据ID查询UI元素 -->
@@ -63,13 +75,17 @@
             screenshot_path AS screenshotPath,
             created_by AS createdBy,
             created_at AS createdAt,
-            updated_at AS updatedAt
+            updated_at AS updatedAt,
+            project_id AS projectId
         FROM ui_element
         WHERE id = #{id}
+        <if test="projectId != null">
+            AND project_id = #{projectId}
+        </if>
     </select>
     
     <!-- 查询UI元素总数 -->
-    <select id="countElements" resultType="int">
+    <select id="countTotal" resultType="int">
         SELECT COUNT(*)
         FROM ui_element
         <where>
@@ -86,6 +102,9 @@
             <if test="locatorType != null and locatorType != ''">
                 AND locator_type = #{locatorType}
             </if>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
         </where>
     </select>
     
@@ -101,7 +120,8 @@
             screenshot_path AS screenshotPath,
             created_by AS createdBy,
             created_at AS createdAt,
-            updated_at AS updatedAt
+            updated_at AS updatedAt,
+            project_id AS projectId
         FROM ui_element
         <where>
             <if test="keyword != null and keyword != ''">
@@ -117,6 +137,9 @@
             <if test="locatorType != null and locatorType != ''">
                 AND locator_type = #{locatorType}
             </if>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
         </where>
         ORDER BY created_at DESC
         LIMIT #{offset}, #{pageSize}
@@ -124,6 +147,10 @@
     
     <!-- 根据分组ID查询元素数量 -->
     <select id="countByGroupId" resultType="int">
-        SELECT COUNT(*) FROM ui_element WHERE group_id = #{groupId}
+        SELECT COUNT(*) FROM ui_element 
+        WHERE group_id = #{groupId}
+        <if test="projectId != null">
+            AND project_id = #{projectId}
+        </if>
     </select>
 </mapper> 

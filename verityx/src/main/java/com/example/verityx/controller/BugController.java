@@ -41,13 +41,20 @@ public class BugController {
     // 分页获取测试计划
     @Operation(summary = "分页查询Bug", description = "根据分页参数查询Bug")
     @GetMapping("/list")
-    public ApiResponse<Map<String, Object>> getBugsWithPagination(@RequestParam int page, @RequestParam int pageSize, @RequestParam(required = false) String status) {
+    public ApiResponse<Map<String, Object>> getBugsWithPagination(
+            @RequestParam int page, 
+            @RequestParam int pageSize, 
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String projectId) {
 
         int offset = (page - 1) * pageSize;
         System.out.println("pageSize是:" + pageSize);
         System.out.println("offset:" + offset);
-        List<Bug> bug = bugService.getBugsWithPagination(pageSize, offset, status);
-        int total = bugService.getBugCount(status); // 获取总记录数
+        System.out.println("projectId:" + projectId);
+        
+        List<Bug> bug = bugService.getBugsWithPagination(pageSize, offset, status, keyword, projectId);
+        int total = bugService.getBugCount(status, keyword, projectId); // 获取总记录数
         Map<String, Object> response = new HashMap<>();
         response.put("data", bug);
         response.put("total", total);
@@ -69,7 +76,8 @@ public class BugController {
     @Operation(summary = "修改缺陷", description = "根据缺陷信息,修改缺陷")
     @PutMapping("/{id}")
     public ApiResponse<Bug> updateBug(@PathVariable int id, @RequestBody Bug bug) {
-        bug.setPlanId(id);
+        // 设置Bug ID
+        bug.setBugId(id);
         boolean updated = bugService.updateBug(bug);
         return updated ? ApiResponse.success(bug) : ApiResponse.error(400, "更新失败");
     }

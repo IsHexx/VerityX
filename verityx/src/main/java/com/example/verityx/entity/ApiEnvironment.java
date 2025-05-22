@@ -14,6 +14,7 @@ public class ApiEnvironment {
     private Boolean isDefault;      // 是否为默认环境
     private String globalHeaders;   // 全局请求头，JSON格式
     private String globalParams;    // 全局参数，JSON格式
+    private String projectId;       // 项目ID
     private Date createTime;        // 创建时间
     private Date updateTime;        // 更新时间
 
@@ -72,6 +73,14 @@ public class ApiEnvironment {
     public void setGlobalParams(String globalParams) {
         this.globalParams = globalParams;
     }
+    
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
+    }
 
     public Date getCreateTime() {
         return createTime;
@@ -99,6 +108,7 @@ public class ApiEnvironment {
                 ", isDefault=" + isDefault +
                 ", globalHeaders='" + globalHeaders + '\'' +
                 ", globalParams='" + globalParams + '\'' +
+                ", projectId='" + projectId + '\'' +
                 ", createTime=" + createTime +
                 ", updateTime=" + updateTime +
                 '}';

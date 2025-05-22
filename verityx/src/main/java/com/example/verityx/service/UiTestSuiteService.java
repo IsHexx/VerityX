@@ -14,17 +14,19 @@ public interface UiTestSuiteService {
      * @param pageSize 每页大小
      * @param keyword  搜索关键词
      * @param status   套件状态
+     * @param projectId 项目ID
      * @return 分页测试套件列表
      */
-    PageResult<UiTestSuiteDTO> getUiTestSuiteList(Integer page, Integer pageSize, String keyword, String status);
+    PageResult<UiTestSuiteDTO> getUiTestSuiteList(Integer page, Integer pageSize, String keyword, String status, Long projectId);
     
     /**
      * 根据ID获取UI测试套件详情
      *
      * @param id 测试套件ID
+     * @param projectId 项目ID
      * @return 测试套件详情
      */
-    UiTestSuiteDTO getUiTestSuiteById(Long id);
+    UiTestSuiteDTO getUiTestSuiteById(Long id, Long projectId);
     
     /**
      * 创建UI测试套件
@@ -46,8 +48,9 @@ public interface UiTestSuiteService {
      * 删除UI测试套件
      *
      * @param id 测试套件ID
+     * @param projectId 项目ID
      */
-    void deleteUiTestSuite(Long id);
+    void deleteUiTestSuite(Long id, Long projectId);
     
     /**
      * 执行UI测试套件

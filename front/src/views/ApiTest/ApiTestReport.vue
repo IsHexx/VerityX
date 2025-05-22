@@ -1,5 +1,5 @@
 <template>
-  <div class="api-test-report-container">
+    <div class="api-test-report-container">    <!-- Removed duplicate header -->        
     <el-card class="report-card">
       <template #header>
         <div class="card-header">
@@ -136,11 +136,10 @@
 
 <script setup>
 import PaginationPage from "@/components/PaginationPage.vue";
-import { ref, reactive, onMounted, computed } from "vue";
+import { ref, reactive, onMounted, computed, watch } from "vue";
 import { Search } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
-import { useRouter } from "vue-router";
-import { ApiTestReportApi } from "@/api/apiTestReportService";
+import { useRouter } from "vue-router";import { ApiTestReportApi } from "@/api/apiTestReportService";import { useProjectStore } from "@/store/projectStore";
 
 const router = useRouter();
 
@@ -315,6 +314,17 @@ const handlePaginationChange = ({ page, pageSize }) => {
   pagination.pageSize = pageSize;
   fetchApiTestReportList();
 };
+
+// 获取项目存储
+const projectStore = useProjectStore();
+
+// 项目ID变化时重新加载数据
+watch(() => projectStore.currentProjectId, (newProjectId, oldProjectId) => {
+  if (newProjectId !== oldProjectId) {
+    console.log("项目ID变化, 重新加载API测试报告数据");
+    loadReportData(activeTab.value);
+  }
+});
 
 // 组件挂载时获取数据
 onMounted(() => {

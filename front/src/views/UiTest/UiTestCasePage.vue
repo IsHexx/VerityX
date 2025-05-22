@@ -155,10 +155,19 @@
 
 <script setup>
 import PaginationPage from "@/components/PaginationPage.vue";
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed, watch } from "vue";
 import { Search } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { UiTestCaseApi } from "@/api/uiTestCaseService";
+import { useProjectStore } from '@/store/projectStore';
+
+// 使用项目Store
+const projectStore = useProjectStore();
+// 确保初始化项目状态
+projectStore.initProjectState();
+
+// 计算当前项目ID - 修正为使用正确的方法
+const currentProjectId = computed(() => projectStore.getCurrentProjectId());
 
 // 状态管理
 const loading = ref(false);
@@ -177,17 +186,28 @@ const pagination = reactive({
 });
 
 // 项目选项
-const projectOptions = ref([
-  { value: '1', label: '电商系统项目' },
-  { value: '2', label: '金融系统项目' },
-  { value: '3', label: '社交媒体项目' }
-]);
+const projectOptions = ref([]);
 
-// 表单数据
+// 加载项目选项
+const loadProjectOptions = async () => {
+  try {
+    const res = await projectStore.getProjects();
+    if (res && res.data) {
+      projectOptions.value = res.data.map(project => ({
+        value: project.id,
+        label: project.name
+      }));
+    }
+  } catch (error) {
+    console.error("加载项目选项失败:", error);
+  }
+};
+
+// 表单数据，defaultProjectId初始值设置为当前项目
 const testCaseForm = reactive({
   id: "",
   caseTitle: "",
-  projectId: "",
+  projectId: "", // 会在resetForm中设置
   importanceLevel: "P2",
   environment: "Chrome",
   precondition: "",
@@ -204,7 +224,7 @@ const resetForm = () => {
   Object.assign(testCaseForm, {
     id: "",
     caseTitle: "",
-    projectId: "",
+    projectId: currentProjectId.value, // 默认设置为当前项目
     importanceLevel: "P2",
     environment: "Chrome",
     precondition: "",
@@ -221,6 +241,13 @@ const resetForm = () => {
 const fetchTestCaseList = async (tabName = activeTab.value, page = pagination.page, pageSize = pagination.pageSize, keyword = searchKeyword.value) => {
   loading.value = true;
   try {
+    // 检查是否有选择项目
+    if (!currentProjectId.value) {
+      ElMessage.warning("请先选择一个项目");
+      loading.value = false;
+      return;
+    }
+    
     // 根据tab名称确定status值
     let status = null;
     if (tabName === 'executed') {
@@ -234,7 +261,11 @@ const fetchTestCaseList = async (tabName = activeTab.value, page = pagination.pa
     }
 
     // 构造请求参数
-    const params = { page, pageSize };
+    const params = { 
+      page, 
+      pageSize,
+      projectId: currentProjectId.value // 添加当前项目ID
+    };
     if (keyword) params.keyword = keyword;
     if (status) params.status = status;
 
@@ -266,9 +297,11 @@ const handleOpenDialog = () => {
 const handleEditTestCase = async (row) => {
   dialogTitle.value = "编辑用例";
   try {
-    const res = await UiTestCaseApi.getUiTestCaseDetail(row.caseId);
+    const res = await UiTestCaseApi.getUiTestCaseDetail(row.caseId, currentProjectId.value);
     if (res.code === 200) {
       Object.assign(testCaseForm, res.data);
+      // 确保projectId字段设置为当前项目
+      testCaseForm.projectId = testCaseForm.projectId || currentProjectId.value;
       dialogVisible.value = true;
     } else {
       ElMessage.error(res.message || '获取用例详情失败');
@@ -281,7 +314,7 @@ const handleEditTestCase = async (row) => {
 // 删除用例
 const handleDeleteTestCase = async (row) => {
   try {
-    const res = await UiTestCaseApi.deleteUiTestCase(row.caseId);
+    const res = await UiTestCaseApi.deleteUiTestCase(row.caseId, currentProjectId.value);
     if (res.code === 200) {
       ElMessage.success("删除成功");
       await fetchTestCaseList();
@@ -296,7 +329,7 @@ const handleDeleteTestCase = async (row) => {
 // 执行用例
 const handleRunTestCase = async (row) => {
   try {
-    const res = await UiTestCaseApi.executeUiTestCase(row.caseId);
+    const res = await UiTestCaseApi.executeUiTestCase(row.caseId, currentProjectId.value);
     if (res.code === 200) {
       ElMessage.success("执行成功");
       await fetchTestCaseList();
@@ -313,6 +346,11 @@ const onSubmit = async () => {
   if (!testCaseForm.caseTitle) {
     ElMessage.warning('请输入用例标题');
     return;
+  }
+  
+  if (!testCaseForm.projectId) {
+    // 确保表单中设置了项目ID
+    testCaseForm.projectId = currentProjectId.value;
   }
 
   try {
@@ -372,8 +410,27 @@ const handleAddTestCase = () => {
 };
 
 // 组件挂载时获取数据
-onMounted(() => {
-  fetchTestCaseList();
+onMounted(async () => {
+  await loadProjectOptions();
+  
+  // 检查是否有选择项目
+  if (!projectStore.hasSelectedProject()) {
+    ElMessage.warning("请先选择一个项目");
+    // 这里可以添加显示项目选择弹窗的逻辑
+  } else {
+    fetchTestCaseList();
+  }
+});
+
+// 修改watchEffect来监听项目变化
+watch(() => projectStore.getCurrentProjectId(), (newProjectId, oldProjectId) => {
+  if (newProjectId !== oldProjectId) {
+    console.log("项目ID变化, 从", oldProjectId, "变为", newProjectId);
+    pagination.page = 1; // 重置分页
+    if (newProjectId) {
+      fetchTestCaseList();
+    }
+  }
 });
 
 // 标签类型映射

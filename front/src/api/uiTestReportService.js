@@ -1,11 +1,12 @@
 import { http } from '@/utils/request'
+import { useProjectStore } from '@/store/projectStore'
 
 export const UiTestReportApi = {
   // 获取UI测试报告列表
   getUiTestReports: (params) => {
     // 构造干净的查询参数对象，只包含非空值
     const cleanParams = {};
-    
+
     // 只添加有值的参数
     if (params.page) cleanParams.page = params.page;
     if (params.pageSize) cleanParams.pageSize = params.pageSize;
@@ -13,7 +14,13 @@ export const UiTestReportApi = {
     if (params.status) cleanParams.status = params.status;
     if (params.startDate) cleanParams.startDate = params.startDate;
     if (params.endDate) cleanParams.endDate = params.endDate;
-    
+
+    // 添加项目ID
+    const projectStore = useProjectStore();
+    if (projectStore.currentProject && projectStore.currentProject.id) {
+      cleanParams.projectId = projectStore.currentProject.id;
+    }
+
     console.log("UI测试报告API调用参数:", cleanParams);
     return http.get('/api/ui-test-reports/list', cleanParams);
   },
@@ -30,15 +37,15 @@ export const UiTestReportApi = {
 
   // 导出UI测试报告为HTML
   exportUiTestReportHtml(id) {
-    return http.get(`/api/ui-test-reports/${id}/export/html`, { 
-      responseType: 'blob' 
+    return http.get(`/api/ui-test-reports/${id}/export/html`, {
+      responseType: 'blob'
     })
   },
-  
+
   // 导出UI测试报告为PDF
   exportUiTestReportPdf(id) {
-    return http.get(`/api/ui-test-reports/${id}/export/pdf`, { 
-      responseType: 'blob' 
+    return http.get(`/api/ui-test-reports/${id}/export/pdf`, {
+      responseType: 'blob'
     })
   },
 
@@ -48,4 +55,4 @@ export const UiTestReportApi = {
   }
 }
 
-export default UiTestReportApi 
+export default UiTestReportApi

@@ -49,7 +49,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue';
+import { ref, reactive, onMounted, watch, computed } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { UiTestConfigApi } from '@/api/uiTestConfigService';
 import BrowserConfig from '@/components/UiTestConfig/BrowserConfig.vue';
@@ -57,6 +57,15 @@ import WaitTimeConfig from '@/components/UiTestConfig/WaitTimeConfig.vue';
 import ScreenshotConfig from '@/components/UiTestConfig/ScreenshotConfig.vue';
 import RetryConfig from '@/components/UiTestConfig/RetryConfig.vue';
 import DefaultConfig from '@/components/UiTestConfig/DefaultConfig.vue';
+import { useProjectStore } from '@/store/projectStore';
+
+// 使用项目Store
+const projectStore = useProjectStore();
+// 确保初始化项目状态
+projectStore.initProjectState();
+
+// 计算当前项目ID
+const currentProjectId = computed(() => projectStore.getCurrentProjectId());
 
 // 状态管理
 const activeTab = ref('browser');

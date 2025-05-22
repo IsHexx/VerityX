@@ -33,8 +33,12 @@ public class TestPlanController {
     // 获取单个测试计划
     @Operation(summary = "查询单个测试计划", description = "按照测试计划id获取测试计划信息")
     @GetMapping("/{planId}")
-    public ApiResponse<TestPlan> getTestPlan(@PathVariable Integer planId) {
+    public ApiResponse<TestPlan> getTestPlan(@PathVariable Integer planId, @RequestParam(required = false) Integer projectId) {
         TestPlan testPlan = testPlanService.getTestPlanById(planId);
+        // 如果提供了项目ID，验证测试计划是否属于该项目
+        if (testPlan != null && projectId != null && !projectId.equals(testPlan.getProjectId())) {
+            return ApiResponse.error(404, "在指定项目中未找到该测试计划");
+        }
         if (testPlan != null) {
             return ApiResponse.success(testPlan);
         }
@@ -42,25 +46,37 @@ public class TestPlanController {
     }
 
     // 获取所有测试计划
-    @Operation(summary = "查询所有测试计划", description = "获取所有测试计划")
+    @Operation(summary = "查询所有测试计划", description = "获取所有测试计划，可以按项目ID筛选")
     @GetMapping
-    public ApiResponse<List<TestPlan>> getAllTestPlans() {
-        List<TestPlan> testPlans = testPlanService.getAllTestPlans();
-        return ApiResponse.success(testPlans);
+    public ApiResponse<List<TestPlan>> getAllTestPlans(@RequestParam(required = false) Integer projectId) {
+        if (projectId != null) {
+            List<TestPlan> testPlans = testPlanService.getTestPlansByProjectId(projectId);
+            return ApiResponse.success(testPlans);
+        } else {
+            List<TestPlan> testPlans = testPlanService.getAllTestPlans();
+            return ApiResponse.success(testPlans);
+        }
     }
 
     // 分页获取测试计划
-    @Operation(summary = "分页查询测试计划", description = "根据分页参数查询测试计划")
+    @Operation(summary = "分页查询测试计划", description = "根据分页参数查询测试计划，可以按项目ID和状态筛选")
     @GetMapping("/list")
-    public ApiResponse<Map<String, Object>> getTestPlansWithPagination(@RequestParam int page, @RequestParam int pageSize, @RequestParam(required = false) String status) {
+    public ApiResponse<Map<String, Object>> getTestPlansWithPagination(
+            @RequestParam int page, 
+            @RequestParam int pageSize, 
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer projectId) {
 
         int offset = (page - 1) * pageSize;
         System.out.println("pageSize是:" + pageSize);
         System.out.println("offset:" + offset);
-        List<TestPlan> testPlans = testPlanService.getTestPlansWithPagination(pageSize, offset, status);
-        int total = testPlanService.getTestPlanCount(status); // 获取总记录数
+        System.out.println("projectId:" + projectId);
+        
+        List<TestPlan> testPlans = testPlanService.getTestPlansWithPagination(pageSize, offset, status, projectId);
+        int total = testPlanService.getTestPlanCount(status, projectId); // 获取总记录数
+        
         Map<String, Object> response = new HashMap<>();
-        response.put("data", testPlans);
+        response.put("list", testPlans); // 改为list以保持前端一致性
         response.put("total", total);
         response.put("page", page);
         response.put("pageSize", pageSize);
@@ -80,7 +96,15 @@ public class TestPlanController {
     // 删除测试计划
     @Operation(summary = "删除测试计划", description = "根据测试计划id删除测试计划")
     @DeleteMapping("/{planId}")
-    public ApiResponse<Boolean> deleteTestPlan(@PathVariable Integer planId) {
+    public ApiResponse<Boolean> deleteTestPlan(@PathVariable Integer planId, @RequestParam(required = false) Integer projectId) {
+        // 如果提供了项目ID，验证测试计划是否属于该项目
+        if (projectId != null) {
+            TestPlan testPlan = testPlanService.getTestPlanById(planId);
+            if (testPlan != null && !projectId.equals(testPlan.getProjectId())) {
+                return ApiResponse.error(400, "无权删除其他项目的测试计划");
+            }
+        }
+        
         boolean deleted = testPlanService.deleteTestPlan(planId);
         if (deleted) {
             return ApiResponse.success(true);

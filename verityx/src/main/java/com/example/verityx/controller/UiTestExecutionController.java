@@ -2,6 +2,8 @@ package com.example.verityx.controller;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,13 +30,15 @@ import com.example.verityx.service.UiTestExecutionService;
 @RestController
 @RequestMapping("/api/ui-test-executions")
 public class UiTestExecutionController {
-    
+
+    private static final Logger log = LoggerFactory.getLogger(UiTestExecutionController.class);
+
     @Autowired
     private UiTestExecutionService uiTestExecutionService;
-    
+
     /**
      * 创建执行记录
-     * 
+     *
      * @param request 创建请求
      * @return 执行ID
      */
@@ -45,10 +49,10 @@ public class UiTestExecutionController {
         Long id = uiTestExecutionService.createExecution(request, executor);
         return Result.success(id);
     }
-    
+
     /**
      * 获取执行详情
-     * 
+     *
      * @param id 执行ID
      * @return 执行详情
      */
@@ -57,15 +61,16 @@ public class UiTestExecutionController {
         UiTestExecutionDTO execution = uiTestExecutionService.getExecutionById(id);
         return Result.success(execution);
     }
-    
+
     /**
      * 分页查询执行记录
-     * 
+     *
      * @param page 页码
      * @param pageSize 页大小
      * @param keyword 关键字
      * @param status 状态
      * @param executionType 执行类型
+     * @param projectId 项目ID
      * @return 分页结果
      */
     @GetMapping("/list")
@@ -74,33 +79,52 @@ public class UiTestExecutionController {
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "status", required = false) String status,
-            @RequestParam(value = "executionType", required = false) String executionType) {
+            @RequestParam(value = "executionType", required = false) String executionType,
+            @RequestParam(value = "projectId", required = false) Long projectId) {
+
+        log.info("[Controller] getExecutionList 接收到请求参数: page={}, pageSize={}, keyword={}, status={}, executionType={}, projectId={}",
+                page, pageSize, keyword, status, executionType, projectId);
+
         PageResult<UiTestExecutionDTO> result = uiTestExecutionService.getExecutionList(
-                page, pageSize, keyword, status, executionType);
+                page, pageSize, keyword, status, executionType, projectId);
+
+        log.info("[Controller] getExecutionList 返回结果: 总数={}, 当前页={}, 每页条数={}",
+                result.getTotal(), result.getPage(), result.getPageSize());
+
         return Result.success(result);
     }
-    
+
     /**
      * 获取执行队列
-     * 
+     *
      * @param page 页码
      * @param pageSize 页大小
      * @param status 状态
+     * @param projectId 项目ID
      * @return 分页结果
      */
     @GetMapping("/queue")
     public Result<PageResult<UiTestExecutionDTO>> getExecutionQueue(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
-            @RequestParam(value = "status", required = false) String status) {
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "projectId", required = false) Long projectId) {
+
+        log.info("[Controller] getExecutionQueue 接收到请求参数: page={}, pageSize={}, status={}, projectId={}",
+                page, pageSize, status, projectId);
+
         PageResult<UiTestExecutionDTO> result = uiTestExecutionService.getExecutionQueue(
-                status, page, pageSize);
+                status, page, pageSize, projectId);
+
+        log.info("[Controller] getExecutionQueue 返回结果: 总数={}, 当前页={}, 每页条数={}",
+                result.getTotal(), result.getPage(), result.getPageSize());
+
         return Result.success(result);
     }
-    
+
     /**
      * 获取执行用例详情列表
-     * 
+     *
      * @param executionId 执行ID
      * @return 执行用例详情列表
      */
@@ -109,10 +133,10 @@ public class UiTestExecutionController {
         List<UiTestExecutionDetailDTO> details = uiTestExecutionService.getExecutionDetails(executionId);
         return Result.success(details);
     }
-    
+
     /**
      * 获取执行用例详情
-     * 
+     *
      * @param detailId 详情ID
      * @return 执行用例详情
      */
@@ -121,10 +145,10 @@ public class UiTestExecutionController {
         UiTestExecutionDetailDTO detail = uiTestExecutionService.getExecutionDetail(detailId);
         return Result.success(detail);
     }
-    
+
     /**
      * 获取执行步骤列表
-     * 
+     *
      * @param detailId 详情ID
      * @return 执行步骤列表
      */
@@ -133,10 +157,10 @@ public class UiTestExecutionController {
         List<UiTestExecutionStepDTO> steps = uiTestExecutionService.getExecutionSteps(detailId);
         return Result.success(steps);
     }
-    
+
     /**
      * 获取执行日志
-     * 
+     *
      * @param executionId 执行ID
      * @param logLevel 日志级别
      * @param page 页码
@@ -153,10 +177,10 @@ public class UiTestExecutionController {
                 executionId, logLevel, page, pageSize);
         return Result.success(result);
     }
-    
+
     /**
      * 获取用例执行日志
-     * 
+     *
      * @param detailId 详情ID
      * @return 日志列表
      */
@@ -165,10 +189,10 @@ public class UiTestExecutionController {
         List<UiTestExecutionLogDTO> logs = uiTestExecutionService.getDetailLogs(detailId);
         return Result.success(logs);
     }
-    
+
     /**
      * 开始执行
-     * 
+     *
      * @param id 执行ID
      * @return 是否成功
      */
@@ -177,10 +201,10 @@ public class UiTestExecutionController {
         boolean success = uiTestExecutionService.startExecution(id);
         return Result.success(success);
     }
-    
+
     /**
      * 中止执行
-     * 
+     *
      * @param id 执行ID
      * @param reason 原因
      * @return 是否成功
@@ -192,10 +216,10 @@ public class UiTestExecutionController {
         boolean success = uiTestExecutionService.abortExecution(id, reason);
         return Result.success(success);
     }
-    
+
     /**
      * 删除执行记录
-     * 
+     *
      * @param id 执行ID
      * @return 是否成功
      */
@@ -204,10 +228,10 @@ public class UiTestExecutionController {
         boolean success = uiTestExecutionService.deleteExecution(id);
         return Result.success(success);
     }
-    
+
     /**
      * 记录执行步骤结果
-     * 
+     *
      * @param step 步骤结果
      * @return 步骤ID
      */
@@ -216,10 +240,10 @@ public class UiTestExecutionController {
         Long stepId = uiTestExecutionService.recordStepResult(step);
         return Result.success(stepId);
     }
-    
+
     /**
      * 记录日志
-     * 
+     *
      * @param log 日志记录
      * @return 日志ID
      */
@@ -228,10 +252,10 @@ public class UiTestExecutionController {
         Long logId = uiTestExecutionService.recordLog(log);
         return Result.success(logId);
     }
-    
+
     /**
      * 更新执行状态
-     * 
+     *
      * @param id 执行ID
      * @param status 状态
      * @return 是否成功
@@ -243,4 +267,4 @@ public class UiTestExecutionController {
         boolean success = uiTestExecutionService.updateExecutionStatus(id, status);
         return Result.success(success);
     }
-} 
+}

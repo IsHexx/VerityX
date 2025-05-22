@@ -1,4 +1,5 @@
 import { http } from '@/utils/request'
+import { useProjectStore } from '@/store/projectStore';
 
 export const ApiTestReportApi = {
   // 获取接口测试报告列表
@@ -11,6 +12,12 @@ export const ApiTestReportApi = {
     if (params.pageSize) cleanParams.pageSize = params.pageSize;
     if (params.keyword) cleanParams.keyword = params.keyword;
     if (params.status) cleanParams.status = params.status;
+    
+    // 添加项目ID
+    const projectStore = useProjectStore();
+    if (projectStore.currentProjectId) {
+      cleanParams.projectId = projectStore.currentProjectId;
+    }
     
     console.log("API调用参数:", cleanParams);
     return http.get('/api/apitestreports/list', cleanParams);

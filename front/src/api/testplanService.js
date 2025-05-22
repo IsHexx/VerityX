@@ -1,47 +1,84 @@
 // api/testplanService.js
 import { http } from '@/utils/request'
 
+// 从localStorage获取当前项目ID
+const getCurrentProjectId = () => {
+  try {
+    const storedProject = localStorage.getItem('currentProject');
+    if (storedProject) {
+      const projectData = JSON.parse(storedProject);
+      return projectData.id || projectData.projectId || null;
+    }
+  } catch (error) {
+    console.error('获取项目ID失败:', error);
+  }
+  return null;
+};
+
 export const testplanApi = {
   // 获取所有测试计划列表
   getTestplans: (params) => {
+    // 确保params是对象
+    params = params || {};
+    
+    // 获取当前项目ID
+    const projectId = getCurrentProjectId();
+    console.log('测试计划API - 当前项目ID:', projectId);
+    
     // 构造干净的查询参数对象
     const cleanParams = {
       page: params.page || 1, // 默认值为 1
       pageSize: params.pageSize || 10, // 默认值为 10
+      projectId: params.projectId || projectId // 优先使用传入的项目ID，否则使用当前项目ID
     };
   
     // 仅在 status 有值时添加
     if (params.status) {
       cleanParams.status = params.status;
-      cleanParams.status = encodeURIComponent(params.status);
-
     }
+    
+    console.log('测试计划API - 请求参数:', cleanParams);
   
-    return http.get('/api/testplans/list', {
-      page: cleanParams.page, // 使用清理后的参数
-      pageSize: cleanParams.pageSize, // 使用清理后的参数
-      status: cleanParams.status,
-    });
+    return http.get('/api/testplans/list', { params: cleanParams });
   },
 
   // 获取单个测试计划详情
   getTestplan(id) {
-    return http.get(`/api/testplans/${id}`)
+    const projectId = getCurrentProjectId();
+    return http.get(`/api/testplans/${id}`, { 
+      params: { projectId }
+    });
   },
 
   // 创建新测试计划
   createTestplan(data) {
-    return http.post('/api/testplans', data)
+    // 添加项目ID
+    if (!data.projectId) {
+    const projectId = getCurrentProjectId();
+    data.projectId = projectId;
+    }
+    console.log('创建测试计划 - 数据:', data);
+    
+    return http.post('/api/testplans', data);
   },
 
   // 更新测试计划信息
   updateTestplan(id, data) {
-    return http.put(`/api/testplans/${id}`, data)
+    // 确保有项目ID
+    if (!data.projectId) {
+      const projectId = getCurrentProjectId();
+      data.projectId = projectId;
+    }
+    
+    return http.put(`/api/testplans/${id}`, data);
   },
 
   // 删除测试计划
   deleteTestplan(id) {
-    return http.delete(`/api/testplans/${id}`)
+    const projectId = getCurrentProjectId();
+    return http.delete(`/api/testplans/${id}`, { 
+      params: { projectId }
+    });
   }
 }
 

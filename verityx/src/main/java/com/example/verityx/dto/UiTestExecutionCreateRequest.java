@@ -14,6 +14,7 @@ public class UiTestExecutionCreateRequest {
     private String executionConfig; // 执行配置（JSON格式）
     private List<Long> caseIds; // 当执行类型为case时，可能包含多个用例ID
     private Integer priority; // 优先级，用于执行队列排序
+    private Long projectId; // 项目ID
 
     public String getExecutionName() {
         return executionName;
@@ -69,5 +70,13 @@ public class UiTestExecutionCreateRequest {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 } 

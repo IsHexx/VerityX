@@ -1,21 +1,21 @@
-// api/BugService.js
+// api/apiAutomationService.js
 import { http } from '@/utils/request'
 import { useProjectStore } from '@/store/projectStore';
 
-export const ApiManageApi = {
-  // 获取所有接口
-  getApis: () => {
+export const ApiAutomationApi = {
+  // 获取所有场景
+  getAllScenes: () => {
     // 添加项目ID参数
     const projectStore = useProjectStore();
     const params = {};
     if (projectStore.currentProjectId) {
       params.projectId = projectStore.currentProjectId;
     }
-    return http.get(`/api/apis`, params);
+    return http.get('/api/automation', params);
   },
 
-  // 获取接口列表（带分页）
-  getApiList: (params) => {
+  // 获取场景列表（带分页）
+  getSceneList: (params) => {
     // 构造干净的查询参数对象
     const cleanParams = {};
     
@@ -30,39 +30,50 @@ export const ApiManageApi = {
       cleanParams.projectId = projectStore.currentProjectId;
     }
     
-    console.log("接口管理API调用参数:", cleanParams);
-    return http.get('/api/apis/list', cleanParams);
+    console.log("场景列表API调用参数:", cleanParams);
+    return http.get('/api/automation/list', cleanParams);
   },
 
-  // 获取单个接口详情
-  getApiDetail(id) {
-    return http.get(`/api/apis/${id}`);
+  // 获取单个场景详情
+  getSceneDetail: (id) => {
+    return http.get(`/api/automation/${id}`);
   },
 
-  // 创建新的接口
-  createApi(data) {
+  // 创建新场景
+  createScene: (data) => {
     // 添加项目ID
     const projectStore = useProjectStore();
     if (projectStore.currentProjectId) {
       data.projectId = projectStore.currentProjectId;
     }
-    return http.post('/api/apis', data);
+    return http.post('/api/automation', data);
   },
 
-  // 更新接口信息
-  updateApi(id, data) {
+  // 更新场景
+  updateScene: (id, data) => {
     // 添加项目ID
     const projectStore = useProjectStore();
     if (projectStore.currentProjectId) {
       data.projectId = projectStore.currentProjectId;
     }
-    return http.put(`/api/apis/${id}`, data);
+    return http.put(`/api/automation/${id}`, data);
   },
 
-  // 删除接口
-  deleteApi(id) {
-    return http.delete(`/api/apis/${id}`);
+  // 删除场景
+  deleteScene: (id) => {
+    return http.delete(`/api/automation/${id}`);
+  },
+
+  // 执行场景
+  executeScene: (id) => {
+    // 添加项目ID参数
+    const projectStore = useProjectStore();
+    const params = {};
+    if (projectStore.currentProjectId) {
+      params.projectId = projectStore.currentProjectId;
+    }
+    return http.post(`/api/automation/${id}/execute`, null, { params });
   }
 }
 
-export default ApiManageApi
+export default ApiAutomationApi 

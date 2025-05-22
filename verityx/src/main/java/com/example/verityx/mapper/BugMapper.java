@@ -17,10 +17,20 @@ public interface BugMapper {
     // 查询所有缺陷
     List<Bug> selectAllBugs();
 
-    List<Bug> selectBugsWithPagination(@Param("pageSize") int limit, @Param("offset") int offset, @Param("status") String  status);
+    List<Bug> selectBugsWithPagination(
+        @Param("pageSize") int limit, 
+        @Param("offset") int offset, 
+        @Param("status") String status,
+        @Param("keyword") String keyword,
+        @Param("projectId") String projectId
+    );
 
     // 新增获取总记录数方法
-    int selectBugCount(String  status);
+    int selectBugCount(
+        @Param("status") String status,
+        @Param("keyword") String keyword,
+        @Param("projectId") String projectId
+    );
 
     // 更新缺陷
     int updateBug(Bug bug);

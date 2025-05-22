@@ -17,14 +17,21 @@
     <select id="selectAllTestPlans" resultType="com.example.verityx.entity.TestPlan">
         SELECT * FROM test_plan
     </select>
+    
+    <!-- 按项目ID查询测试计划 -->
+    <select id="selectTestPlansByProjectId" resultType="com.example.verityx.entity.TestPlan">
+        SELECT * FROM test_plan WHERE project_id = #{projectId}
+    </select>
 
-    <!-- 统计所有测试计划 -->
+    <!-- 统计测试计划数量 -->
     <select id="selectTestPlanCount" resultType="int">
         SELECT COUNT(*) FROM test_plan
         <where>
-            1=1
-            <if test="status != null">
+            <if test="status != null and status != ''">
                 AND status = #{status}
+            </if>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
             </if>
         </where>
     </select>
@@ -33,12 +40,14 @@
     <select id="selectTestPlansWithPagination" resultType="com.example.verityx.entity.TestPlan">
         SELECT * FROM test_plan
         <where>
-            1=1
-            <if test="status != null">
+            <if test="status != null and status != ''">
                 AND status = #{status}
             </if>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
         </where>
-        ORDER BY plan_id
+        ORDER BY plan_id DESC
         LIMIT #{pageSize} OFFSET #{offset}
     </select>
 

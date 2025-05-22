@@ -6,10 +6,10 @@
     <insert id="insertApi" parameterType="com.example.verityx.entity.ApiManagement">
         INSERT INTO api_management (
         api_directory, api_name, related_test_cases, request_method, api_path,
-        status, created_at, updated_at, mock_url, response_body
+        status, created_at, updated_at, mock_url, response_body, project_id
         ) VALUES (
         #{apiDirectory}, #{apiName}, #{relatedTestCases}, #{requestMethod}, #{apiPath},
-        #{status}, #{createdAt}, #{updatedAt}, #{mockUrl}, #{responseBody}
+        #{status}, #{createdAt}, #{updatedAt}, #{mockUrl}, #{responseBody}, #{projectId}
         )
     </insert>
 
@@ -21,6 +21,42 @@
     <!-- 查询所有接口 -->
     <select id="selectAllApis" resultType="com.example.verityx.entity.ApiManagement">
         SELECT * FROM api_management
+        <where>
+            1=1
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 分页查询接口 -->
+    <select id="selectApisWithPagination" resultType="com.example.verityx.entity.ApiManagement">
+        SELECT * FROM api_management
+        <where>
+            1=1
+            <if test="keyword != null and keyword != ''">
+                AND (api_name LIKE CONCAT('%', #{keyword}, '%') OR api_path LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
+            </if>
+        </where>
+        ORDER BY api_id
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+    
+    <!-- 统计所有接口数 -->
+    <select id="selectApiCount" resultType="int">
+        SELECT COUNT(*) FROM api_management
+        <where>
+            1=1
+            <if test="keyword != null and keyword != ''">
+                AND (api_name LIKE CONCAT('%', #{keyword}, '%') OR api_path LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
+            </if>
+        </where>
     </select>
 
     <!-- 更新接口 -->
@@ -35,6 +71,7 @@
         status = #{status},
         mock_url = #{mockUrl},
         response_body = #{responseBody},
+        project_id = #{projectId},
         updated_at = NOW()
         WHERE api_id = #{apiId}
     </update>

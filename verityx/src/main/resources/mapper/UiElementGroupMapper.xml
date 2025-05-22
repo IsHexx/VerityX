@@ -9,13 +9,15 @@
             description, 
             element_count, 
             created_by, 
-            created_at
+            created_at,
+            project_id
         ) VALUES (
             #{groupName}, 
             #{description}, 
             #{elementCount}, 
             #{createdBy}, 
-            #{createdAt}
+            #{createdAt},
+            #{projectId}
         )
     </insert>
     
@@ -27,6 +29,9 @@
             element_count = #{elementCount},
             updated_at = #{updatedAt}
         WHERE id = #{id}
+        <if test="projectId != null">
+            AND project_id = #{projectId}
+        </if>
     </update>
     
     <!-- 更新元素数量 -->
@@ -39,7 +44,11 @@
     
     <!-- 根据ID删除UI元素分组 -->
     <delete id="deleteById">
-        DELETE FROM ui_element_group WHERE id = #{id}
+        DELETE FROM ui_element_group 
+        WHERE id = #{id}
+        <if test="projectId != null">
+            AND project_id = #{projectId}
+        </if>
     </delete>
     
     <!-- 根据ID查询UI元素分组 -->
@@ -51,9 +60,13 @@
             element_count AS elementCount,
             created_by AS createdBy,
             created_at AS createdAt,
-            updated_at AS updatedAt
+            updated_at AS updatedAt,
+            project_id AS projectId
         FROM ui_element_group
         WHERE id = #{id}
+        <if test="projectId != null">
+            AND project_id = #{projectId}
+        </if>
     </select>
     
     <!-- 查询所有UI元素分组 -->
@@ -65,8 +78,14 @@
             element_count AS elementCount,
             created_by AS createdBy,
             created_at AS createdAt,
-            updated_at AS updatedAt
+            updated_at AS updatedAt,
+            project_id AS projectId
         FROM ui_element_group
+        <where>
+            <if test="projectId != null">
+                project_id = #{projectId}
+            </if>
+        </where>
         ORDER BY created_at DESC
     </select>
 </mapper> 

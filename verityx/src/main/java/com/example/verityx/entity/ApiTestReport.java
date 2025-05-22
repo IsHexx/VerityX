@@ -14,6 +14,7 @@ public class ApiTestReport {
     private String headers;
     private String params;
     private String response;
+    private String projectId;
     private Date createTime;
     private Date updateTime;
 
@@ -103,6 +104,14 @@ public class ApiTestReport {
 
     public void setResponse(String response) {
         this.response = response;
+    }
+
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
     }
 
     public Date getCreateTime() {

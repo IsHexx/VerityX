@@ -6,7 +6,7 @@ import { http } from '@/utils/request'
 export const UiTestCaseApi = {
   /**
    * 获取UI测试用例列表
-   * @param {Object} params 查询参数
+   * @param {Object} params 查询参数，包括page、pageSize、keyword、status、projectId
    * @returns {Promise} 返回Promise对象
    */
   getUiTestCaseList: (params) => {
@@ -24,22 +24,31 @@ export const UiTestCaseApi = {
     if (params.status) {
       cleanParams.status = params.status;
     }
+    
+    // 添加项目ID参数（如果提供了的话）
+    if (params.projectId) {
+      cleanParams.projectId = params.projectId;
+    }
   
-    return http.get('/api/uitestcases/list', cleanParams);
+    return http.get('/api/uitestcases/list', { params: cleanParams });
   },
 
   /**
    * 获取UI测试用例详情
-   * @param {String} caseId 用例ID
+   * @param {String} id 用例ID
+   * @param {Number} projectId 项目ID（可选）
    * @returns {Promise} 返回Promise对象
    */
-  getUiTestCaseDetail(id) {
-    return http.get(`/api/uitestcases/${id}`);
+  getUiTestCaseDetail(id, projectId) {
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
+    return http.get(`/api/uitestcases/${id}`, { params });
   },
 
   /**
    * 创建UI测试用例
-   * @param {Object} data 用例数据
+   * @param {Object} data 用例数据，应包含projectId字段
    * @returns {Promise} 返回Promise对象
    */
   createUiTestCase(data) {
@@ -48,8 +57,8 @@ export const UiTestCaseApi = {
 
   /**
    * 更新UI测试用例
-   * @param {String} caseId 用例ID
-   * @param {Object} data 用例数据
+   * @param {String} id 用例ID
+   * @param {Object} data 用例数据，应包含projectId字段
    * @returns {Promise} 返回Promise对象
    */
   updateUiTestCase(id, data) {
@@ -58,20 +67,28 @@ export const UiTestCaseApi = {
 
   /**
    * 删除UI测试用例
-   * @param {String} caseId 用例ID
+   * @param {String} id 用例ID
+   * @param {Number} projectId 项目ID（可选）
    * @returns {Promise} 返回Promise对象
    */
-  deleteUiTestCase(id) {
-    return http.delete(`/api/uitestcases/${id}`);
+  deleteUiTestCase(id, projectId) {
+    const params = {};
+    if (projectId) params.projectId = projectId;
+    
+    return http.delete(`/api/uitestcases/${id}`, { params });
   },
 
   /**
    * 执行UI测试用例
-   * @param {String} caseId 用例ID
+   * @param {String} id 用例ID
+   * @param {Number} projectId 项目ID（可选）
    * @returns {Promise} 返回Promise对象
    */
-  executeUiTestCase(id) {
-    return http.post(`/api/uitestcases/${id}/execute`);
+  executeUiTestCase(id, projectId) {
+    const data = {};
+    if (projectId) data.projectId = projectId;
+    
+    return http.post(`/api/uitestcases/${id}/execute`, data);
   }
 };
 

@@ -28,9 +28,10 @@ public class ApiEnvironmentController {
     public JsonResult getEnvironmentsList(
             @RequestParam(value = "page", defaultValue = "1") Integer page,
             @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
-            @RequestParam(value = "keyword", required = false) String keyword) {
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "projectId", required = false) String projectId) {
         
-        Map<String, Object> result = apiEnvironmentService.getEnvironmentsByPage(keyword, page, pageSize);
+        Map<String, Object> result = apiEnvironmentService.getEnvironmentsByPage(keyword, projectId, page, pageSize);
         return JsonResult.success(result);
     }
 
@@ -39,8 +40,9 @@ public class ApiEnvironmentController {
      */
     @GetMapping
     @Operation(summary = "获取所有环境配置", description = "获取所有环境配置，用于下拉选择")
-    public JsonResult getAllEnvironments() {
-        List<ApiEnvironment> environments = apiEnvironmentService.getAllEnvironments();
+    public JsonResult getAllEnvironments(
+            @RequestParam(value = "projectId", required = false) String projectId) {
+        List<ApiEnvironment> environments = apiEnvironmentService.getAllEnvironments(projectId);
         return JsonResult.success(environments);
     }
 
@@ -62,8 +64,9 @@ public class ApiEnvironmentController {
      */
     @GetMapping("/default")
     @Operation(summary = "获取默认环境配置", description = "获取当前设置为默认的环境配置")
-    public JsonResult getDefaultEnvironment() {
-        ApiEnvironment environment = apiEnvironmentService.getDefaultEnvironment();
+    public JsonResult getDefaultEnvironment(
+            @RequestParam(value = "projectId", required = false) String projectId) {
+        ApiEnvironment environment = apiEnvironmentService.getDefaultEnvironment(projectId);
         if (environment == null) {
             return JsonResult.error("暂无默认环境配置");
         }
@@ -84,6 +87,7 @@ public class ApiEnvironmentController {
         environment.setIsDefault(environmentDTO.getIsDefault());
         environment.setGlobalHeaders(environmentDTO.getGlobalHeaders());
         environment.setGlobalParams(environmentDTO.getGlobalParams());
+        environment.setProjectId(environmentDTO.getProjectId());
         
         ApiEnvironment createdEnvironment = apiEnvironmentService.createEnvironment(environment);
         return JsonResult.success(createdEnvironment);
@@ -107,6 +111,7 @@ public class ApiEnvironmentController {
         existingEnvironment.setIsDefault(environmentDTO.getIsDefault());
         existingEnvironment.setGlobalHeaders(environmentDTO.getGlobalHeaders());
         existingEnvironment.setGlobalParams(environmentDTO.getGlobalParams());
+        existingEnvironment.setProjectId(environmentDTO.getProjectId());
 
         boolean result = apiEnvironmentService.updateEnvironment(existingEnvironment);
         if (result) {
@@ -121,8 +126,10 @@ public class ApiEnvironmentController {
      */
     @PutMapping("/{id}/default")
     @Operation(summary = "设置默认环境", description = "将指定ID的环境设置为默认环境")
-    public JsonResult setDefaultEnvironment(@PathVariable("id") Integer id) {
-        boolean result = apiEnvironmentService.setDefaultEnvironment(id);
+    public JsonResult setDefaultEnvironment(
+            @PathVariable("id") Integer id,
+            @RequestParam(value = "projectId", required = false) String projectId) {
+        boolean result = apiEnvironmentService.setDefaultEnvironment(id, projectId);
         if (result) {
             return JsonResult.success("设置默认环境成功");
         } else {
@@ -140,7 +147,7 @@ public class ApiEnvironmentController {
         if (result) {
             return JsonResult.success("删除成功");
         } else {
-            return JsonResult.error("删除失败，可能是默认环境无法删除");
+            return JsonResult.error("该环境为默认环境，不能删除");
         }
     }
 
@@ -154,7 +161,7 @@ public class ApiEnvironmentController {
         if (result) {
             return JsonResult.success("批量删除成功");
         } else {
-            return JsonResult.error("批量删除失败，可能包含默认环境无法删除");
+            return JsonResult.error("批量删除失败，可能包含默认环境");
         }
     }
 } 

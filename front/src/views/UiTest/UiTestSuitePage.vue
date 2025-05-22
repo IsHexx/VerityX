@@ -436,11 +436,20 @@
 
 <script setup>
 import PaginationPage from "@/components/PaginationPage.vue";
-import { ref, reactive, onMounted, computed } from "vue";
+import { ref, reactive, onMounted, computed, watch } from "vue";
 import { Search } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { UiTestSuiteApi } from "@/api/uiTestSuiteService";
 import { UiTestCaseApi } from "@/api/uiTestCaseService";
+import { useProjectStore } from '@/store/projectStore';
+
+// 使用项目Store
+const projectStore = useProjectStore();
+// 确保初始化项目状态
+projectStore.initProjectState();
+
+// 计算当前项目ID - 修正为使用正确的方法
+const currentProjectId = computed(() => projectStore.getCurrentProjectId());
 
 // 状态管理
 const loading = ref(false);
@@ -468,11 +477,22 @@ const pagination = reactive({
 });
 
 // 项目选项
-const projectOptions = ref([
-  { value: '1', label: '电商系统项目' },
-  { value: '2', label: '金融系统项目' },
-  { value: '3', label: '社交媒体项目' }
-]);
+const projectOptions = ref([]);
+
+// 加载项目选项
+const loadProjectOptions = async () => {
+  try {
+    const res = await projectStore.getProjects();
+    if (res && res.data) {
+      projectOptions.value = res.data.map(project => ({
+        value: project.id,
+        label: project.name
+      }));
+    }
+  } catch (error) {
+    console.error("加载项目选项失败:", error);
+  }
+};
 
 // 表单数据
 const testSuiteForm = reactive({
@@ -531,7 +551,7 @@ const resetForm = () => {
   Object.assign(testSuiteForm, {
     id: "",
     suiteName: "",
-    projectId: "",
+    projectId: currentProjectId.value,
     concurrencyLevel: "1",
     environment: "Chrome",
     timeout: 60,
@@ -577,6 +597,13 @@ const resetScheduleForm = () => {
 const fetchTestSuiteList = async (tabName = activeTab.value, page = pagination.page, pageSize = pagination.pageSize, keyword = searchKeyword.value) => {
   loading.value = true;
   try {
+    // 检查是否有选择项目
+    if (!currentProjectId.value) {
+      ElMessage.warning("请先选择一个项目");
+      loading.value = false;
+      return;
+    }
+    
     // 根据tab名称确定status值
     let status = null;
     if (tabName === 'running') {
@@ -590,7 +617,11 @@ const fetchTestSuiteList = async (tabName = activeTab.value, page = pagination.p
     }
 
     // 构造请求参数
-    const params = { page, pageSize };
+    const params = { 
+      page, 
+      pageSize,
+      projectId: currentProjectId.value // 添加当前项目ID
+    };
     if (keyword) params.keyword = keyword;
     if (status) params.status = status;
 
@@ -629,15 +660,17 @@ const handleEditTestSuite = async (row) => {
       return;
     }
     
-    const res = await UiTestSuiteApi.getUiTestSuiteDetail(row.id);
+    // 请求套件详情，带上项目ID
+    const res = await UiTestSuiteApi.getUiTestSuiteDetail(row.id, currentProjectId.value);
     if (res.code === 200) {
       Object.assign(testSuiteForm, res.data);
+      // 确保projectId字段设置为当前项目
+      testSuiteForm.projectId = testSuiteForm.projectId || currentProjectId.value;
       dialogVisible.value = true;
     } else {
       ElMessage.error(res.message || '获取套件详情失败');
     }
   } catch (error) {
-    console.error("获取套件详情失败:", error);
     ElMessage.error("获取套件详情失败");
   }
 };
@@ -645,14 +678,7 @@ const handleEditTestSuite = async (row) => {
 // 删除套件
 const handleDeleteTestSuite = async (row) => {
   try {
-    // 检查ID是否存在
-    if (!row.id) {
-      ElMessage.error('套件ID不存在');
-      console.error('套件对象缺少ID字段:', row);
-      return;
-    }
-    
-    const res = await UiTestSuiteApi.deleteUiTestSuite(row.id);
+    const res = await UiTestSuiteApi.deleteUiTestSuite(row.id, currentProjectId.value);
     if (res.code === 200) {
       ElMessage.success("删除成功");
       await fetchTestSuiteList();
@@ -660,22 +686,14 @@ const handleDeleteTestSuite = async (row) => {
       ElMessage.error(res.message || '删除失败');
     }
   } catch (error) {
-    console.error("删除失败:", error);
     ElMessage.error("删除失败");
   }
 };
 
-// 执行测试套件
+// 执行套件
 const handleRunTestSuite = async (row) => {
   try {
-    // 检查ID是否存在
-    if (!row.id) {
-      ElMessage.error('套件ID不存在');
-      console.error('套件对象缺少ID字段:', row);
-      return;
-    }
-    
-    const res = await UiTestSuiteApi.executeUiTestSuite(row.id);
+    const res = await UiTestSuiteApi.executeUiTestSuite(row.id, currentProjectId.value);
     if (res.code === 200) {
       ElMessage.success("执行成功");
       await fetchTestSuiteList();
@@ -683,7 +701,6 @@ const handleRunTestSuite = async (row) => {
       ElMessage.error(res.message || '执行失败');
     }
   } catch (error) {
-    console.error("执行失败:", error);
     ElMessage.error("执行失败");
   }
 };
@@ -694,21 +711,18 @@ const onSubmit = async () => {
     ElMessage.warning('请输入套件名称');
     return;
   }
+  
+  if (!testSuiteForm.projectId) {
+    // 确保表单中设置了项目ID
+    testSuiteForm.projectId = currentProjectId.value;
+  }
 
   try {
-    // 确保projectId为数字类型
-    if (testSuiteForm.projectId && typeof testSuiteForm.projectId === 'string') {
-      testSuiteForm.projectId = parseInt(testSuiteForm.projectId);
-    }
-    
     const data = { ...testSuiteForm };
     let res;
-    
     if (testSuiteForm.id) {
-      console.log(`更新套件，ID: ${testSuiteForm.id}，表单数据:`, data);
       res = await UiTestSuiteApi.updateUiTestSuite(testSuiteForm.id, data);
     } else {
-      console.log(`创建套件，表单数据:`, data);
       res = await UiTestSuiteApi.createUiTestSuite(data);
     }
 
@@ -720,7 +734,6 @@ const onSubmit = async () => {
       ElMessage.error(res.message || '操作失败');
     }
   } catch (error) {
-    console.error("表单提交失败:", error);
     ElMessage.error("操作失败");
   }
 };
@@ -760,153 +773,75 @@ const handleAddTestSuite = () => {
   handleOpenDialog();
 };
 
-// 管理测试用例
+// 管理用例
 const handleManageCases = async (row) => {
-  // 检查ID是否存在
-  if (!row.id) {
-    ElMessage.error('套件ID不存在');
-    console.error('套件对象缺少ID字段:', row);
-    return;
-  }
-  
   currentSuiteId.value = row.id;
+  caseTabActive.value = "added";
+  caseSearchKeyword.value = "";
+  await loadAddedCases();
+  casesDialogVisible.value = true;
+};
+
+// 加载已添加的测试用例
+const loadAddedCases = async () => {
+  if (!currentSuiteId.value) return;
+  
   caseLoading.value = true;
   try {
-    // 获取已添加的用例
-    const addedRes = await UiTestSuiteApi.getSuiteCases(row.id);
-    if (addedRes.code === 200) {
-      addedCases.value = addedRes.data || [];
+    const res = await UiTestSuiteApi.getSuiteCases(currentSuiteId.value, currentProjectId.value);
+    if (res.code === 200) {
+      addedCases.value = res.data;
     } else {
-      ElMessage.error(addedRes.message || '获取套件用例失败');
+      ElMessage.error(res.message || '获取套件用例失败');
     }
-    
-    // 获取可用的用例
-    const availableRes = await UiTestCaseApi.getUiTestCaseList({
+  } catch (error) {
+    ElMessage.error("获取套件用例失败");
+  } finally {
+    caseLoading.value = false;
+  }
+};
+
+// 加载可用的测试用例
+const loadAvailableCases = async () => {
+  caseLoading.value = true;
+  try {
+    const params = {
       page: 1,
       pageSize: 100,
-      filter: 'not_in_suite',
-      suiteId: row.id
-    });
-    if (availableRes.code === 200) {
-      availableCases.value = availableRes.data.list || [];
-    } else {
-      ElMessage.error(availableRes.message || '获取可用用例失败');
-    }
+      keyword: caseSearchKeyword.value,
+      projectId: currentProjectId.value
+    };
     
-    casesDialogVisible.value = true;
+    const res = await UiTestCaseApi.getUiTestCaseList(params);
+    if (res.code === 200) {
+      // 过滤掉已添加的用例
+      const addedIds = addedCases.value.map(c => c.caseId);
+      availableCases.value = res.data.list.filter(c => !addedIds.includes(c.caseId));
+    } else {
+      ElMessage.error(res.message || '获取可用测试用例失败');
+    }
   } catch (error) {
-    console.error("获取用例数据失败:", error);
-    ElMessage.error("获取用例数据失败");
+    ElMessage.error("获取可用测试用例失败");
   } finally {
     caseLoading.value = false;
   }
 };
 
 // 处理用例搜索
-const handleSearchCase = async () => {
-  if (caseTabActive.value === 'added') {
-    // 搜索已添加用例
-    const keyword = caseSearchKeyword.value.toLowerCase();
-    if (!keyword) {
-      const res = await UiTestSuiteApi.getSuiteCases(currentSuiteId.value);
-      if (res.code === 200) {
-        addedCases.value = res.data || [];
-      }
-    } else {
-      // 前端过滤
-      const res = await UiTestSuiteApi.getSuiteCases(currentSuiteId.value);
-      if (res.code === 200) {
-        const allCases = res.data || [];
-        addedCases.value = allCases.filter(c => 
-          c.caseId.toString().includes(keyword) || 
-          c.caseTitle.toLowerCase().includes(keyword)
-        );
-      }
-    }
+const handleSearchCase = () => {
+  if (caseTabActive.value === "added") {
+    loadAddedCases();
   } else {
-    // 搜索可用用例
-    caseLoading.value = true;
-    try {
-      const res = await UiTestCaseApi.getUiTestCaseList({
-        page: 1,
-        pageSize: 100,
-        filter: 'not_in_suite',
-        suiteId: currentSuiteId.value,
-        keyword: caseSearchKeyword.value
-      });
-      if (res.code === 200) {
-        availableCases.value = res.data.list || [];
-      } else {
-        ElMessage.error(res.message || '搜索用例失败');
-      }
-    } catch (error) {
-      ElMessage.error("搜索用例失败");
-    } finally {
-      caseLoading.value = false;
-    }
+    loadAvailableCases();
   }
 };
 
-// 移除测试用例
-const removeCase = (row) => {
-  const index = addedCases.value.findIndex(c => c.caseId === row.caseId);
-  if (index !== -1) {
-    const removed = addedCases.value.splice(index, 1)[0];
-    availableCases.value.push(removed);
-  }
-};
-
-// 添加测试用例
-const addCase = (row) => {
-  const index = availableCases.value.findIndex(c => c.caseId === row.caseId);
-  if (index !== -1) {
-    const added = availableCases.value.splice(index, 1)[0];
-    addedCases.value.push(added);
-  }
-};
-
-// 移动用例顺序
-const moveUp = (index) => {
-  if (index > 0) {
-    const temp = addedCases.value[index];
-    addedCases.value[index] = addedCases.value[index - 1];
-    addedCases.value[index - 1] = temp;
-  }
-};
-
-const moveDown = (index) => {
-  if (index < addedCases.value.length - 1) {
-    const temp = addedCases.value[index];
-    addedCases.value[index] = addedCases.value[index + 1];
-    addedCases.value[index + 1] = temp;
-  }
-};
-
-// 保存用例
-const saveCases = async () => {
-  try {
-    const caseIds = addedCases.value.map(c => c.caseId);
-    const res = await UiTestSuiteApi.updateSuiteCases(currentSuiteId.value, { caseIds });
-    if (res.code === 200) {
-      // 保存用例执行顺序
-      const casesOrder = addedCases.value.map((c, index) => ({
-        caseId: c.caseId,
-        orderIndex: index + 1
-      }));
-      
-      const orderRes = await UiTestSuiteApi.updateCasesOrder(currentSuiteId.value, { casesOrder });
-      if (orderRes.code === 200) {
-        ElMessage.success("保存成功");
-        casesDialogVisible.value = false;
-        await fetchTestSuiteList();
-      } else {
-        ElMessage.warning("用例已保存，但执行顺序保存失败");
-      }
-    } else {
-      ElMessage.error(res.message || '保存失败');
-    }
-  } catch (error) {
-    ElMessage.error("保存失败");
+// 监听用例tab切换
+const watchCaseTab = (tab) => {
+  if (tab === "available") {
+    loadAvailableCases();
+  } else {
+    loadAddedCases();
   }
 };
 
@@ -942,46 +877,25 @@ const getPriorityTagType = (priority) => {
   return priorityMap[priority] || "";
 };
 
-// 编辑套件并发配置
-const handleConcurrencyConfig = async (row) => {
-  try {
-    // 检查ID是否存在
-    if (!row.id) {
-      ElMessage.error('套件ID不存在');
-      console.error('套件对象缺少ID字段:', row);
-      return;
-    }
-    
-    resetConcurrencyForm();
-    concurrencyForm.suiteId = row.id;
-    
-    // 获取套件详情以获取当前的并发配置
-    const res = await UiTestSuiteApi.getUiTestSuiteDetail(row.id);
-    if (res.code === 200) {
-      // 更新基本的并发级别
-      concurrencyForm.concurrencyLevel = res.data.concurrencyLevel || "1";
-      
-      // 获取高级并发配置
-      const concurrencyRes = await UiTestSuiteApi.updateConcurrencyConfig(row.id, {});
-      if (concurrencyRes.code === 200 && concurrencyRes.data) {
-        // 填充高级配置
-        const config = concurrencyRes.data;
-        if (config.customConcurrency) concurrencyForm.customConcurrency = config.customConcurrency;
-        if (config.resourceStrategy) concurrencyForm.resourceStrategy = config.resourceStrategy;
-        if (config.failureBehavior) concurrencyForm.failureBehavior = config.failureBehavior;
-        if (config.maxWaitTime) concurrencyForm.maxWaitTime = config.maxWaitTime;
-        if (config.enableResourceOptimization !== undefined) 
-          concurrencyForm.enableResourceOptimization = config.enableResourceOptimization;
+// 并发配置
+const handleConcurrencyConfig = (row) => {
+  concurrencyForm.suiteId = row.id;
+  // 获取当前并发配置
+  UiTestSuiteApi.getConcurrencyConfig(row.id, currentProjectId.value)
+    .then(res => {
+      if (res.code === 200) {
+        Object.assign(concurrencyForm, res.data);
+      } else {
+        resetConcurrencyForm();
+        concurrencyForm.suiteId = row.id;
       }
-      
       concurrencyDialogVisible.value = true;
-    } else {
-      ElMessage.error(res.message || '获取套件详情失败');
-    }
-  } catch (error) {
-    ElMessage.error("获取套件并发配置失败");
-    console.error(error);
-  }
+    })
+    .catch(() => {
+      resetConcurrencyForm();
+      concurrencyForm.suiteId = row.id;
+      concurrencyDialogVisible.value = true;
+    });
 };
 
 // 保存并发配置
@@ -1058,41 +972,25 @@ const getNextExecutionTime = () => {
   }
 };
 
-// 编辑定时任务设置
-const handleScheduleConfig = async (row) => {
-  try {
-    // 检查ID是否存在
-    if (!row.id) {
-      ElMessage.error('套件ID不存在');
-      console.error('套件对象缺少ID字段:', row);
-      return;
-    }
-    
-    resetScheduleForm();
-    scheduleForm.suiteId = row.id;
-    
-    // 获取当前定时任务配置
-    const res = await UiTestSuiteApi.getScheduleConfig(row.id);
-    if (res.code === 200 && res.data) {
-      // 填充表单
-      const config = res.data;
-      Object.keys(config).forEach(key => {
-        if (key in scheduleForm && config[key] !== null) {
-          scheduleForm[key] = config[key];
+// 定时任务配置
+const handleScheduleConfig = (row) => {
+  resetScheduleForm();
+  scheduleForm.suiteId = row.id;
+  // 获取当前定时任务配置
+  UiTestSuiteApi.getScheduleConfig(row.id, currentProjectId.value)
+    .then(res => {
+      if (res.code === 200) {
+        Object.assign(scheduleForm, res.data);
+        if (scheduleForm.dailyTime) {
+          // 转换时间字符串为Date对象
+          scheduleForm.dailyTime = new Date(scheduleForm.dailyTime);
         }
-      });
-      
-      // 特殊处理日期时间
-      if (config.dailyTime) {
-        scheduleForm.dailyTime = new Date(config.dailyTime);
       }
-    }
-    
-    scheduleDialogVisible.value = true;
-  } catch (error) {
-    console.error("获取定时任务配置失败:", error);
-    ElMessage.error("获取定时任务配置失败");
-  }
+      scheduleDialogVisible.value = true;
+    })
+    .catch(() => {
+      scheduleDialogVisible.value = true;
+    });
 };
 
 // 保存定时任务配置
@@ -1145,8 +1043,22 @@ const deleteSchedule = async () => {
 };
 
 // 组件挂载时获取数据
-onMounted(() => {
-  fetchTestSuiteList();
+onMounted(async () => {
+  await loadProjectOptions();
+  if (currentProjectId.value) {
+    fetchTestSuiteList();
+  } else {
+    ElMessage.warning("请先选择一个项目");
+  }
+});
+
+// 监听项目ID变化，重新加载数据
+watch(() => currentProjectId.value, (newProjectId, oldProjectId) => {
+  if (newProjectId !== oldProjectId) {
+    console.log("项目ID变化, 从", oldProjectId, "变为", newProjectId);
+    pagination.page = 1; // 重置分页
+    fetchTestSuiteList();
+  }
 });
 </script>
 
