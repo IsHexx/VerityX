@@ -7,23 +7,23 @@ export const BugApi = {
   getBugs: (params) => {
     // 确保params是对象
     params = params || {};
-    
+
     // 获取当前项目ID
     const { getCurrentProjectId } = useProjectStore();
     const projectId = getCurrentProjectId();
-    
+
     // 构造干净的查询参数对象
     const cleanParams = {
       page: params.page || 1, // 默认值为 1
       pageSize: params.pageSize || 10, // 默认值为 10
       projectId: projectId // 添加项目ID
     };
-  
+
     // 仅在 status 有值时添加
     if (params.status) {
       cleanParams.status = params.status;
     }
-  
+
     return http.get('/api/bugs/list', {
       params: {
         page: cleanParams.page,
@@ -45,7 +45,7 @@ export const BugApi = {
     const { getCurrentProjectId } = useProjectStore();
     const projectId = getCurrentProjectId();
     data.projectId = projectId;
-    
+
     return http.post('/api/bugs', data)
   },
 
@@ -57,6 +57,16 @@ export const BugApi = {
   // 删除缺陷
   deleteBug(id) {
     return http.delete(`/api/bugs/${id}`)
+  },
+
+  // 根据测试用例ID获取缺陷
+  getBugsByCaseId(caseId) {
+    return http.get(`/api/bugs/case/${caseId}`)
+  },
+
+  // 根据测试计划ID获取缺陷
+  getBugsByPlanId(planId) {
+    return http.get(`/api/bugs/plan/${planId}`)
   }
 }
 

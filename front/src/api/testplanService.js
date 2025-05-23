@@ -20,32 +20,32 @@ export const testplanApi = {
   getTestplans: (params) => {
     // 确保params是对象
     params = params || {};
-    
+
     // 获取当前项目ID
     const projectId = getCurrentProjectId();
     console.log('测试计划API - 当前项目ID:', projectId);
-    
+
     // 构造干净的查询参数对象
     const cleanParams = {
       page: params.page || 1, // 默认值为 1
       pageSize: params.pageSize || 10, // 默认值为 10
       projectId: params.projectId || projectId // 优先使用传入的项目ID，否则使用当前项目ID
     };
-  
+
     // 仅在 status 有值时添加
     if (params.status) {
       cleanParams.status = params.status;
     }
-    
+
     console.log('测试计划API - 请求参数:', cleanParams);
-  
+
     return http.get('/api/testplans/list', { params: cleanParams });
   },
 
   // 获取单个测试计划详情
   getTestplan(id) {
     const projectId = getCurrentProjectId();
-    return http.get(`/api/testplans/${id}`, { 
+    return http.get(`/api/testplans/${id}`, {
       params: { projectId }
     });
   },
@@ -58,7 +58,7 @@ export const testplanApi = {
     data.projectId = projectId;
     }
     console.log('创建测试计划 - 数据:', data);
-    
+
     return http.post('/api/testplans', data);
   },
 
@@ -69,16 +69,31 @@ export const testplanApi = {
       const projectId = getCurrentProjectId();
       data.projectId = projectId;
     }
-    
+
     return http.put(`/api/testplans/${id}`, data);
   },
 
   // 删除测试计划
   deleteTestplan(id) {
     const projectId = getCurrentProjectId();
-    return http.delete(`/api/testplans/${id}`, { 
+    return http.delete(`/api/testplans/${id}`, {
       params: { projectId }
     });
+  },
+
+  // 获取测试计划关联的测试用例
+  getAssociatedTestCases(planId) {
+    return http.get(`/api/testplans/${planId}/cases`);
+  },
+
+  // 关联测试用例到测试计划
+  associateTestCases(planId, caseIds) {
+    return http.post(`/api/testplans/${planId}/cases`, { caseIds });
+  },
+
+  // 从测试计划中移除测试用例
+  removeTestCase(planId, caseId) {
+    return http.delete(`/api/testplans/${planId}/cases/${caseId}`);
   }
 }
 

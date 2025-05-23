@@ -79,4 +79,13 @@
         DELETE FROM test_case WHERE case_id = #{caseId}
     </delete>
 
+    <!-- 根据测试计划ID查询关联的测试用例 -->
+    <select id="selectTestCasesByPlanId" resultType="com.example.verityx.entity.TestCase">
+        SELECT tc.*
+        FROM test_case tc
+        JOIN test_plan_case_rel rel ON tc.case_id = rel.case_id
+        WHERE rel.plan_id = #{planId}
+        ORDER BY rel.order_index
+    </select>
+
 </mapper>

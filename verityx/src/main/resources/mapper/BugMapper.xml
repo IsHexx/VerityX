@@ -4,8 +4,8 @@
 
     <!-- 插入缺陷 -->
     <insert id="insertBug" parameterType="com.example.verityx.entity.Bug">
-        INSERT INTO bug_management (bug_title, level, severity, created_by, created_at, assigned_to, bug_type, status, plan_id, project_id, operating_system, browser, reproduction_steps, attachments)
-        VALUES (#{bugTitle}, #{level}, #{severity}, #{createdBy}, #{createdAt}, #{assignedTo}, #{bugType}, #{status}, #{planId}, #{projectId}, #{operatingSystem}, #{browser}, #{reproductionSteps}, #{attachments})
+        INSERT INTO bug_management (bug_title, level, severity, created_by, created_at, assigned_to, bug_type, status, plan_id, case_id, project_id, operating_system, browser, reproduction_steps, attachments)
+        VALUES (#{bugTitle}, #{level}, #{severity}, #{createdBy}, #{createdAt}, #{assignedTo}, #{bugType}, #{status}, #{planId}, #{caseId}, #{projectId}, #{operatingSystem}, #{browser}, #{reproductionSteps}, #{attachments})
     </insert>
 
     <!-- 根据 bugId 查询缺陷 -->
@@ -64,6 +64,7 @@
         bug_type = #{bugType},
         status = #{status},
         plan_id = #{planId},
+        case_id = #{caseId},
         project_id = #{projectId},
         operating_system = #{operatingSystem},
         browser = #{browser},
@@ -76,5 +77,15 @@
     <delete id="deleteBug" parameterType="int">
         DELETE FROM bug_management WHERE bug_id = #{bugId}
     </delete>
+
+    <!-- 根据测试计划ID查询缺陷 -->
+    <select id="selectBugsByPlanId" resultType="com.example.verityx.entity.Bug">
+        SELECT * FROM bug_management WHERE plan_id = #{planId}
+    </select>
+
+    <!-- 根据测试用例ID查询缺陷 -->
+    <select id="selectBugsByCaseId" resultType="com.example.verityx.entity.Bug">
+        SELECT * FROM bug_management WHERE case_id = #{caseId}
+    </select>
 
 </mapper>

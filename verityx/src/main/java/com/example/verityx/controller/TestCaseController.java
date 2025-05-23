@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,8 +47,8 @@ public class TestCaseController {
     @Operation(summary = "分页查询测试用例", description = "根据分页参数查询测试用例")
     @GetMapping("/list")
     public ApiResponse<Map<String, Object>> getTestCasesWithPagination(
-            @RequestParam int page, 
-            @RequestParam int pageSize, 
+            @RequestParam int page,
+            @RequestParam int pageSize,
             @RequestParam(required = false) String caseStatus,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String projectId) {
@@ -56,10 +57,10 @@ public class TestCaseController {
         System.out.println("pageSize是:" + pageSize);
         System.out.println("offset:" + offset);
         System.out.println("projectId:" + projectId);
-        
+
         List<TestCase> testCase = testCaseService.getTestCasesWithPagination(pageSize, offset, caseStatus, keyword, projectId);
         int total = testCaseService.getTestCaseCount(caseStatus, keyword, projectId); // 获取总记录数
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("data", testCase);
         response.put("total", total);
@@ -90,5 +91,38 @@ public class TestCaseController {
             return ApiResponse.success(true);
         }
         return ApiResponse.error(400, "删除失败");
+    }
+
+    // 更新测试用例执行结果
+    @Operation(summary = "更新测试用例执行结果", description = "更新测试用例的执行结果")
+    @PutMapping("/{id}/execution")
+    public ApiResponse<Boolean> updateTestCaseExecution(
+            @PathVariable int id,
+            @RequestBody Map<String, Object> executionData) {
+
+        TestCase testCase = testCaseService.getTestCaseById(id);
+        if (testCase == null) {
+            return ApiResponse.error(404, "测试用例不存在");
+        }
+
+        // 更新执行结果
+        String executionResult = (String) executionData.get("executionResult");
+        String remarks = (String) executionData.get("remarks");
+        String executionTimeStr = (String) executionData.get("executionTime");
+
+        testCase.setExecutionResult(executionResult);
+        testCase.setRemarks(remarks);
+
+        // 将字符串转换为LocalDateTime
+        if (executionTimeStr != null && !executionTimeStr.isEmpty()) {
+            LocalDateTime executionTime = LocalDateTime.parse(executionTimeStr.replace("Z", ""));
+            testCase.setExecutionTime(executionTime);
+        }
+
+        boolean updated = testCaseService.updateTestCase(testCase);
+        if (updated) {
+            return ApiResponse.success(true);
+        }
+        return ApiResponse.error(400, "更新执行结果失败");
     }
 }

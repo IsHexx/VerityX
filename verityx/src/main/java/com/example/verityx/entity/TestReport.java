@@ -17,6 +17,7 @@ public class TestReport {
     private String attachments;           // 附件链接或路径
     private String relatedCases;          // 关联用例ID列表
     private String remainingBugs;         // 遗留Bug ID列表
+    private String projectId;             // 项目ID
 
     // Getters and Setters
 
@@ -122,5 +123,13 @@ public class TestReport {
 
     public void setRemainingBugs(String remainingBugs) {
         this.remainingBugs = remainingBugs;
+    }
+
+    public String getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
     }
 }

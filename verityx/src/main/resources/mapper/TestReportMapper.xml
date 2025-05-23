@@ -71,4 +71,26 @@
         DELETE FROM test_report WHERE report_id = #{reportId}
     </delete>
 
+    <!-- 获取测试报告关联的测试用例ID列表 -->
+    <select id="selectRelatedCaseIds" resultType="java.lang.Integer">
+        SELECT DISTINCT CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(related_cases, ',', numbers.n), ',', -1) AS UNSIGNED) AS case_id
+        FROM test_report,
+        (
+            SELECT 1 AS n UNION ALL
+            SELECT 2 UNION ALL
+            SELECT 3 UNION ALL
+            SELECT 4 UNION ALL
+            SELECT 5 UNION ALL
+            SELECT 6 UNION ALL
+            SELECT 7 UNION ALL
+            SELECT 8 UNION ALL
+            SELECT 9 UNION ALL
+            SELECT 10
+        ) AS numbers
+        WHERE report_id = #{reportId}
+        AND related_cases IS NOT NULL
+        AND related_cases != ''
+        AND CHAR_LENGTH(related_cases) - CHAR_LENGTH(REPLACE(related_cases, ',', '')) >= numbers.n - 1
+    </select>
+
 </mapper>

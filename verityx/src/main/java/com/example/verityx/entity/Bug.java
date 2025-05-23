@@ -49,6 +49,9 @@ public class Bug {
     @Schema(description = "所属测试计划ID")
     private Integer planId;
 
+    @Schema(description = "所属测试用例ID")
+    private Integer caseId;
+
     @Schema(description = "所属项目ID")
     private Integer projectId;
 

@@ -20,7 +20,7 @@
           <el-button type="success" @click="handleCreateWorkflow">使用向导</el-button>
         </el-col>
       </el-row>
-      
+
       <el-table
         :data="tableData"
         :border="true"
@@ -35,7 +35,7 @@
         <el-table-column prop="createdAt" label="创建日期" min-width="220" />
         <el-table-column prop="planId" label="所属计划" min-width="220" />
         <el-table-column prop="testVersion" label="版本" min-width="220" />
-        
+
         <el-table-column fixed="right" label="操作" min-width="150">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleReportDetail(row)">
@@ -100,8 +100,8 @@
           </el-row>
         </el-form>
       </el-dialog>
-      <PaginationPage 
-        :total="total" 
+      <PaginationPage
+        :total="total"
         @update:pagination="handlePaginationChange"
       />
     </el-card>
@@ -210,14 +210,8 @@ const handleEditReport = (row) => {
 };
 
 // 报告详情
-const handleReportDetail = async (row) => {
-  try {
-    const res = await TestReportApi.getTestReportDetail(row.id);
-    // TODO: 实现查看详情的逻辑，可以是打开新页面或弹窗显示详细信息
-    console.log("报告详情:", res.data);
-  } catch (error) {
-    ElMessage.error("获取报告详情失败");
-  }
+const handleReportDetail = (row) => {
+  router.push(`/testreport/${row.reportId}`);
 };
 
 // 删除报告
@@ -234,7 +228,7 @@ const handleDeleteReport = async (row) => {
 // 提交表单（创建/更新）
 const onSubmit = async () => {
   try {
-    const data = { 
+    const data = {
       ...form,
       projectId: form.projectId || currentProjectId.value || ''
     };
@@ -297,7 +291,7 @@ onMounted(() => {
   fetchTestReportList();
 });
 </script>
-    
+
   <style scoped>
 .customer-table :deep(.el-table__cell) {
   border-right: none; /* 隐藏表格纵向边框*/

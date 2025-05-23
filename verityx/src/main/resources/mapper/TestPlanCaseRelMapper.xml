@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.TestPlanCaseRelMapper">
+    
+    <resultMap id="BaseResultMap" type="com.example.verityx.entity.TestPlanCaseRel">
+        <id column="id" property="id"/>
+        <result column="plan_id" property="planId"/>
+        <result column="case_id" property="caseId"/>
+        <result column="order_index" property="orderIndex"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        id, plan_id, case_id, order_index, created_at, updated_at
+    </sql>
+    
+    <!-- 插入测试计划与测试用例关联记录 -->
+    <insert id="insert" parameterType="com.example.verityx.entity.TestPlanCaseRel">
+        INSERT INTO test_plan_case_rel (plan_id, case_id, order_index)
+        VALUES (#{planId}, #{caseId}, #{orderIndex})
+    </insert>
+    
+    <!-- 批量插入测试计划与测试用例关联记录 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO test_plan_case_rel (plan_id, case_id, order_index)
+        VALUES 
+        <foreach collection="relations" item="relation" separator=",">
+            (#{relation.planId}, #{relation.caseId}, #{relation.orderIndex})
+        </foreach>
+    </insert>
+    
+    <!-- 根据测试计划ID查询关联的测试用例ID列表 -->
+    <select id="selectCaseIdsByPlanId" resultType="java.lang.Integer">
+        SELECT case_id
+        FROM test_plan_case_rel
+        WHERE plan_id = #{planId}
+        ORDER BY order_index ASC
+    </select>
+    
+    <!-- 根据测试计划ID查询关联记录 -->
+    <select id="selectByPlanId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM test_plan_case_rel
+        WHERE plan_id = #{planId}
+        ORDER BY order_index ASC
+    </select>
+    
+    <!-- 根据测试用例ID查询关联记录 -->
+    <select id="selectByCaseId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM test_plan_case_rel
+        WHERE case_id = #{caseId}
+        ORDER BY order_index ASC
+    </select>
+    
+    <!-- 根据测试计划ID删除所有关联记录 -->
+    <delete id="deleteByPlanId">
+        DELETE FROM test_plan_case_rel
+        WHERE plan_id = #{planId}
+    </delete>
+    
+    <!-- 根据测试计划ID和测试用例ID删除关联记录 -->
+    <delete id="deleteByPlanIdAndCaseId">
+        DELETE FROM test_plan_case_rel
+        WHERE plan_id = #{planId} AND case_id = #{caseId}
+    </delete>
+</mapper>

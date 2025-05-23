@@ -20,4 +20,20 @@ public interface BugService {
     boolean updateBug(Bug bug);
 
     boolean deleteBug(int bugId);
+
+    /**
+     * 根据测试计划ID查询缺陷
+     *
+     * @param planId 测试计划ID
+     * @return 缺陷列表
+     */
+    List<Bug> getBugsByPlanId(Integer planId);
+
+    /**
+     * 根据测试用例ID查询缺陷
+     *
+     * @param caseId 测试用例ID
+     * @return 缺陷列表
+     */
+    List<Bug> getBugsByCaseId(Integer caseId);
 }

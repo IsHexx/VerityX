@@ -28,8 +28,14 @@
         <el-table-column prop="participants" label="参与人" min-width="220" />
         <el-table-column prop="startDate" label="开始日期" min-width="220" />
         <el-table-column prop="endDate" label="结束日期" min-width="220" />
-        <el-table-column fixed="right" label="操作" min-width="120">
+        <el-table-column fixed="right" label="操作" min-width="180">
         <template #default="{ row }">
+          <el-button link type="primary" size="small" @click="handleViewDetail(row)">
+            详情
+          </el-button>
+          <el-button link type="primary" size="small" @click="handleEditTestplan(row)">
+            编辑
+          </el-button>
           <el-popconfirm
             title="确认删除该测试计划吗?"
             @confirm="handleDelete(row)"
@@ -40,9 +46,6 @@
               <el-button link type="primary" size="small">删除</el-button>
             </template>
           </el-popconfirm>
-          <el-button link type="primary" size="small" @click="handleEditTestplan(row)">
-            编辑
-          </el-button>
         </template>
       </el-table-column>
       </el-table>
@@ -125,8 +128,8 @@
         </el-form>
       </el-dialog>
 
-      <PaginationPage 
-        :total="total" 
+      <PaginationPage
+        :total="total"
         @update:pagination="handlePaginationChange"
       />
     </el-card>
@@ -135,11 +138,15 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import PaginationPage from '@/components/PaginationPage.vue'
 import { testplanApi } from '@/api/testplanService'
 import { useProjectStore } from '@/store/projectStore'
 import axios from "axios";
+
+// 使用路由
+const router = useRouter();
 
 // 使用项目Store
 const projectStore = useProjectStore();
@@ -227,6 +234,11 @@ const handleEditTestplan = (row) => {
   })
   dialogVisible.value = true
 }
+// 查看测试计划详情
+const handleViewDetail = (row) => {
+  router.push(`/testplan/${row.planId}`);
+}
+
 // 删除测试计划
 const handleDelete = async (row) => {
   try {
@@ -254,12 +266,12 @@ const handleTabClick = (tab) => {
     under_plan: 'Active',
     over_plan: 'Completed',
   };
-  console.log('tab.props.name', tab.props.name); 
+  console.log('tab.props.name', tab.props.name);
   // 根据选中的标签页动态设置状态
-  activeTab.value = tab.props.name; 
-  console.log('activeTab.value:', activeTab.value); 
-  const status = tabStatusMap[tab.props.name] || ''; 
-  console.log('fetchTestplan调用前status:', status); 
+  activeTab.value = tab.props.name;
+  console.log('activeTab.value:', activeTab.value);
+  const status = tabStatusMap[tab.props.name] || '';
+  console.log('fetchTestplan调用前status:', status);
 
   pagination.page = 1; // 切换标签时重置到第一页
   fetchTestplan(status); // 传入状态进行数据加载
@@ -269,7 +281,7 @@ const handleTabClick = (tab) => {
 // 提交表单
 const onSubmit = async () => {
   if (!testplanFormRef.value) return
-  
+
   try {
     const data = {
       projectId: form.projectId || '1',
@@ -299,7 +311,7 @@ const onSubmit = async () => {
 }
 
 const fetchTestplan = async (status = '') => {
-  
+
   loading.value = true;
   try {
     const res = await testplanApi.getTestplans({
@@ -308,11 +320,11 @@ const fetchTestplan = async (status = '') => {
       status: status, // 根据状态动态加载数据
     });
     console.log('获取到的测试计划数据:', res);
-    
+
     // 修正数据绑定，使用res.data.list而不是res.data.data
-    testplans.value = res.data.list || []; 
+    testplans.value = res.data.list || [];
     total.value = res.data.total || 0;
-    
+
   } catch (error) {
     ElMessage.error('获取计划列表失败');
     console.error('获取计划列表失败:', error);

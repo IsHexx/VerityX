@@ -18,8 +18,8 @@ public interface BugMapper {
     List<Bug> selectAllBugs();
 
     List<Bug> selectBugsWithPagination(
-        @Param("pageSize") int limit, 
-        @Param("offset") int offset, 
+        @Param("pageSize") int limit,
+        @Param("offset") int offset,
         @Param("status") String status,
         @Param("keyword") String keyword,
         @Param("projectId") String projectId
@@ -37,4 +37,10 @@ public interface BugMapper {
 
     // 删除缺陷
     int deleteBug(int bugId);
+
+    // 根据测试计划ID查询缺陷
+    List<Bug> selectBugsByPlanId(@Param("planId") Integer planId);
+
+    // 根据测试用例ID查询缺陷
+    List<Bug> selectBugsByCaseId(@Param("caseId") Integer caseId);
 }

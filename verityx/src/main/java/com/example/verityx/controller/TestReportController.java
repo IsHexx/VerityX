@@ -52,7 +52,7 @@ public class TestReportController {
     @Operation(summary = "分页查询测试报告", description = "根据分页参数查询测试报告")
     @GetMapping("/list")
     public ApiResponse<Map<String, Object>> getTestPlansWithPagination(
-            @RequestParam int page, 
+            @RequestParam int page,
             @RequestParam int pageSize,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String projectId) {
@@ -61,7 +61,7 @@ public class TestReportController {
         System.out.println("pageSize是:" + pageSize);
         System.out.println("offset:" + offset);
         System.out.println("projectId:" + projectId);
-        
+
         List<TestReport> testReports = testReportService.getTestReportsWithPagination(pageSize, offset, keyword, projectId);
         int total = testReportService.getTestReportCount(keyword, projectId); // 获取总记录数
         Map<String, Object> response = new HashMap<>();
@@ -91,5 +91,35 @@ public class TestReportController {
             return ApiResponse.success(true);
         }
         return ApiResponse.error(400, "删除失败");
+    }
+
+    // 获取测试报告聚合信息
+    @Operation(summary = "获取测试报告聚合信息", description = "获取测试报告的聚合信息，包括测试计划、测试用例和缺陷")
+    @GetMapping("/{id}/aggregated")
+    public ApiResponse<Map<String, Object>> getAggregatedReportInfo(@PathVariable int id) {
+        Map<String, Object> aggregatedInfo = testReportService.getAggregatedReportInfo(id);
+        return ApiResponse.success(aggregatedInfo);
+    }
+
+    // 从测试计划生成测试报告
+    @Operation(summary = "从测试计划生成测试报告", description = "根据测试计划ID生成测试报告")
+    @PostMapping("/generate/{planId}")
+    public ApiResponse<TestReport> generateReportFromTestPlan(
+            @PathVariable int planId,
+            @RequestBody Map<String, Object> reportData) {
+
+        String reportTitle = (String) reportData.get("reportTitle");
+        Integer createdBy = (Integer) reportData.get("createdBy");
+
+        if (reportTitle == null || reportTitle.isEmpty()) {
+            return ApiResponse.error(400, "报告标题不能为空");
+        }
+
+        if (createdBy == null) {
+            return ApiResponse.error(400, "创建人ID不能为空");
+        }
+
+        TestReport report = testReportService.generateReportFromTestPlan(planId, reportTitle, createdBy);
+        return ApiResponse.success(report);
     }
 }

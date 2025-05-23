@@ -21,7 +21,7 @@
           <el-button type="primary" @click="handleAddTestcase">+ 添加用例</el-button>
         </el-col>
       </el-row>
-      
+
       <el-table
         :data="testCaseData"
         :border="true"
@@ -62,8 +62,32 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作" min-width="120">
+        <el-table-column fixed="right" label="操作" min-width="180">
           <template #default="{ row }">
+            <el-button
+              link
+              type="primary"
+              size="small"
+              @click="handleViewDetail(row)"
+            >
+              详情
+            </el-button>
+            <el-button
+              link
+              type="primary"
+              size="small"
+              @click="handleEditTestcase(row)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              link
+              type="primary"
+              size="small"
+              @click="handleExecuteTestcase(row)"
+            >
+              执行
+            </el-button>
             <el-popconfirm
               title="确认删除该测试用例吗?"
               @confirm="handleDeleteTestcase(row)"
@@ -74,14 +98,6 @@
                 <el-button link type="primary" size="small">删除</el-button>
               </template>
             </el-popconfirm>
-            <el-button 
-              link 
-              type="primary" 
-              size="small" 
-              @click="handleEditTestcase(row)"
-            >
-              编辑
-            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -127,7 +143,7 @@
           <el-form-item label="创建者">
             <el-input v-model="testCaseform.createdBy" placeholder="请输入用例创建人" />
           </el-form-item>
-          
+
           <el-form-item label="日期">
             <el-col :span="11">
               <el-date-picker
@@ -155,24 +171,69 @@
         </el-form>
       </el-dialog>
 
-      <PaginationPage 
-        :total="total" 
+      <PaginationPage
+        :total="total"
         @update:pagination="handlePaginationChange"
       />
     </el-card>
+
+    <!-- 测试用例执行对话框 -->
+    <el-dialog
+      v-model="executeDialogVisible"
+      title="执行测试用例"
+      width="650px"
+    >
+      <el-form :model="executeForm" label-width="120px">
+        <el-form-item label="用例标题">
+          <span>{{ executeForm.caseTitle }}</span>
+        </el-form-item>
+        <el-form-item label="执行结果" prop="executionResult">
+          <el-radio-group v-model="executeForm.executionResult">
+            <el-radio label="通过">通过</el-radio>
+            <el-radio label="失败">失败</el-radio>
+            <el-radio label="阻塞">阻塞</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="执行备注" prop="remarks">
+          <el-input
+            v-model="executeForm.remarks"
+            type="textarea"
+            rows="4"
+            placeholder="请输入执行备注"
+          />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="executeDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitExecution">确认</el-button>
+          <el-button
+            type="warning"
+            :disabled="executeForm.executionResult !== '失败'"
+            @click="createBugFromFailedCase"
+          >
+            创建缺陷
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
-  
+
 <script setup>
 import PaginationPage from "@/components/PaginationPage.vue";
 import { ref, reactive, onMounted, computed, watch } from "vue";
 import { Search } from '@element-plus/icons-vue';
 import { TestcaseApi } from '@/api/testcaseService'
+import { BugApi } from '@/api/bugService'
 import { ElMessage } from 'element-plus'
 import { useProjectStore } from '@/store/projectStore'
+import { useRouter } from 'vue-router'
 
-// 使用项目Store
+// 使用项目Store和路由
 const projectStore = useProjectStore();
+const router = useRouter();
 // 确保初始化项目状态
 projectStore.initProjectState();
 
@@ -182,7 +243,16 @@ const currentProjectId = computed(() => projectStore.getCurrentProjectId());
 const input2 = ref('')
 const activeTab = ref("all_case");
 const dialogVisible = ref(false);
+const executeDialogVisible = ref(false);
 const placeholderText = ref('输入查询关键字⏎')
+
+// 测试用例执行表单
+const executeForm = reactive({
+  caseId: '',
+  caseTitle: '',
+  executionResult: '通过',
+  remarks: ''
+})
 
 // 表单数据
 const testCaseform = reactive({
@@ -343,11 +413,11 @@ const handleTabClick = (tab) => {
     over_audit: '已评审',
     wait_audit: '待评审'
   }
-  
+
   const caseStatus = tabStatusMap[tab.props.name] || ''
   activeTab.value = tab.props.name
-  console.log('activeTab.value:', activeTab.value); 
-  console.log('fetchTestplan调用前status:', caseStatus); 
+  console.log('activeTab.value:', activeTab.value);
+  console.log('fetchTestplan调用前status:', caseStatus);
   pagination.page = 1
   fetchTestcase(caseStatus)
 }
@@ -367,6 +437,61 @@ const handlePaginationChange = ({ page, pageSize }) => {
   fetchTestcase()
 }
 
+// 执行测试用例
+const handleExecuteTestcase = (row) => {
+  executeForm.caseId = row.caseId
+  executeForm.caseTitle = row.caseTitle
+  executeForm.executionResult = '通过'
+  executeForm.remarks = ''
+  executeDialogVisible.value = true
+}
+
+// 提交测试用例执行结果
+const submitExecution = async () => {
+  try {
+    const data = {
+      caseId: executeForm.caseId,
+      executionResult: executeForm.executionResult,
+      remarks: executeForm.remarks,
+      executionTime: new Date().toISOString()
+    }
+
+    await TestcaseApi.updateTestcaseExecution(executeForm.caseId, data)
+    ElMessage.success('测试用例执行结果已保存')
+    executeDialogVisible.value = false
+    await fetchTestcase()
+  } catch (error) {
+    ElMessage.error(error.message || '保存执行结果失败')
+    console.error('保存执行结果失败:', error)
+  }
+}
+
+// 从失败的测试用例创建缺陷
+const createBugFromFailedCase = () => {
+  if (executeForm.executionResult !== '失败') {
+    ElMessage.warning('只有失败的测试用例才能创建缺陷')
+    return
+  }
+
+  // 先保存执行结果
+  submitExecution().then(() => {
+    // 跳转到创建缺陷页面，并传递测试用例信息
+    router.push({
+      path: '/bug/create',
+      query: {
+        caseId: executeForm.caseId,
+        caseTitle: executeForm.caseTitle,
+        failureDesc: executeForm.remarks
+      }
+    })
+  })
+}
+
+// 查看测试用例详情
+const handleViewDetail = (row) => {
+  router.push(`/testcase/${row.caseId}`)
+}
+
 // 组件挂载时获取数据
 onMounted(() => {
   fetchTestcase()
@@ -378,7 +503,7 @@ watch(currentProjectId, () => {
   fetchTestcase();
 });
 </script>
-  
+
 <style scoped>
 .customer-table :deep(.el-table__cell) {
   border-right: none;  /* 隐藏表格纵向边框*/

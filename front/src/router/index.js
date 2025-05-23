@@ -1,11 +1,14 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import TestPlanPage from '@/views/TestManage/TestPlanPage.vue';
+import TestPlanDetail from '@/views/TestManage/TestPlanDetail.vue';
 import OverviewPage from '@/views/TestManage/OverviewPage.vue';
 import ApiManagePage from '@/views/ApiTest/ApiManagePage.vue';
 import ApiAutoTestPage from '@/views/ApiTest/ApiAutoTestPage.vue';
 import ApiTestReport from '@/views/ApiTest/ApiTestReport.vue';
 import TestCasePage from '@/views/TestManage/TestCasePage.vue';
+import TestCaseDetail from '@/views/TestManage/TestCaseDetail.vue';
 import BugManagePage from '@/views/TestManage/BugManagePage.vue';
+import BugCreatePage from '@/views/TestManage/BugCreatePage.vue';
 import TestReportPage from '@/views/TestManage/TestReportPage.vue';
 import TestReportAuditPage from '@/components/TestReportAuditPage.vue';
 import TestReportWorkflow from '@/components/TestReportWorkflow.vue';
@@ -63,9 +66,26 @@ const routes = [
     component: TestPlanPage
   },
   {
+    path: '/testplan/:id',
+    name: 'TestPlanDetail',
+    component: TestPlanDetail,
+    props: true
+  },
+  {
     path: '/bugmanage',
     name: 'BugManage',
     component: BugManagePage
+  },
+  {
+    path: '/bug/create',
+    name: 'BugCreate',
+    component: BugCreatePage
+  },
+  {
+    path: '/bug/:id',
+    name: 'BugDetail',
+    component: () => import('@/views/TestManage/BugDetailPage.vue'),
+    props: true
   },
   {
     path: '/testcase',
@@ -73,9 +93,21 @@ const routes = [
     component: TestCasePage
   },
   {
+    path: '/testcase/:id',
+    name: 'TestCaseDetail',
+    component: TestCaseDetail,
+    props: true
+  },
+  {
     path: '/testreport',
     name: 'TestReport',
     component: TestReportPage
+  },
+  {
+    path: '/testreport/:id',
+    name: 'TestReportDetail',
+    component: () => import('@/views/TestManage/TestReportDetail.vue'),
+    props: true
   },
   {
     path: '/apimanage',
@@ -203,14 +235,14 @@ router.beforeEach((to, from, next) => {
     }
     next('/login');
     return;
-  } 
-  
+  }
+
   // 已登录但访问登录页
   if (token && to.path === '/login') {
     next(lastPath || '/overview');
     return;
   }
-  
+
   // 访问根路径
   if (to.path === '/' && token) {
     // 避免重定向循环
@@ -219,7 +251,7 @@ router.beforeEach((to, from, next) => {
       return;
     }
   }
-  
+
   // 其他情况正常放行
   next();
 });

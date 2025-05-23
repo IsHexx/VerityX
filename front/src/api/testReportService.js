@@ -7,11 +7,11 @@ export const TestReportApi = {
   getTestreports: (params) => {
     // 确保params是对象
     params = params || {};
-    
+
     // 获取当前项目ID
     const { getCurrentProjectId } = useProjectStore();
     const projectId = getCurrentProjectId();
-    
+
     // 构造干净的查询参数对象
     const cleanParams = {
       page: params.page || 1, // 默认值为 1
@@ -39,7 +39,7 @@ export const TestReportApi = {
     const { getCurrentProjectId } = useProjectStore();
     const projectId = getCurrentProjectId();
     data.projectId = projectId;
-    
+
     return http.post('/api/testreports', data)
   },
 
@@ -51,6 +51,16 @@ export const TestReportApi = {
   // 删除测试报告
   deleteTestreport(id) {
     return http.delete(`/api/testreports/${id}`)
+  },
+
+  // 获取测试报告聚合信息（包括测试计划、用例和缺陷）
+  getAggregatedReportInfo(id) {
+    return http.get(`/api/testreports/${id}/aggregated`)
+  },
+
+  // 从测试计划生成测试报告
+  generateReportFromTestPlan(planId, data) {
+    return http.post(`/api/testreports/generate/${planId}`, data)
   }
 }
 
