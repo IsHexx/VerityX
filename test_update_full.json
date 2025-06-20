@@ -1,0 +1,14 @@
+{
+  "moduleId": 4,
+  "name": "测试接口完整更新",
+  "path": "/api/test-full-update",
+  "method": "POST",
+  "description": "测试完整功能更新",
+  "status": "active",
+  "owner": "张三",
+  "tags": "测试,API,完整功能",
+  "preUrl": "https://api.example.com",
+  "pathParams": "[{\"name\":\"id\",\"type\":\"string\",\"required\":true,\"description\":\"用户ID\"}]",
+  "queryParams": "[{\"name\":\"page\",\"type\":\"number\",\"required\":false,\"description\":\"页码\"}]",
+  "headerParams": "[{\"name\":\"Authorization\",\"type\":\"string\",\"required\":true,\"description\":\"认证令牌\"}]"
+}

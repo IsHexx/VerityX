@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.ApiTestCaseMapper">
+
+    <!-- 插入测试用例 -->
+    <insert id="insertTestCase" parameterType="com.example.verityx.entity.ApiTestCase" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO api_test_case (
+            api_id, name, description, request_params, expected_response, status, sort_order, created_at, updated_at
+        ) VALUES (
+            #{apiId}, #{name}, #{description}, #{requestParams}, #{expectedResponse}, #{status}, #{sortOrder}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <!-- 根据ID查询测试用例 -->
+    <select id="selectTestCaseById" resultType="com.example.verityx.entity.ApiTestCase">
+        SELECT * FROM api_test_case WHERE id = #{id}
+    </select>
+
+    <!-- 查询接口下的所有测试用例 -->
+    <select id="selectTestCasesByApiId" resultType="com.example.verityx.entity.ApiTestCase">
+        SELECT * FROM api_test_case 
+        WHERE api_id = #{apiId}
+        ORDER BY sort_order, id
+    </select>
+
+    <!-- 更新测试用例 -->
+    <update id="updateTestCase" parameterType="com.example.verityx.entity.ApiTestCase">
+        UPDATE api_test_case
+        SET
+            api_id = #{apiId},
+            name = #{name},
+            description = #{description},
+            request_params = #{requestParams},
+            expected_response = #{expectedResponse},
+            status = #{status},
+            sort_order = #{sortOrder},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除测试用例 -->
+    <delete id="deleteTestCase" parameterType="int">
+        DELETE FROM api_test_case WHERE id = #{id}
+    </delete>
+
+    <!-- 删除接口下的所有测试用例 -->
+    <delete id="deleteTestCasesByApiId" parameterType="int">
+        DELETE FROM api_test_case WHERE api_id = #{apiId}
+    </delete>
+
+</mapper>

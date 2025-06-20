@@ -15,23 +15,32 @@ create table api_automation
 
 create table api_management
 (
-    api_id             int auto_increment comment '接口ID，自增主键'
+    api_id             int auto_increment comment 'ID，自增主键'
         primary key,
-    api_directory      varchar(255)                        not null comment '接口目录',
-    api_name           varchar(255)                        not null comment '接口名称',
+    item_type          varchar(20)                         not null comment '项目类型：directory-目录, api-接口, case-用例',
+    parent_id          int                                 null comment '父级ID，目录的父级为null，接口的父级为目录ID，用例的父级为接口ID',
+    api_directory      varchar(255)                        null comment '接口目录（仅接口类型使用）',
+    api_name           varchar(255)                        not null comment '名称（目录名/接口名/用例名）',
     related_test_cases text                                null comment '关联接口用例ID列表',
-    request_method     varchar(50)                         not null comment '请求方法（例如：GET, POST）',
-    api_path           varchar(255)                        not null comment '接口路径',
-    status             varchar(50)                         not null comment '接口状态（例如：active, inactive）',
+    request_method     varchar(50)                         null comment '请求方法（例如：GET, POST）（仅接口类型使用）',
+    api_path           varchar(255)                        null comment '接口路径（仅接口类型使用）',
+    status             varchar(50)                         not null default 'active' comment '状态（例如：active, inactive）',
     created_at         timestamp default CURRENT_TIMESTAMP not null comment '创建时间',
     updated_at         timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
-    mock_url           varchar(255)                        null comment 'MOCK地址',
-    response_body      text                                null comment '返回Body示例',
+    mock_url           varchar(255)                        null comment 'MOCK地址（仅接口类型使用）',
+    response_body      text                                null comment '返回Body示例（仅接口类型使用）',
     project_id         int                                 not null,
+    path_params        text                                null comment 'Path参数（JSON格式）（仅接口类型使用）',
+    query_params       text                                null comment 'Query参数（JSON格式）（仅接口类型使用）',
+    header_params      text                                null comment 'Header参数（JSON格式）（仅接口类型使用）',
+    description        text                                null comment '描述',
     constraint api_id
-        unique (api_id)
+        unique (api_id),
+    index idx_parent_id (parent_id),
+    index idx_item_type (item_type),
+    index idx_project_id (project_id)
 )
-    comment '接口管理表';
+    comment '接口管理表（统一存储目录、接口、用例）';
 
 create table api_query_params
 (

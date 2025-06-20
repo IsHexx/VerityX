@@ -91,7 +91,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { BugApi } from '@/api/bugService'
-import { TestPlanApi } from '@/api/testplanService'
+import { testplanApi } from '@/api/testplanService'
 import { useProjectStore } from '@/store/projectStore'
 
 const route = useRoute()

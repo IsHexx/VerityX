@@ -194,7 +194,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { testplanApi } from '@/api/testplanService'
-import { testcaseApi } from '@/api/testcaseService'
+import { TestcaseApi } from '@/api/testcaseService'
 import { BugApi } from '@/api/bugService'
 import { http } from '@/utils/request'
 

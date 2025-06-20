@@ -2,14 +2,16 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.verityx.mapper.ApiManagementMapper">
 
-    <!-- 插入接口 -->
-    <insert id="insertApi" parameterType="com.example.verityx.entity.ApiManagement">
+    <!-- 插入接口/目录/用例 -->
+    <insert id="insertApi" parameterType="com.example.verityx.entity.ApiManagement" useGeneratedKeys="true" keyProperty="apiId">
         INSERT INTO api_management (
-        api_directory, api_name, related_test_cases, request_method, api_path,
-        status, created_at, updated_at, mock_url, response_body, project_id
+        item_type, parent_id, api_directory, api_name, related_test_cases, request_method, api_path,
+        status, created_at, updated_at, mock_url, response_body, project_id,
+        path_params, query_params, header_params, description
         ) VALUES (
-        #{apiDirectory}, #{apiName}, #{relatedTestCases}, #{requestMethod}, #{apiPath},
-        #{status}, #{createdAt}, #{updatedAt}, #{mockUrl}, #{responseBody}, #{projectId}
+        #{itemType}, #{parentId}, #{apiDirectory}, #{apiName}, #{relatedTestCases}, #{requestMethod}, #{apiPath},
+        #{status}, #{createdAt}, #{updatedAt}, #{mockUrl}, #{responseBody}, #{projectId},
+        #{pathParams}, #{queryParams}, #{headerParams}, #{description}
         )
     </insert>
 
@@ -59,10 +61,60 @@
         </where>
     </select>
 
+    <!-- 按类型查询 -->
+    <select id="selectByType" resultType="com.example.verityx.entity.ApiManagement">
+        SELECT * FROM api_management
+        <where>
+            item_type = #{itemType}
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
+            </if>
+        </where>
+        ORDER BY api_id
+    </select>
+
+    <!-- 按父级ID查询 -->
+    <select id="selectByParentId" resultType="com.example.verityx.entity.ApiManagement">
+        SELECT * FROM api_management
+        <where>
+            <if test="parentId != null">
+                parent_id = #{parentId}
+            </if>
+            <if test="parentId == null">
+                parent_id IS NULL
+            </if>
+            <if test="projectId != null and projectId != ''">
+                AND project_id = #{projectId}
+            </if>
+        </where>
+        ORDER BY item_type, api_id
+    </select>
+
+    <!-- 统计子项数量 -->
+    <select id="countChildrenByParentId" resultType="int">
+        SELECT COUNT(*) FROM api_management WHERE parent_id = #{parentId}
+    </select>
+
+    <!-- 创建目录 -->
+    <insert id="insertDirectory" parameterType="com.example.verityx.entity.ApiManagement" useGeneratedKeys="true" keyProperty="apiId">
+        INSERT INTO api_management (
+        item_type, parent_id, api_name, status, project_id, description
+        ) VALUES (
+        'directory', #{parentId}, #{apiName}, #{status}, #{projectId}, #{description}
+        )
+    </insert>
+
+    <!-- 删除目录及其所有子项 -->
+    <delete id="deleteByParentId" parameterType="int">
+        DELETE FROM api_management WHERE parent_id = #{parentId}
+    </delete>
+
     <!-- 更新接口 -->
     <update id="updateApi" parameterType="com.example.verityx.entity.ApiManagement">
         UPDATE api_management
         SET
+        item_type = #{itemType},
+        parent_id = #{parentId},
         api_directory = #{apiDirectory},
         api_name = #{apiName},
         related_test_cases = #{relatedTestCases},
@@ -72,6 +124,10 @@
         mock_url = #{mockUrl},
         response_body = #{responseBody},
         project_id = #{projectId},
+        path_params = #{pathParams},
+        query_params = #{queryParams},
+        header_params = #{headerParams},
+        description = #{description},
         updated_at = NOW()
         WHERE api_id = #{apiId}
     </update>

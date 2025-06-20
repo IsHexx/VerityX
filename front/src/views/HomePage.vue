@@ -62,43 +62,70 @@ watch(() => route.path, (newPath) => {
 
 <style scoped>
 .common-layout {
-  height: 100vh; /* 设置整体布局占满整个视口高度 */
+  height: 100vh;
+  overflow: hidden; /* 防止页面级别滚动 */
 }
 
-.el-header{
+.el-header {
   padding: 0px;
-  height: 100%;
+  height: auto; /* 让header自适应内容高度 */
+  flex-shrink: 0; /* 防止header被压缩 */
 }
 
 .fixed-aside {
   background-color: #ffffff;
   color: #333;
-  height: calc(100vh);
+  height: 100vh;
   overflow-y: auto;
   width: auto;
   max-width: 200px;
   border-radius: 20px 0px 0px 20px;
+  flex-shrink: 0; /* 防止侧边栏被压缩 */
 }
 
 .common-layout > .el-container {
   height: 100%;
+  overflow: hidden; /* 防止容器滚动 */
+}
+
+.common-layout > .el-container > .el-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 防止内部容器滚动 */
 }
 
 .common-layout > .el-container > .el-container > .el-header {
   background-color: #fff;
-  height: 8%; /* Main 高度等于视口高度减去 Header 的高度 */
+  flex-shrink: 0; /* 防止header被压缩 */
   margin-top: 0px;
+  padding: 12px 0; /* 给header一些内边距 */
 }
 
 .common-layout > .el-container > .el-container > .el-main {
   background-color: #fff;
-  height: calc(100vh - 9%); /* Main 高度等于视口高度减去 Header 的高度 */
+  flex: 1; /* 占据剩余空间 */
   margin-top: 0px;
   padding: 0px;
+  overflow: hidden; /* 防止main区域滚动 */
+  min-height: 0; /* 允许flex子项收缩 */
 }
 
+/* 全局重置 */
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+}
+
+/* 确保body和html不会有滚动条 */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+#app {
+  height: 100%;
+  overflow: hidden;
 }
 </style>

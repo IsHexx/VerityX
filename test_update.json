@@ -1,0 +1,8 @@
+{
+  "moduleId": 4,
+  "name": "测试接口更新",
+  "path": "/test",
+  "method": "GET",
+  "description": "测试描述",
+  "status": "active"
+}

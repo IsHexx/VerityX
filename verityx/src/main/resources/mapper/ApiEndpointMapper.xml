@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.verityx.mapper.ApiEndpointMapper">
+
+    <!-- 插入接口 -->
+    <insert id="insertEndpoint" parameterType="com.example.verityx.entity.ApiEndpoint" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO api_endpoint (
+            module_id, name, path, method, description, is_temp, mock_url, status, sort_order,
+            owner, tags, pre_url, path_params, query_params, header_params, created_at, updated_at
+        ) VALUES (
+            #{moduleId}, #{name}, #{path}, #{method}, #{description}, #{isTemp}, #{mockUrl}, #{status}, #{sortOrder},
+            #{owner}, #{tags}, #{preUrl}, #{pathParams}, #{queryParams}, #{headerParams}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <!-- 根据ID查询接口 -->
+    <select id="selectEndpointById" resultType="com.example.verityx.entity.ApiEndpoint">
+        SELECT * FROM api_endpoint WHERE id = #{id}
+    </select>
+
+    <!-- 查询模块下的所有接口 -->
+    <select id="selectEndpointsByModuleId" resultType="com.example.verityx.entity.ApiEndpoint">
+        SELECT * FROM api_endpoint 
+        WHERE module_id = #{moduleId}
+        ORDER BY sort_order, id
+    </select>
+
+    <!-- 查询项目下的所有接口 -->
+    <select id="selectEndpointsByProjectId" resultType="com.example.verityx.entity.ApiEndpoint">
+        SELECT e.* FROM api_endpoint e
+        JOIN api_module m ON e.module_id = m.id
+        <where>
+            <if test="projectId != null and projectId != ''">
+                m.project_id = #{projectId}
+            </if>
+        </where>
+        ORDER BY m.sort_order, m.id, e.sort_order, e.id
+    </select>
+
+    <!-- 分页查询接口 -->
+    <select id="selectEndpointsWithPagination" resultType="com.example.verityx.entity.ApiEndpoint">
+        SELECT e.*, m.name as module_name FROM api_endpoint e
+        JOIN api_module m ON e.module_id = m.id
+        <where>
+            <if test="projectId != null and projectId != ''">
+                AND m.project_id = #{projectId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (e.name LIKE CONCAT('%', #{keyword}, '%') 
+                     OR e.path LIKE CONCAT('%', #{keyword}, '%')
+                     OR e.description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY m.sort_order, m.id, e.sort_order, e.id
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- 统计接口数量 -->
+    <select id="selectEndpointCount" resultType="int">
+        SELECT COUNT(*) FROM api_endpoint e
+        JOIN api_module m ON e.module_id = m.id
+        <where>
+            <if test="projectId != null and projectId != ''">
+                AND m.project_id = #{projectId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (e.name LIKE CONCAT('%', #{keyword}, '%') 
+                     OR e.path LIKE CONCAT('%', #{keyword}, '%')
+                     OR e.description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+    </select>
+
+    <!-- 更新接口 -->
+    <update id="updateEndpoint" parameterType="com.example.verityx.entity.ApiEndpoint">
+        UPDATE api_endpoint
+        SET
+            module_id = #{moduleId},
+            name = #{name},
+            path = #{path},
+            method = #{method},
+            description = #{description},
+            is_temp = #{isTemp},
+            mock_url = #{mockUrl},
+            status = #{status},
+            sort_order = #{sortOrder},
+            owner = #{owner},
+            tags = #{tags},
+            pre_url = #{preUrl},
+            path_params = #{pathParams},
+            query_params = #{queryParams},
+            header_params = #{headerParams},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除接口 -->
+    <delete id="deleteEndpoint" parameterType="int">
+        DELETE FROM api_endpoint WHERE id = #{id}
+    </delete>
+
+    <!-- 删除模块下的所有接口 -->
+    <delete id="deleteEndpointsByModuleId" parameterType="int">
+        DELETE FROM api_endpoint WHERE module_id = #{moduleId}
+    </delete>
+
+</mapper>
