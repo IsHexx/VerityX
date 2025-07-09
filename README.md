@@ -34,6 +34,14 @@ VerityX 是一个综合性测试管理平台，用于管理测试用例、接口
 
 <img src="resource/接口测试.png" alt="接口测试" width="750">
 
+### UI测试
+
+<img src="resource/UI测试.png" alt="UI测试" width="750">
+
+### 系统设置
+
+<img src="resource/系统设置.png" alt="系统设置" width="750">
+
 </div>
 
 ## 📑 目录
