@@ -42,10 +42,10 @@
               <preview-page></preview-page>
             </div>
             <div v-show="activeName === 'edit'" class="tab-content">
-              <edit-page></edit-page>
+              <edit-page ref="editPageRef"></edit-page>
             </div>
             <div v-show="activeName === 'run'" class="tab-content">
-              <run-page></run-page>
+              <run-page ref="runPageRef" :edit-page-ref="editPageRef"></run-page>
             </div>
           </div>
         </div>
@@ -63,6 +63,10 @@ const projectStore = useProjectStore();
 
 // 当前激活的标签页
 const activeName = ref("preview");
+
+// 组件引用
+const editPageRef = ref(null);
+const runPageRef = ref(null);
 
 // 定义响应式数据
 const previewApiData = ref(null);

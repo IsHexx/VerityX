@@ -7,11 +7,11 @@
         INSERT INTO api_management (
         item_type, parent_id, api_directory, api_name, related_test_cases, request_method, api_path,
         status, created_at, updated_at, mock_url, response_body, project_id,
-        path_params, query_params, header_params, description
+        path_params, query_params, header_params, description, creator_id, creator_name
         ) VALUES (
         #{itemType}, #{parentId}, #{apiDirectory}, #{apiName}, #{relatedTestCases}, #{requestMethod}, #{apiPath},
         #{status}, #{createdAt}, #{updatedAt}, #{mockUrl}, #{responseBody}, #{projectId},
-        #{pathParams}, #{queryParams}, #{headerParams}, #{description}
+        #{pathParams}, #{queryParams}, #{headerParams}, #{description}, #{creatorId}, #{creatorName}
         )
     </insert>
 
@@ -128,6 +128,8 @@
         query_params = #{queryParams},
         header_params = #{headerParams},
         description = #{description},
+        updater_id = #{updaterId},
+        updater_name = #{updaterName},
         updated_at = NOW()
         WHERE api_id = #{apiId}
     </update>

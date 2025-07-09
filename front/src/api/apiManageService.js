@@ -71,7 +71,15 @@ export const ApiManageApi = {
       path: data.apiPath || data.path,
       method: data.requestMethod || data.method,
       description: data.description,
-      status: data.status || 'active'
+      status: data.status || 'active',
+      mockUrl: data.mockUrl,
+      tags: data.tags,
+      preUrl: data.preUrl,
+      owner: data.owner,
+      // 参数相关字段
+      pathParams: data.pathParams,
+      queryParams: data.queryParams,
+      headerParams: data.headerParams
     };
 
     // 如果moduleId仍然为空，抛出错误

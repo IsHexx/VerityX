@@ -14,18 +14,12 @@
             {{ ruleForm.method }}
           </el-tag>
           <span class="api-path">{{ ruleForm.path || '/api/path' }}</span>
-          <el-tag
-            :type="getStatusTagType(ruleForm.status)"
-            size="large"
-            class="status-tag"
-          >
-            {{ getStatusText(ruleForm.status) }}
-          </el-tag>
         </div>
         <div class="api-info">
+          <span class="info-item">创建人: {{ ruleForm.creatorName || '未设置' }}</span>
+          <span class="info-item">修改者: {{ ruleForm.updaterName || '未设置' }}</span>
           <span class="info-item">创建时间: {{ formatDate(ruleForm.createdAt) }}</span>
           <span class="info-item">修改时间: {{ formatDate(ruleForm.updatedAt) }}</span>
-          <span class="info-item">状态: {{ getStatusText(ruleForm.status) }}</span>
           <span class="info-item">目录: {{ ruleForm.apiDirectory || '未分类' }}</span>
           <span class="info-item">项目ID: {{ ruleForm.projectId || '未设置' }}</span>
           <span class="info-item" v-if="ruleForm.relatedTestCases">关联用例: {{ ruleForm.relatedTestCases }}</span>
@@ -69,7 +63,8 @@
     <div class="api-section">
       <h3 class="section-title">请求参数</h3>
 
-      <!-- Path 参数 -->
+      <!-- Path 参数 - 隐藏显示 -->
+      <!--
       <div class="param-section">
         <h4 class="param-title">Path 参数</h4>
         <div class="param-table">
@@ -90,6 +85,7 @@
           </el-table>
         </div>
       </div>
+      -->
 
       <!-- Query 参数 -->
       <div class="param-section">
@@ -195,7 +191,11 @@ const ruleForm = reactive({
   responseBody: '{\n  "message": "string"\n}',
   apiDirectory: '',
   relatedTestCases: '',
-  projectId: 1
+  projectId: 1,
+  creatorId: null,
+  creatorName: '',
+  updaterId: null,
+  updaterName: ''
 });
 
 // 从后端获取的真实数据
@@ -273,6 +273,10 @@ const loadApiDataToForm = (apiData) => {
   ruleForm.apiDirectory = apiData.apiDirectory || '';
   ruleForm.relatedTestCases = apiData.relatedTestCases || '';
   ruleForm.projectId = apiData.projectId || 1;
+  ruleForm.creatorId = apiData.creatorId || null;
+  ruleForm.creatorName = apiData.creatorName || '';
+  ruleForm.updaterId = apiData.updaterId || null;
+  ruleForm.updaterName = apiData.updaterName || '';
 
   // 解析参数数据（如果后端有提供的话）
   try {
@@ -368,6 +372,10 @@ const clearForm = () => {
   ruleForm.apiDirectory = '';
   ruleForm.relatedTestCases = '';
   ruleForm.projectId = 1;
+  ruleForm.creatorId = null;
+  ruleForm.creatorName = '';
+  ruleForm.updaterId = null;
+  ruleForm.updaterName = '';
 
   // 重置所有参数和数据
   pathParams.value = [];
@@ -447,6 +455,7 @@ const rules = reactive({});
   border-bottom: 1px solid #e4e7ed;
   overflow-x: hidden; /* 防止横向滚动 */
   min-width: 0; /* 允许收缩 */
+  margin-left: 0; /* 与接口名称栏对齐 */
 }
 
 .api-title-section {
@@ -509,11 +518,11 @@ const rules = reactive({});
 /* 内容区域 */
 .api-section {
   background: white;
-  margin: 16px 24px;
-  padding: 24px;
+  margin: 16px 0; /* 只保留上下margin，去掉左右margin */
+  padding: 24px; /* 恢复正常的padding */
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  width: calc(100% - 48px);
+  width: 100%; /* 占满整个宽度 */
   max-width: none;
   overflow-x: hidden; /* 防止横向滚动 */
   min-width: 0; /* 允许收缩 */
@@ -667,8 +676,9 @@ const rules = reactive({});
   }
 
   .api-section {
-    margin: 12px 16px;
-    padding: 16px;
+    margin: 12px 0; /* 只保留上下margin，去掉左右margin */
+    padding: 16px; /* 恢复正常的padding */
+    width: 100%; /* 占满整个宽度 */
   }
 
   .api-meta {

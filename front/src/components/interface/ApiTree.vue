@@ -333,7 +333,7 @@ const transformTreeData = (rawData) => {
 const loading = ref(false);
 
 // 请求数据并处理为树形结构
-const fetchTreeData = async () => {
+const fetchTreeData = async (autoSelectFirst = false) => {
   loading.value = true;
   try {
     console.log("开始加载树形数据...");
@@ -348,6 +348,11 @@ const fetchTreeData = async () => {
       const transformedData = transformTreeData(rawData);
       console.log("转换后的树形数据:", transformedData);
       treeData.value = transformedData;
+
+      // 如果需要自动选择第一条接口
+      if (autoSelectFirst) {
+        selectFirstApi();
+      }
     } else {
       console.error("获取树形数据失败:", response?.message || '未知错误');
       ElMessage.error('获取树形数据失败');
@@ -359,6 +364,36 @@ const fetchTreeData = async () => {
     treeData.value = [];
   } finally {
     loading.value = false;
+  }
+};
+
+// 自动选择第一条接口
+const selectFirstApi = () => {
+  console.log("尝试自动选择第一条接口...");
+
+  // 查找第一条接口
+  const findFirstApi = (nodes) => {
+    for (const node of nodes) {
+      // 如果是接口节点
+      if (node.type === 'api' && node.apiData) {
+        return node;
+      }
+      // 如果有子节点，递归查找
+      if (node.children && node.children.length > 0) {
+        const found = findFirstApi(node.children);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const firstApi = findFirstApi(treeData.value);
+  if (firstApi) {
+    console.log("找到第一条接口:", firstApi);
+    // 模拟点击第一条接口
+    handleNodeClick(firstApi);
+  } else {
+    console.log("未找到任何接口");
   }
 };
 
@@ -1039,9 +1074,9 @@ watch(filterText, (val) => {
   }
 });
 
-// 组件挂载时获取数据
+// 组件挂载时获取数据并自动选择第一条接口
 onMounted(() => {
-  fetchTreeData();
+  fetchTreeData(true); // 传入true表示需要自动选择第一条接口
 });
 
 </script>

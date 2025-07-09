@@ -11,7 +11,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 // 允许来自前端开发服务器的请求
-                .allowedOrigins("http://localhost:8080","http://10.65.81.71:8080/") // Vue默认端口，按实际情况修改
+                .allowedOrigins("http://localhost:8080","http://localhost:8081","http://localhost:8082") // Vue默认端口，按实际情况修改
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)

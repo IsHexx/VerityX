@@ -14,16 +14,24 @@
         <div class="api-path-bar">
           <div class="method-wrapper">
             <el-form-item prop="method" class="method-form-item">
+              <!-- HTTP方法选择器 -->
               <el-select
                 v-model="ruleForm.method"
-                class="method-select"
                 size="small"
+                placeholder="选择方法"
+                :style="{
+                  width: '120px',
+                  '--el-input-bg-color': getMethodColor(ruleForm.method),
+                  '--el-input-border-color': getMethodColor(ruleForm.method),
+                  '--el-input-text-color': getMethodTextColor(ruleForm.method)
+                }"
               >
-                <el-option label="GET" value="GET" />
-                <el-option label="POST" value="POST" />
-                <el-option label="PUT" value="PUT" />
-                <el-option label="DELETE" value="DELETE" />
-                <el-option label="PATCH" value="PATCH" />
+                <el-option
+                  v-for="method in methodOptions"
+                  :key="method.value"
+                  :label="method.label"
+                  :value="method.value"
+                />
               </el-select>
             </el-form-item>
           </div>
@@ -41,7 +49,7 @@
 
           <div class="action-buttons">
             <el-button size="small" plain icon="Share">分享</el-button>
-            <el-button size="small" plain :icon="VideoPlay">运行</el-button>
+            <el-button size="small" plain :icon="VideoPlay" @click="runApi">运行</el-button>
             <el-button type="primary" size="small" @click="onSubmit" :loading="saving">
               保存
             </el-button>
@@ -93,18 +101,9 @@
           </div>
         </div>
 
-        <!-- 责任人区域 -->
+        <!-- 标签和前置URL区域 -->
         <div class="responsibility-section">
           <div class="responsibility-row">
-            <div class="responsibility-item">
-              <label class="item-label">责任人</label>
-              <el-select v-model="ruleForm.owner" placeholder="请选择责任人" size="small" class="owner-select">
-                <el-option label="张三" value="zhangsan" />
-                <el-option label="李四" value="lisi" />
-                <el-option label="王五" value="wangwu" />
-              </el-select>
-            </div>
-
             <div class="responsibility-item">
               <label class="item-label">标签</label>
               <el-input v-model="ruleForm.tags" placeholder="标签" size="small" class="tags-input" />
@@ -179,29 +178,70 @@
               </div>
 
               <!-- Path 参数 -->
-              <div class="param-header" style="margin-top: 20px;">
+              <div class="param-header" style="margin-top: 24px;">
                 <span class="param-subtitle">Path 参数</span>
+                <el-button size="small" type="primary" @click="addPathParam">
+                  + 添加参数
+                </el-button>
               </div>
               <div class="param-table">
-                <el-table :data="pathParams" style="width: 100%">
+                <el-table :data="pathParamsWithPlaceholder" style="width: 100%">
                   <el-table-column prop="name" label="参数名" width="150">
                     <template #default="scope">
-                      <span class="param-name">{{ scope.row.name }}</span>
+                      <el-input
+                        v-if="!scope.row.isPlaceholder"
+                        v-model="scope.row.name"
+                        size="small"
+                        placeholder="id"
+                      />
+                      <span v-else class="placeholder-text">暂无参数</span>
                     </template>
                   </el-table-column>
                   <el-table-column prop="type" label="类型" width="100">
                     <template #default="scope">
-                      <el-tag size="small" type="success">{{ scope.row.type }}</el-tag>
+                      <el-select
+                        v-if="!scope.row.isPlaceholder"
+                        v-model="scope.row.type"
+                        size="small"
+                      >
+                        <el-option label="string" value="string" />
+                        <el-option label="number" value="number" />
+                        <el-option label="boolean" value="boolean" />
+                      </el-select>
                     </template>
                   </el-table-column>
                   <el-table-column prop="required" label="示例" width="100">
                     <template #default="scope">
-                      <el-tag size="small" type="danger">必</el-tag>
+                      <el-tag
+                        v-if="!scope.row.isPlaceholder"
+                        :type="scope.row.required ? 'danger' : 'info'"
+                        size="small"
+                      >
+                        {{ scope.row.required ? '必' : '*' }}
+                      </el-tag>
                     </template>
                   </el-table-column>
                   <el-table-column prop="description" label="说明">
                     <template #default="scope">
-                      <span>{{ scope.row.description }}</span>
+                      <el-input
+                        v-if="!scope.row.isPlaceholder"
+                        v-model="scope.row.description"
+                        size="small"
+                        placeholder="路径参数说明"
+                      />
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="80">
+                    <template #default="scope">
+                      <el-button
+                        v-if="!scope.row.isPlaceholder"
+                        size="small"
+                        type="danger"
+                        text
+                        @click="removePathParam(scope.$index)"
+                      >
+                        删除
+                      </el-button>
                     </template>
                   </el-table-column>
                 </el-table>
@@ -1093,52 +1133,90 @@ pm.test('Response has required fields', function () {
     </div>
 
     <!-- 返回响应 -->
-    <div class="api-section">
-      <h3 class="section-title">返回响应</h3>
-      <div class="response-tabs">
-        <el-button
-          :type="responseActiveTab === '200' ? 'success' : ''"
-          @click="responseActiveTab = '200'"
-          size="small"
-        >
-          成功(200)
-        </el-button>
-        <el-button
-          :type="responseActiveTab === '404' ? 'danger' : ''"
-          @click="responseActiveTab = '404'"
-          size="small"
-        >
-          404(404)
-        </el-button>
-      </div>
-
-      <div class="response-info">
-        <div class="response-meta">
-          <span class="response-code">HTTP 状态码: {{ responseActiveTab }}</span>
-          <span class="response-type">内容格式: JSON</span>
-          <span class="response-content-type">application/json</span>
+    <div 
+      class="api-section response-section"
+      :class="{ 'response-overlay': responseOverlay }"
+      :style="{ 
+        top: responseOverlay ? responseTop + 'px' : 'auto',
+        zIndex: responseZIndex
+      }"
+    >
+      <div class="response-section-header">
+        <h3 class="section-title">返回响应</h3>
+        <div class="response-controls">
+          <div 
+            class="drag-handle"
+            @mousedown="startDrag"
+            title="拖拽移动响应区域"
+          >
+            <div class="drag-icon">⋮⋮</div>
+          </div>
+          <el-button
+            size="small"
+            text
+            @click="toggleResponseCollapse"
+            :icon="responseCollapsed ? ArrowDown : ArrowUp"
+          >
+            {{ responseCollapsed ? '展开' : '折叠' }}
+          </el-button>
         </div>
       </div>
 
-      <div class="response-body">
-        <div class="response-header">
-          <h4>数据结构</h4>
-          <div class="response-actions">
-            <el-button size="small">示例</el-button>
-            <el-button size="small">字符串</el-button>
-            <el-button size="small">原始</el-button>
+      <div v-show="!responseCollapsed" class="response-content" :style="{ height: responseHeight + 'px' }">
+        <div class="response-tabs">
+          <el-button
+            :type="responseActiveTab === '200' ? 'success' : ''"
+            @click="responseActiveTab = '200'"
+            size="small"
+          >
+            成功(200)
+          </el-button>
+          <el-button
+            :type="responseActiveTab === '404' ? 'danger' : ''"
+            @click="responseActiveTab = '404'"
+            size="small"
+          >
+            404(404)
+          </el-button>
+        </div>
+
+        <div class="response-info">
+          <div class="response-meta">
+            <span class="response-code">HTTP 状态码: {{ responseActiveTab }}</span>
+            <span class="response-type">内容格式: JSON</span>
+            <span class="response-content-type">application/json</span>
           </div>
         </div>
-        <div class="json-editor">
-          <el-form-item prop="responseBody">
-            <el-input
-              v-model="ruleForm.responseBody"
-              type="textarea"
-              :rows="10"
-              placeholder='{"message": "string"}'
-              class="json-textarea"
-            />
-          </el-form-item>
+
+        <div class="response-body">
+          <div class="response-header">
+            <h4>数据结构</h4>
+            <div class="response-actions">
+              <el-button size="small">示例</el-button>
+              <el-button size="small">字符串</el-button>
+              <el-button size="small">原始</el-button>
+            </div>
+          </div>
+          <div class="json-editor">
+            <el-form-item prop="responseBody">
+              <el-input
+                v-model="ruleForm.responseBody"
+                type="textarea"
+                :rows="Math.floor((responseHeight - 200) / 24)"
+                placeholder='{"message": "string"}'
+                class="json-textarea"
+                resize="none"
+              />
+            </el-form-item>
+          </div>
+        </div>
+
+        <!-- 拖拽调整高度的手柄 -->
+        <div
+          class="resize-handle"
+          @mousedown="startResize"
+        >
+          <div class="resize-line"></div>
         </div>
       </div>
     </div>
@@ -1147,11 +1225,12 @@ pm.test('Response has required fields', function () {
 </template>
   
   <script setup>
-import { reactive, ref, inject, watch, watchEffect, computed } from "vue";
+import { reactive, ref, inject, watch, computed } from "vue";
 import { ElMessage } from 'element-plus';
 import { Document, ArrowUp, ArrowDown, Share, VideoPlay, QuestionFilled, Lock, InfoFilled, UploadFilled, Plus, Clock, Download, CircleClose, Check, DataBoard } from '@element-plus/icons-vue';
 import { ApiManageApi } from "@/api/apiManageService";
   
+const activeName = inject('activeName', null);
 const editApiData = inject('editApiData', null);
 const syncApiData = inject('syncApiData', null);
 const refreshTreeData = inject('refreshTreeData', null);
@@ -1176,13 +1255,25 @@ const ruleForm = reactive({
   projectId: 1, // 添加项目ID字段
   owner: '', // 责任人
   tags: '', // 标签
-  preUrl: '' // 前置URL
+  preUrl: '', // 前置URL
+  creatorId: null, // 创建人ID
+  creatorName: '', // 创建人姓名
+  updaterId: null, // 修改者ID
+  updaterName: '' // 修改者姓名
 });
 
 // Tab状态
-const mockActiveTab = ref('mock');
 const responseActiveTab = ref('200');
 const activeParamTab = ref('params');
+
+// 响应区域状态
+const responseCollapsed = ref(false);
+const responseHeight = ref(400);
+const isResizing = ref(false);
+const isDragging = ref(false);
+const responseOverlay = ref(false);
+const responseTop = ref(0);
+const responseZIndex = ref(1);
 
 // Body相关状态
 const bodyType = ref('none');
@@ -1262,6 +1353,14 @@ const headerParams = ref([]);
 
 // 接口详细信息
 const apiDetail = ref(null);
+
+// Path参数带占位符的计算属性
+const pathParamsWithPlaceholder = computed(() => {
+  if (pathParams.value.length === 0) {
+    return [{ isPlaceholder: true }];
+  }
+  return pathParams.value;
+});
 
 // 表单验证规则
 const rules = reactive({
@@ -1352,6 +1451,10 @@ const loadApiDataToForm = (apiData) => {
   ruleForm.apiDirectory = apiData.apiDirectory || '';
   ruleForm.relatedTestCases = apiData.relatedTestCases || '';
   ruleForm.projectId = apiData.projectId || 1;
+  ruleForm.creatorId = apiData.creatorId || null;
+  ruleForm.creatorName = apiData.creatorName || '';
+  ruleForm.updaterId = apiData.updaterId || null;
+  ruleForm.updaterName = apiData.updaterName || '';
 
   // 新增字段
   ruleForm.owner = apiData.owner || '';
@@ -1453,6 +1556,11 @@ const toggleDescription = () => {
   descriptionExpanded.value = !descriptionExpanded.value;
 };
 
+// 处理方法变更
+const handleMethodChange = (value) => {
+  console.log('方法变更为:', value);
+};
+
 // 参数操作方法
 const addQueryParam = () => {
   queryParams.value.push({
@@ -1467,6 +1575,100 @@ const removeQueryParam = (index) => {
   queryParams.value.splice(index, 1);
 };
 
+// 响应区域折叠切换
+const toggleResponseCollapse = () => {
+  responseCollapsed.value = !responseCollapsed.value;
+};
+
+// 开始拖拽调整高度
+const startResize = (e) => {
+  isResizing.value = true;
+  const startY = e.clientY;
+  const startHeight = responseHeight.value;
+
+  const handleMouseMove = (e) => {
+    if (!isResizing.value) return;
+    const deltaY = e.clientY - startY;
+    const newHeight = Math.max(200, Math.min(800, startHeight + deltaY));
+    responseHeight.value = newHeight;
+  };
+
+  const handleMouseUp = () => {
+    isResizing.value = false;
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  };
+
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseUp);
+  document.body.style.cursor = 'ns-resize';
+  document.body.style.userSelect = 'none';
+};
+
+// 开始拖拽移动响应区域
+const startDrag = (e) => {
+  if (e.target.closest('.drag-handle')) {
+    e.preventDefault();
+    isDragging.value = true;
+    
+    const startY = e.clientY;
+    const startTop = responseOverlay.value ? responseTop.value : 0;
+    const responseSection = e.target.closest('.response-section');
+    const rect = responseSection.getBoundingClientRect();
+    
+    // 启用覆盖模式
+    if (!responseOverlay.value) {
+      responseOverlay.value = true;
+      responseTop.value = rect.top + window.scrollY;
+      responseZIndex.value = 1000;
+    }
+
+    const handleMouseMove = (e) => {
+      if (!isDragging.value) return;
+      
+      const deltaY = e.clientY - startY;
+      const newTop = startTop + deltaY;
+      
+      // 限制拖拽范围
+      const minTop = 0;
+      const maxTop = window.innerHeight - 100; // 至少显示100px
+      
+      responseTop.value = Math.max(minTop, Math.min(maxTop, newTop));
+    };
+
+    const handleMouseUp = () => {
+      isDragging.value = false;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      
+      // 检查是否需要退出覆盖模式
+      const currentTop = responseTop.value;
+      const windowHeight = window.innerHeight;
+      
+      // 如果拖拽到接近底部，退出覆盖模式
+      if (currentTop > windowHeight * 0.8) {
+        resetResponsePosition();
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'move';
+    document.body.style.userSelect = 'none';
+  }
+};
+
+// 重置响应区域位置
+const resetResponsePosition = () => {
+  responseOverlay.value = false;
+  responseTop.value = 0;
+  responseZIndex.value = 1;
+};
+
 const addHeaderParam = () => {
   headerParams.value.push({
     name: '',
@@ -1477,6 +1679,19 @@ const addHeaderParam = () => {
 
 const removeHeaderParam = (index) => {
   headerParams.value.splice(index, 1);
+};
+
+const addPathParam = () => {
+  pathParams.value.push({
+    name: '',
+    type: 'string',
+    description: '',
+    required: true
+  });
+};
+
+const removePathParam = (index) => {
+  pathParams.value.splice(index, 1);
 };
 
 // 添加Form Data参数
@@ -1654,17 +1869,40 @@ const configureUrlEncoding = () => {
   // 这里可以跳转到项目设置页面
 };
 
-// 获取请求方法标签类型
-const getMethodTagType = (method) => {
-  const methodTypes = {
-    'GET': 'success',
-    'POST': 'primary',
-    'PUT': 'warning',
-    'DELETE': 'danger',
-    'PATCH': 'info'
+// HTTP方法选项数据
+const methodOptions = ref([
+  { value: 'GET', label: 'GET' },
+  { value: 'POST', label: 'POST' },
+  { value: 'PUT', label: 'PUT' },
+  { value: 'DELETE', label: 'DELETE' },
+  { value: 'PATCH', label: 'PATCH' }
+]);
+
+// 获取方法背景色
+const getMethodColor = (method) => {
+  const colors = {
+    'GET': '#f6ffed',     // 浅绿色
+    'POST': '#e6f7ff',    // 浅蓝色
+    'PUT': '#fff7e6',     // 浅橙色
+    'DELETE': '#fff1f0',  // 浅红色
+    'PATCH': '#f9f0ff'    // 浅紫色
   };
-  return methodTypes[method] || 'info';
+  return colors[method] || '#ffffff';
 };
+
+// 获取方法文字色
+const getMethodTextColor = (method) => {
+  const colors = {
+    'GET': '#389e0d',     // 深绿色
+    'POST': '#1890ff',    // 深蓝色
+    'PUT': '#fa8c16',     // 深橙色
+    'DELETE': '#ff4d4f',  // 深红色
+    'PATCH': '#722ed1'    // 深紫色
+  };
+  return colors[method] || '#606266';
+};
+
+
 
 // 清空表单
 const clearForm = () => {
@@ -1687,6 +1925,10 @@ const clearForm = () => {
   ruleForm.owner = '';
   ruleForm.tags = '';
   ruleForm.preUrl = '';
+  ruleForm.creatorId = null;
+  ruleForm.creatorName = '';
+  ruleForm.updaterId = null;
+  ruleForm.updaterName = '';
 
   // 重置所有参数和数据
   pathParams.value = [];
@@ -1720,7 +1962,7 @@ const onSubmit = async () => {
       return;
     }
 
-    // 构建更新数据 - 使用新的API字段名
+    // 构建更新数据 - 使用新的API字段名，只传递数据库表中已有的字段
     const updateData = {
       moduleId: editApiData.value?.apiData?.moduleId || editApiData.value?.moduleId,
       name: ruleForm.name,
@@ -1729,9 +1971,9 @@ const onSubmit = async () => {
       description: ruleForm.description,
       status: ruleForm.status,
       mockUrl: ruleForm.mockUrl,
-      owner: ruleForm.owner,
       tags: ruleForm.tags,
       preUrl: ruleForm.preUrl,
+      owner: ruleForm.owner,
       // 将参数数据转换为JSON字符串
       pathParams: JSON.stringify(pathParams.value || []),
       queryParams: JSON.stringify(queryParams.value || []),
@@ -1792,6 +2034,30 @@ const onSubmit = async () => {
     saving.value = false;
   }
 };
+
+// 运行接口测试
+const runApi = () => {
+  if (!editApiData?.value?.id) {
+    ElMessage.error('请先选择要测试的接口');
+    return;
+  }
+
+  // 切换到运行标签页
+  if (activeName && activeName.value) {
+    activeName.value = 'run';
+    ElMessage.success('已切换到运行页面');
+  } else {
+    ElMessage.error('无法切换到运行页面');
+  }
+};
+
+// 暴露数据给运行页面使用
+defineExpose({
+  pathParams,
+  queryParams,
+  headerParams,
+  ruleForm
+});
 </script>
 
 <style scoped>
@@ -1810,7 +2076,7 @@ const onSubmit = async () => {
 /* API编辑容器 */
 .api-edit-container {
   background: white;
-  margin: 16px 24px 0 24px;
+  margin: 16px 0 0 0; /* 去掉左右margin，与接口名称栏对齐 */
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -2697,11 +2963,11 @@ const onSubmit = async () => {
 /* 内容区域 */
 .api-section {
   background: white;
-  margin: 16px 24px;
+  margin: 16px 0; /* 去掉左右margin，与接口名称栏对齐 */
   padding: 24px;
   border-radius: 8px;
   border: 1px solid #e4e7ed;
-  width: calc(100% - 48px);
+  width: 100%; /* 占满整个宽度 */
   max-width: none;
   overflow-x: hidden;
   min-width: 0;
@@ -2791,8 +3057,42 @@ const onSubmit = async () => {
   overflow: visible;
 }
 
+/* Path参数占位符样式 */
+.placeholder-text {
+  color: #c0c4cc;
+  font-style: italic;
+  font-size: 14px;
+}
+
 /* 响应区域 */
+.response-section {
+  position: relative;
+}
+
+.response-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.response-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.response-content {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  background: white;
+  transition: height 0.3s ease;
+}
+
 .response-tabs {
+  padding: 16px 16px 0;
   margin-bottom: 16px;
 }
 
@@ -2802,6 +3102,7 @@ const onSubmit = async () => {
 }
 
 .response-info {
+  padding: 0 16px;
   margin-bottom: 16px;
 }
 
@@ -2820,6 +3121,7 @@ const onSubmit = async () => {
 }
 
 .response-body {
+  margin: 0 16px 16px;
   border: 1px solid #e4e7ed;
   border-radius: 4px;
 }
@@ -2847,6 +3149,36 @@ const onSubmit = async () => {
 
 .json-editor {
   padding: 16px;
+}
+
+.json-editor :deep(.el-form-item__content) {
+  margin-left: 0 !important;
+}
+
+/* 拖拽调整高度的手柄 */
+.resize-handle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  border-top: 1px solid #e4e7ed;
+}
+
+.resize-handle:hover {
+  background: #e4e7ed;
+}
+
+.resize-line {
+  width: 40px;
+  height: 2px;
+  background: #c0c4cc;
+  border-radius: 1px;
 }
 
 .json-textarea :deep(.el-textarea__inner) {
@@ -2884,8 +3216,9 @@ const onSubmit = async () => {
   }
 
   .api-section {
-    margin: 12px 16px;
+    margin: 12px 0; /* 去掉左右margin，保持对齐 */
     padding: 16px;
+    width: 100%; /* 占满整个宽度 */
   }
 
   .api-meta {
@@ -2905,4 +3238,61 @@ const onSubmit = async () => {
     gap: 12px;
   }
 }
+
+/* HTTP方法标签颜色样式 - 只在下拉选项中显示 */
+.http-method {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  min-width: 50px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.get {
+  background-color: #52c41a;
+  color: #fff;
+}
+
+.post {
+  background-color: #1890ff;
+  color: #fff;
+}
+
+.put {
+  background-color: #fa8c16;
+  color: #fff;
+}
+
+.delete {
+  background-color: #ff4d4f;
+  color: #fff;
+}
+
+.patch {
+  background-color: #722ed1;
+  color: #fff;
+}
+
+/* HTTP方法选择器样式 - 直接修改 el-select__wrapper */
+.el-select :deep(.el-select__wrapper) {
+  background-color: var(--el-input-bg-color, #ffffff) !important;
+  border-color: var(--el-input-border-color, #dcdfe6) !important;
+  box-shadow: 0 0 0 1px var(--el-input-border-color, #dcdfe6) inset !important;
+}
+
+.el-select :deep(.el-input__inner) {
+  color: var(--el-input-text-color, #606266) !important;
+  font-size: 10px !important;
+}
+
+/* 修改选择器中显示的选中值的字体大小 */
+.el-select :deep(.el-select__selected-item) {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
 </style>

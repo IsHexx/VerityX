@@ -22,6 +22,10 @@ public class ApiManagement {
     private String queryParams;           // Query参数（JSON格式）（仅接口类型使用）
     private String headerParams;          // Header参数（JSON格式）（仅接口类型使用）
     private String description;           // 描述
+    private Integer creatorId;            // 创建人ID
+    private String creatorName;           // 创建人姓名
+    private Integer updaterId;            // 修改者ID
+    private String updaterName;           // 修改者姓名
 
     // Getters and Setters
 
@@ -169,6 +173,38 @@ public class ApiManagement {
         this.description = description;
     }
 
+    public Integer getCreatorId() {
+        return creatorId;
+    }
+
+    public void setCreatorId(Integer creatorId) {
+        this.creatorId = creatorId;
+    }
+
+    public String getCreatorName() {
+        return creatorName;
+    }
+
+    public void setCreatorName(String creatorName) {
+        this.creatorName = creatorName;
+    }
+
+    public Integer getUpdaterId() {
+        return updaterId;
+    }
+
+    public void setUpdaterId(Integer updaterId) {
+        this.updaterId = updaterId;
+    }
+
+    public String getUpdaterName() {
+        return updaterName;
+    }
+
+    public void setUpdaterName(String updaterName) {
+        this.updaterName = updaterName;
+    }
+
     @Override
     public String toString() {
         return "ApiManagement{" +
@@ -190,6 +226,10 @@ public class ApiManagement {
                 ", queryParams='" + queryParams + '\'' +
                 ", headerParams='" + headerParams + '\'' +
                 ", description='" + description + '\'' +
+                ", creatorId=" + creatorId +
+                ", creatorName='" + creatorName + '\'' +
+                ", updaterId=" + updaterId +
+                ", updaterName='" + updaterName + '\'' +
                 '}';
     }
 }

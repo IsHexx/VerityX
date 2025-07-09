@@ -42,6 +42,12 @@ public class ApiManagementServiceImpl implements ApiManagementService {
             throw new RuntimeException("接口状态不能为空");
         }
 
+        // 设置创建人信息（这里暂时使用默认值，实际应该从当前登录用户获取）
+        if (api.getCreatorId() == null) {
+            api.setCreatorId(1); // 默认管理员ID
+            api.setCreatorName("admin"); // 默认管理员名称
+        }
+
         apiManagementMapper.insertApi(api);
         return api;
     }
@@ -72,10 +78,17 @@ public class ApiManagementServiceImpl implements ApiManagementService {
         // 设置更新时间
         api.setUpdatedAt(LocalDateTime.now());
 
+        // 设置修改者信息（这里暂时使用默认值，实际应该从当前登录用户获取）
+        if (api.getUpdaterId() == null) {
+            api.setUpdaterId(1); // 默认管理员ID
+            api.setUpdaterName("admin"); // 默认管理员名称
+        }
+
         System.out.println("====== 更新接口Service ======");
         System.out.println("接口ID: " + api.getApiId());
         System.out.println("接口名称: " + api.getApiName());
         System.out.println("更新时间: " + api.getUpdatedAt());
+        System.out.println("修改者: " + api.getUpdaterName());
 
         return apiManagementMapper.updateApi(api) > 0;
     }

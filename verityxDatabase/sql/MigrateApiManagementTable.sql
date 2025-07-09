@@ -32,6 +32,10 @@ CREATE TABLE api_management_new
     query_params       text                                null comment 'Query参数（JSON格式）（仅接口类型使用）',
     header_params      text                                null comment 'Header参数（JSON格式）（仅接口类型使用）',
     description        text                                null comment '描述',
+    creator_id         int                                 null comment '创建人ID',
+    creator_name       varchar(100)                        null comment '创建人姓名',
+    updater_id         int                                 null comment '修改者ID',
+    updater_name       varchar(100)                        null comment '修改者姓名',
     constraint api_id
         unique (api_id),
     index idx_parent_id (parent_id),
